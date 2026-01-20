@@ -1,9 +1,6 @@
-interface LandingProps {
-  onLogin: () => void
-  onRegister: () => void
-}
+import { Link } from 'react-router-dom'
 
-function Landing({ onLogin, onRegister }: LandingProps) {
+function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-celeste-light via-white to-cielo-light">
       {/* Header/Navbar */}
@@ -17,18 +14,18 @@ function Landing({ onLogin, onRegister }: LandingProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <button
-              onClick={onLogin}
+            <Link
+              to="/login"
               className="px-6 py-2 text-indigo font-medium hover:text-purpura transition-colors"
             >
               Iniciar Sesión
-            </button>
-            <button
-              onClick={onRegister}
+            </Link>
+            <Link
+              to="/register"
               className="px-6 py-2 bg-purpura hover:bg-purpura-dark text-white font-medium rounded-lg transition-colors"
             >
               Registrarse
-            </button>
+            </Link>
           </div>
         </nav>
       </header>
@@ -47,18 +44,18 @@ function Landing({ onLogin, onRegister }: LandingProps) {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={onRegister}
-                className="px-8 py-4 bg-gradient-to-r from-purpura to-indigo hover:from-purpura-dark hover:to-indigo-dark text-white font-semibold rounded-xl text-lg transition-all transform hover:scale-105 shadow-lg"
+              <Link
+                to="/register"
+                className="px-8 py-4 bg-gradient-to-r from-purpura to-indigo hover:from-purpura-dark hover:to-indigo-dark text-white font-semibold rounded-xl text-lg transition-all transform hover:scale-105 shadow-lg text-center"
               >
                 Comenzar ahora
-              </button>
-              <button
-                onClick={onLogin}
-                className="px-8 py-4 border-2 border-indigo text-indigo hover:bg-indigo hover:text-white font-semibold rounded-xl text-lg transition-all"
+              </Link>
+              <Link
+                to="/login"
+                className="px-8 py-4 border-2 border-indigo text-indigo hover:bg-indigo hover:text-white font-semibold rounded-xl text-lg transition-all text-center"
               >
                 Ya tengo cuenta
-              </button>
+              </Link>
             </div>
 
             {/* Stats */}
