@@ -68,7 +68,7 @@ userSchema.virtual('fullName').get(function () {
 // Ocultar password en JSON
 userSchema.set('toJSON', {
   virtuals: true,
-  transform: function (doc, ret) {
+  transform: function (doc, ret: { password?: string }) {
     delete ret.password
     return ret
   },

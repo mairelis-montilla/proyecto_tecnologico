@@ -1,7 +1,11 @@
 // Exportar todos los modelos desde un solo archivo
 export { User, IUser } from './User.model.js'
+export { Student, IStudent } from './Student.model.js'
 export { Mentor, IMentor } from './Mentor.model.js'
 export { Specialty, ISpecialty } from './Specialty.model.js'
 export { Availability, IAvailability } from './Availability.model.js'
 export { Booking, IBooking } from './Booking.model.js'
 export { Review, IReview } from './Review.model.js'
+export { Payment, IPayment } from './Payment.model.js'
+export { Notification, INotification } from './Notification.model.js'
+export { PasswordReset, IPasswordReset } from './PasswordReset.model.js'
