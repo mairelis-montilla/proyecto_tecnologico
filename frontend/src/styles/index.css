@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Paleta de colores accesible */
+  --color-rosa: #D64D7A;
+  --color-purpura: #7B3F9E;
+  --color-indigo: #3D3A8C;
+  --color-azul: #4A6FD4;
+  --color-cielo: #7EB3E8;
+  --color-celeste: #C5E4F7;
+
+  /* Texto */
+  --text-light: #FFFFFF;
+  --text-dark: #1A1A1A;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #FAFBFF;
+}
+
+#root {
+  width: 100%;
+}
