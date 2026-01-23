@@ -52,7 +52,9 @@ passwordResetSchema.statics.generateToken = function (): string {
 }
 
 // Método estático para crear un nuevo reset con expiración de 1 hora
-passwordResetSchema.statics.createReset = async function (userId: Types.ObjectId) {
+passwordResetSchema.statics.createReset = async function (
+  userId: Types.ObjectId
+) {
   const token = crypto.randomBytes(32).toString('hex')
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hora
 
@@ -71,4 +73,7 @@ passwordResetSchema.methods.isValid = function (): boolean {
   return !this.isUsed && this.expiresAt > new Date()
 }
 
-export const PasswordReset = model<IPasswordReset>('PasswordReset', passwordResetSchema)
+export const PasswordReset = model<IPasswordReset>(
+  'PasswordReset',
+  passwordResetSchema
+)

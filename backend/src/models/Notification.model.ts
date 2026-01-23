@@ -89,6 +89,12 @@ notificationSchema.index({ userId: 1, isRead: 1 })
 notificationSchema.index({ userId: 1, createdAt: -1 })
 notificationSchema.index({ type: 1 })
 // TTL: Auto-eliminar notificaciones leídas después de 30 días
-notificationSchema.index({ readAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 })
+notificationSchema.index(
+  { readAt: 1 },
+  { expireAfterSeconds: 30 * 24 * 60 * 60 }
+)
 
-export const Notification = model<INotification>('Notification', notificationSchema)
+export const Notification = model<INotification>(
+  'Notification',
+  notificationSchema
+)

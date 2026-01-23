@@ -7,7 +7,12 @@ export interface IPayment extends Document {
   amount: number
   currency: 'PEN' | 'USD'
   paymentMethod: 'yape' | 'plin' | 'transfer' | 'cash'
-  status: 'pending_proof' | 'pending_validation' | 'validated' | 'rejected' | 'refunded'
+  status:
+    | 'pending_proof'
+    | 'pending_validation'
+    | 'validated'
+    | 'rejected'
+    | 'refunded'
   // Comprobante de pago (imagen subida por estudiante)
   proofImage?: string
   proofUploadedAt?: Date
@@ -58,7 +63,13 @@ const paymentSchema = new Schema<IPayment>(
     },
     status: {
       type: String,
-      enum: ['pending_proof', 'pending_validation', 'validated', 'rejected', 'refunded'],
+      enum: [
+        'pending_proof',
+        'pending_validation',
+        'validated',
+        'rejected',
+        'refunded',
+      ],
       default: 'pending_proof',
     },
     // Comprobante de pago
@@ -119,8 +130,10 @@ paymentSchema.index({ validatedBy: 1, status: 1 })
 paymentSchema.pre('save', function (next) {
   if (this.isModified('amount')) {
     const PLATFORM_FEE_PERCENTAGE = 0.1 // 10%
-    this.platformFee = Math.round(this.amount * PLATFORM_FEE_PERCENTAGE * 100) / 100
-    this.mentorEarnings = Math.round((this.amount - this.platformFee) * 100) / 100
+    this.platformFee =
+      Math.round(this.amount * PLATFORM_FEE_PERCENTAGE * 100) / 100
+    this.mentorEarnings =
+      Math.round((this.amount - this.platformFee) * 100) / 100
   }
   next()
 })

@@ -9,6 +9,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
+    "seed:specialties": "tsx src/scripts/seedSpecialties.ts",
+    "seed:mentors": "tsx src/scripts/seedMentors.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",

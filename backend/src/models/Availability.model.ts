@@ -27,12 +27,18 @@ const availabilitySchema = new Schema<IAvailability>(
     startTime: {
       type: String,
       required: [true, 'Start time is required'],
-      match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'],
+      match: [
+        /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+        'Invalid time format (HH:MM)',
+      ],
     },
     endTime: {
       type: String,
       required: [true, 'End time is required'],
-      match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'],
+      match: [
+        /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+        'Invalid time format (HH:MM)',
+      ],
     },
     duration: {
       type: Number,

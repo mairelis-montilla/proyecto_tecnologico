@@ -7,7 +7,8 @@ interface CustomError extends Error {
 export const errorHandler = (
   err: CustomError,
   _req: Request,
-  res: Response) => {
+  res: Response
+) => {
   const statusCode = err.statusCode || 500
   const message = err.message || 'Internal Server Error'
 

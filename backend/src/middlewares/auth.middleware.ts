@@ -86,3 +86,6 @@ export const authorize = (...roles: string[]) => {
     next()
   }
 }
+
+// Alias para compatibilidad
+export const authorizeRoles = authorize

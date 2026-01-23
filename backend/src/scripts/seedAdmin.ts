@@ -11,7 +11,8 @@ const ADMIN_LAST_NAME = 'MentorMatch'
 async function seedAdmin() {
   try {
     // Conectar a la base de datos
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/mentordb'
+    const mongoUri =
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/mentordb'
     await mongoose.connect(mongoUri)
     console.log('Conectado a MongoDB')
 
