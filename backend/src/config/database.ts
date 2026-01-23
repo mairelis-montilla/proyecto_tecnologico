@@ -2,7 +2,8 @@ import mongoose from 'mongoose'
 
 export const connectDB = async (): Promise<void> => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mentordb'
+    const mongoURI =
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/mentordb'
 
     await mongoose.connect(mongoURI)
 
@@ -19,7 +20,7 @@ mongoose.connection.on('connected', () => {
   console.log('🔗 Mongoose connected to DB')
 })
 
-mongoose.connection.on('error', (err) => {
+mongoose.connection.on('error', err => {
   console.error('❌ Mongoose connection error:', err)
 })
 

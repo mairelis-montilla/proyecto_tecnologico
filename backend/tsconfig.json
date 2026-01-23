@@ -5,13 +5,14 @@
     "lib": ["ES2020"],
 
     /* Modules */
-    "module": "ESNext",
+    "module": "Node16",
     "rootDir": "./src",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
+    "ignoreDeprecations": "5.0",
     "resolveJsonModule": true,
 
     /* Emit */

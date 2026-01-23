@@ -25,7 +25,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Rutas
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.json({
     message: 'MentorMatch API',
     description: 'Sistema de Reserva de Mentorías',

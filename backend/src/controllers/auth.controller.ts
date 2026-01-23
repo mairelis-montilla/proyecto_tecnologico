@@ -36,7 +36,16 @@ export const registerStudent = async (
       return
     }
 
-    const { email, password, firstName, lastName, bio, institution, career, semester } = req.body
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      bio,
+      institution,
+      career,
+      semester,
+    } = req.body
 
     // Verificar si el email ya existe
     const existingUser = await User.findOne({ email })
@@ -271,7 +280,7 @@ export const login = async (
 }
 
 export const logout = async (
-  req: AuthRequest,
+  _req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {

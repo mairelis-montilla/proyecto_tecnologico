@@ -8,6 +8,7 @@ import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import Dashboard from '@/pages/Dashboard'
 import ComingSoon from '@/pages/ComingSoon'
+import Mentors from '@/pages/Mentors'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -58,7 +59,7 @@ function App() {
             path="/mentors"
             element={
               <ProtectedRoute allowedRoles={['student']}>
-                <ComingSoon title="Buscar Mentores" description="Pronto podrás buscar y conectar con mentores especializados en tu área de interés." />
+                <Mentors/> 
               </ProtectedRoute>
             }
           />
