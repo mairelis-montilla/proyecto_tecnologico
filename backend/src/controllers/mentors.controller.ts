@@ -359,7 +359,7 @@ export const searchMentors = async (
     }
 
     // Proyección de campos
-    // ⚠️ IMPORTANTE: Solo incluir campos que existen en el modelo Mentor
+    // IMPORTANTE: Solo incluir campos que existen en el modelo Mentor
     pipeline.push({
       $project: {
         _id: 1,
@@ -367,7 +367,7 @@ export const searchMentors = async (
         experience: 1,
         credentials: 1,
         rating: 1,
-        // totalReviews NO existe en el modelo, lo removemos
+        // totalReviews 
         totalSessions: 1,
         hourlyRate: 1,
         languages: 1,

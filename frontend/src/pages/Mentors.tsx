@@ -79,12 +79,6 @@ const loadMentors = useCallback(async () => {
     sortBy: 'rating',
     sortOrder: 'desc',
     })
-    console.log('Filtros aplicados:', {
-        languages: selectedLanguages,
-        category: selectedCategory,
-        specialties: selectedSpecialties
-    })
-    console.log(response)
     setMentors(response.data.mentors)
     setPagination(response.data.pagination)
     } catch (err) {
