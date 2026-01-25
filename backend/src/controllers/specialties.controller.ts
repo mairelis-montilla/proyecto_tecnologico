@@ -108,7 +108,7 @@ export const getSpecialtyById = async (
  * GET /api/specialties/categories
  */
 export const getCategories = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {

@@ -359,6 +359,7 @@ export const searchMentors = async (
     }
 
     // Proyección de campos
+    // IMPORTANTE: Solo incluir campos que existen en el modelo Mentor
     pipeline.push({
       $project: {
         _id: 1,
@@ -366,11 +367,12 @@ export const searchMentors = async (
         experience: 1,
         credentials: 1,
         rating: 1,
-        totalReviews: 1,
+        // totalReviews 
         totalSessions: 1,
         hourlyRate: 1,
         languages: 1,
         createdAt: 1,
+        updatedAt: 1,
         userId: {
           _id: '$user._id',
           firstName: '$user.firstName',
@@ -459,7 +461,7 @@ export const getFeaturedMentors = async (
         path: 'specialties',
         select: 'name category icon',
       })
-      .sort({ rating: -1, totalSessions: -1, totalReviews: -1 })
+      .sort({ rating: -1, totalSessions: -1 })
       .limit(limit)
       .lean()
 
