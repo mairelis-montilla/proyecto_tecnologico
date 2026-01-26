@@ -18,8 +18,12 @@ const mentorsData = [
     },
     mentor: {
       bio: 'Experta en desarrollo web con React y Node.js. Apasionada por enseñar buenas prácticas de código y arquitectura de software. Más de 8 años de experiencia en empresas tech.',
-      experience: '8 años de experiencia como Senior Software Engineer en empresas como Google y Mercado Libre.',
-      credentials: ['AWS Certified Developer', 'Meta React Developer Certificate'],
+      experience:
+        '8 años de experiencia como Senior Software Engineer en empresas como Google y Mercado Libre.',
+      credentials: [
+        'AWS Certified Developer',
+        'Meta React Developer Certificate',
+      ],
       hourlyRate: 45,
       languages: ['español', 'inglés'],
       rating: 4.9,
@@ -38,8 +42,12 @@ const mentorsData = [
     },
     mentor: {
       bio: 'Especialista en Machine Learning y análisis de datos. Mentor con 5 años de experiencia ayudando a profesionales a entrar al mundo de la ciencia de datos.',
-      experience: 'Data Scientist en Spotify y anteriormente en IBM. PhD en Ciencias de la Computación.',
-      credentials: ['Google Data Analytics Certificate', 'IBM Data Science Professional'],
+      experience:
+        'Data Scientist en Spotify y anteriormente en IBM. PhD en Ciencias de la Computación.',
+      credentials: [
+        'Google Data Analytics Certificate',
+        'IBM Data Science Professional',
+      ],
       hourlyRate: 60,
       languages: ['español', 'inglés', 'portugués'],
       rating: 4.8,
@@ -59,7 +67,10 @@ const mentorsData = [
     mentor: {
       bio: 'Diseñadora UX/UI con más de 10 años de experiencia en productos digitales. He trabajado en startups y grandes empresas diseñando experiencias que impactan millones de usuarios.',
       experience: 'Lead Designer en Airbnb. Anteriormente en Facebook y Uber.',
-      credentials: ['Google UX Design Certificate', 'Interaction Design Foundation'],
+      credentials: [
+        'Google UX Design Certificate',
+        'Interaction Design Foundation',
+      ],
       hourlyRate: 55,
       languages: ['español', 'inglés'],
       rating: 5.0,
@@ -78,8 +89,13 @@ const mentorsData = [
     },
     mentor: {
       bio: 'Experto en infraestructura cloud, CI/CD y automatización. AWS Certified Solutions Architect con experiencia liderando equipos de DevOps en empresas Fortune 500.',
-      experience: 'Principal DevOps Engineer en Amazon. 12 años de experiencia en infraestructura.',
-      credentials: ['AWS Solutions Architect Professional', 'Kubernetes Administrator (CKA)', 'HashiCorp Terraform Associate'],
+      experience:
+        'Principal DevOps Engineer en Amazon. 12 años de experiencia en infraestructura.',
+      credentials: [
+        'AWS Solutions Architect Professional',
+        'Kubernetes Administrator (CKA)',
+        'HashiCorp Terraform Associate',
+      ],
       hourlyRate: 70,
       languages: ['español', 'inglés'],
       rating: 4.7,
@@ -95,7 +111,9 @@ async function seedMentors() {
     const mongoUri = process.env.MONGODB_URI
 
     if (!mongoUri) {
-      throw new Error('MONGODB_URI no está definida en las variables de entorno')
+      throw new Error(
+        'MONGODB_URI no está definida en las variables de entorno'
+      )
     }
 
     await mongoose.connect(mongoUri)
@@ -106,7 +124,9 @@ async function seedMentors() {
     console.log(`Encontradas ${allSpecialties.length} especialidades`)
 
     if (allSpecialties.length === 0) {
-      console.error('No hay especialidades en la base de datos. Ejecuta primero: npm run seed:specialties')
+      console.error(
+        'No hay especialidades en la base de datos. Ejecuta primero: npm run seed:specialties'
+      )
       process.exit(1)
     }
 
@@ -134,9 +154,9 @@ async function seedMentors() {
 
       // Buscar especialidades por nombre
       const specialtyIds = data.mentor.specialtyNames
-        .map((name) => {
+        .map(name => {
           const specialty = allSpecialties.find(
-            (s) => s.name.toLowerCase() === name.toLowerCase()
+            s => s.name.toLowerCase() === name.toLowerCase()
           )
           return specialty?._id
         })
@@ -158,7 +178,9 @@ async function seedMentors() {
         isActive: true,
       })
 
-      console.log(`  + Creado mentor: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`)
+      console.log(
+        `  + Creado mentor: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`
+      )
       created++
     }
 
@@ -170,7 +192,7 @@ async function seedMentors() {
       console.log(`\nCredenciales de los mentores creados:`)
       console.log(`  Contraseña para todos: Mentor123!`)
       console.log(`\n  Emails:`)
-      mentorsData.forEach((m) => {
+      mentorsData.forEach(m => {
         console.log(`    - ${m.user.email}`)
       })
     }

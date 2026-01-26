@@ -1,5 +1,8 @@
 import { api } from './api'
-import type { CategoriesResponse, SpecialtiesResponse } from '../types/mentor.types'
+import type {
+  CategoriesResponse,
+  SpecialtiesResponse,
+} from '../types/mentor.types'
 
 export const specialtiesService = {
   /**

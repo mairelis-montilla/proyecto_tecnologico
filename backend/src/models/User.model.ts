@@ -57,8 +57,7 @@ const userSchema = new Schema<IUser>(
   }
 )
 
-// Índices
-userSchema.index({ email: 1 })
+// Índices (email ya tiene índice por unique: true)
 userSchema.index({ role: 1 })
 
 // Virtual para nombre completo

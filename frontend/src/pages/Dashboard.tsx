@@ -24,7 +24,15 @@ export default function Dashboard() {
       {/* Welcome Card */}
       <div className="bg-gradient-to-r from-purpura to-rosa rounded-2xl p-6 md:p-8 text-white">
         <h2 className="text-2xl md:text-3xl font-bold mb-2">
-          ¡Bienvenido{isStudent ? ', estudiante' : isMentor ? ', mentor' : isAdmin ? ', administrador' : ''}!
+          ¡Bienvenido
+          {isStudent
+            ? ', estudiante'
+            : isMentor
+              ? ', mentor'
+              : isAdmin
+                ? ', administrador'
+                : ''}
+          !
         </h2>
         <p className="text-white/80">
           {isStudent
@@ -41,7 +49,9 @@ export default function Dashboard() {
         {/* Profile Card */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Mi Perfil</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Mi Perfil
+            </h3>
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purpura to-rosa flex items-center justify-center text-white text-2xl font-bold">
@@ -73,24 +83,34 @@ export default function Dashboard() {
                   {studentProfile.institution && (
                     <div>
                       <p className="text-xs text-gray-500">Institución</p>
-                      <p className="text-sm text-gray-800">{studentProfile.institution}</p>
+                      <p className="text-sm text-gray-800">
+                        {studentProfile.institution}
+                      </p>
                     </div>
                   )}
                   {studentProfile.career && (
                     <div>
                       <p className="text-xs text-gray-500">Carrera</p>
-                      <p className="text-sm text-gray-800">{studentProfile.career}</p>
+                      <p className="text-sm text-gray-800">
+                        {studentProfile.career}
+                      </p>
                     </div>
                   )}
                   {studentProfile.semester && (
                     <div>
                       <p className="text-xs text-gray-500">Semestre</p>
-                      <p className="text-sm text-gray-800">{studentProfile.semester}° semestre</p>
+                      <p className="text-sm text-gray-800">
+                        {studentProfile.semester}° semestre
+                      </p>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs text-gray-500">Sesiones completadas</p>
-                    <p className="text-sm text-gray-800">{studentProfile.totalSessions}</p>
+                    <p className="text-xs text-gray-500">
+                      Sesiones completadas
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      {studentProfile.totalSessions}
+                    </p>
                   </div>
                 </div>
               )}
@@ -100,16 +120,22 @@ export default function Dashboard() {
                 <div className="border-t pt-4 space-y-2">
                   <div>
                     <p className="text-xs text-gray-500">Biografía</p>
-                    <p className="text-sm text-gray-800 line-clamp-3">{mentorProfile.bio}</p>
+                    <p className="text-sm text-gray-800 line-clamp-3">
+                      {mentorProfile.bio}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Experiencia</p>
-                    <p className="text-sm text-gray-800">{mentorProfile.experience}</p>
+                    <p className="text-sm text-gray-800">
+                      {mentorProfile.experience}
+                    </p>
                   </div>
                   {mentorProfile.hourlyRate && (
                     <div>
                       <p className="text-xs text-gray-500">Tarifa por hora</p>
-                      <p className="text-sm text-gray-800">S/. {mentorProfile.hourlyRate}</p>
+                      <p className="text-sm text-gray-800">
+                        S/. {mentorProfile.hourlyRate}
+                      </p>
                     </div>
                   )}
                   <div className="flex items-center gap-2">
@@ -121,7 +147,9 @@ export default function Dashboard() {
                           : 'bg-yellow-100 text-yellow-700'
                       }`}
                     >
-                      {mentorProfile.isApproved ? 'Aprobado' : 'Pendiente de aprobación'}
+                      {mentorProfile.isApproved
+                        ? 'Aprobado'
+                        : 'Pendiente de aprobación'}
                     </span>
                   </div>
                   <div>
@@ -134,8 +162,12 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Sesiones completadas</p>
-                    <p className="text-sm text-gray-800">{mentorProfile.totalSessions}</p>
+                    <p className="text-xs text-gray-500">
+                      Sesiones completadas
+                    </p>
+                    <p className="text-sm text-gray-800">
+                      {mentorProfile.totalSessions}
+                    </p>
                   </div>
                 </div>
               )}
@@ -153,7 +185,9 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Acciones rápidas</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Acciones rápidas
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {isStudent && (
                 <>
@@ -260,9 +294,7 @@ export default function Dashboard() {
                   <p className="font-medium text-gray-800 group-hover:text-purpura">
                     Mensajes
                   </p>
-                  <p className="text-sm text-gray-500">
-                    Ver conversaciones
-                  </p>
+                  <p className="text-sm text-gray-500">Ver conversaciones</p>
                 </div>
               </Link>
               <Link
@@ -274,9 +306,7 @@ export default function Dashboard() {
                   <p className="font-medium text-gray-800 group-hover:text-purpura">
                     Configuración
                   </p>
-                  <p className="text-sm text-gray-500">
-                    Editar mi perfil
-                  </p>
+                  <p className="text-sm text-gray-500">Editar mi perfil</p>
                 </div>
               </Link>
             </div>
@@ -284,7 +314,9 @@ export default function Dashboard() {
 
           {/* Recent Activity */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Actividad reciente</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Actividad reciente
+            </h3>
             <div className="text-center py-8 text-gray-500">
               <span className="text-4xl mb-2 block">📭</span>
               <p>No hay actividad reciente</p>

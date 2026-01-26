@@ -55,8 +55,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const message =
         error instanceof Error
           ? error.message
-          : (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            'Error al iniciar sesión'
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || 'Error al iniciar sesión'
       set({ error: message, isLoading: false })
       throw error
     }
@@ -82,8 +82,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const message =
         error instanceof Error
           ? error.message
-          : (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            'Error al registrar estudiante'
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || 'Error al registrar estudiante'
       set({ error: message, isLoading: false })
       throw error
     }
@@ -109,8 +109,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const message =
         error instanceof Error
           ? error.message
-          : (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            'Error al registrar mentor'
+          : (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || 'Error al registrar mentor'
       set({ error: message, isLoading: false })
       throw error
     }
@@ -143,7 +143,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const token = localStorage.getItem('token')
     if (!token) {
-      set({ isAuthenticated: false, user: null, profile: null, isInitialized: true })
+      set({
+        isAuthenticated: false,
+        user: null,
+        profile: null,
+        isInitialized: true,
+      })
       return
     }
 

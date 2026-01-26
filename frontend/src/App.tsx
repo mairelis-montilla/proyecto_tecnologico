@@ -9,10 +9,11 @@ import Register from '@/pages/Register'
 import Dashboard from '@/pages/Dashboard'
 import ComingSoon from '@/pages/ComingSoon'
 import Mentors from '@/pages/Mentors'
+import MentorProfile from '@/pages/MentorProfile'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
-  const checkAuth = useAuthStore((state) => state.checkAuth)
+  const checkAuth = useAuthStore(state => state.checkAuth)
 
   useEffect(() => {
     checkAuth()
@@ -33,15 +34,25 @@ function App() {
         {/* Rutas públicas */}
         <Route
           path="/"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />}
+          element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />
+          }
         />
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+          element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+          }
         />
         <Route
           path="/register"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />}
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Register />
+            )
+          }
         />
 
         {/* Rutas protegidas con Layout */}
@@ -59,7 +70,15 @@ function App() {
             path="/mentors"
             element={
               <ProtectedRoute allowedRoles={['student']}>
-                <Mentors/> 
+                <Mentors />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentors/:id"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <MentorProfile />
               </ProtectedRoute>
             }
           />
@@ -69,7 +88,10 @@ function App() {
             path="/availability"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon title="Mi Disponibilidad" description="Configura tus horarios disponibles para que los estudiantes puedan agendar sesiones contigo." />
+                <ComingSoon
+                  title="Mi Disponibilidad"
+                  description="Configura tus horarios disponibles para que los estudiantes puedan agendar sesiones contigo."
+                />
               </ProtectedRoute>
             }
           />
@@ -77,7 +99,10 @@ function App() {
             path="/requests"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon title="Solicitudes" description="Aquí podrás ver y gestionar las solicitudes de sesiones de los estudiantes." />
+                <ComingSoon
+                  title="Solicitudes"
+                  description="Aquí podrás ver y gestionar las solicitudes de sesiones de los estudiantes."
+                />
               </ProtectedRoute>
             }
           />
@@ -85,7 +110,10 @@ function App() {
             path="/reviews"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon title="Mis Reseñas" description="Ve las calificaciones y comentarios que los estudiantes han dejado sobre tus sesiones." />
+                <ComingSoon
+                  title="Mis Reseñas"
+                  description="Ve las calificaciones y comentarios que los estudiantes han dejado sobre tus sesiones."
+                />
               </ProtectedRoute>
             }
           />
@@ -95,21 +123,39 @@ function App() {
             path="/sessions"
             element={
               <ProtectedRoute allowedRoles={['student', 'mentor']}>
-                <ComingSoon title="Mis Sesiones" description="Visualiza tus sesiones programadas, completadas y pendientes." />
+                <ComingSoon
+                  title="Mis Sesiones"
+                  description="Visualiza tus sesiones programadas, completadas y pendientes."
+                />
               </ProtectedRoute>
             }
           />
           <Route
             path="/messages"
-            element={<ComingSoon title="Mensajes" description="Comunícate con tus mentores o estudiantes de forma directa." />}
+            element={
+              <ComingSoon
+                title="Mensajes"
+                description="Comunícate con tus mentores o estudiantes de forma directa."
+              />
+            }
           />
           <Route
             path="/profile"
-            element={<ComingSoon title="Mi Perfil" description="Visualiza y edita la información de tu perfil." />}
+            element={
+              <ComingSoon
+                title="Mi Perfil"
+                description="Visualiza y edita la información de tu perfil."
+              />
+            }
           />
           <Route
             path="/settings"
-            element={<ComingSoon title="Configuración" description="Personaliza tu cuenta y preferencias de la plataforma." />}
+            element={
+              <ComingSoon
+                title="Configuración"
+                description="Personaliza tu cuenta y preferencias de la plataforma."
+              />
+            }
           />
 
           {/* Rutas de admin */}
@@ -117,7 +163,10 @@ function App() {
             path="/admin/users"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <ComingSoon title="Gestionar Usuarios" description="Administra los usuarios de la plataforma." />
+                <ComingSoon
+                  title="Gestionar Usuarios"
+                  description="Administra los usuarios de la plataforma."
+                />
               </ProtectedRoute>
             }
           />
@@ -125,7 +174,10 @@ function App() {
             path="/admin/mentors"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <ComingSoon title="Aprobar Mentores" description="Revisa y aprueba las solicitudes de nuevos mentores." />
+                <ComingSoon
+                  title="Aprobar Mentores"
+                  description="Revisa y aprueba las solicitudes de nuevos mentores."
+                />
               </ProtectedRoute>
             }
           />
