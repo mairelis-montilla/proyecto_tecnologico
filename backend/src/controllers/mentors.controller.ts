@@ -4,6 +4,14 @@ import mongoose, { PipelineStage } from 'mongoose'
 import { Mentor } from '../models/Mentor.model.js'
 import { Availability } from '../models/Availability.model.js'
 import { Review } from '../models/Review.model.js'
+import { User } from '../models/User.model.js'
+import { Specialty } from '../models/Specialty.model.js'
+import { AuthRequest } from '../middlewares/auth.middleware.js'
+import {
+  uploadImage,
+  deleteImage,
+  extractPublicId,
+} from '../services/cloudinary.service.js'
 
 // Campos permitidos para ordenamiento
 const ALLOWED_SORT_FIELDS = [
@@ -474,5 +482,334 @@ export const getFeaturedMentors = async (
     })
   } catch (error) {
     next(error)
+  }
+}
+
+/**
+ * GET /api/mentors/profile
+ * Obtener el perfil del mentor autenticado
+ */
+export const getMyMentorProfile = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id
+
+    if (req.user?.role !== 'mentor') {
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden acceder a este recurso',
+      })
+      return
+    }
+
+    let mentor = await Mentor.findOne({ userId })
+      .populate('specialties', 'name category icon')
+      .populate('userId', 'firstName lastName email avatar')
+
+    if (!mentor) {
+      // Crear perfil de mentor vacío si no existe
+      mentor = await Mentor.create({
+        userId,
+        specialties: [],
+        languages: [],
+        credentials: [],
+      })
+      mentor = await Mentor.findById(mentor._id)
+        .populate('specialties', 'name category icon')
+        .populate('userId', 'firstName lastName email avatar')
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        mentor,
+      },
+    })
+  } catch (error) {
+    console.error('Error obteniendo perfil de mentor:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Error al obtener el perfil del mentor',
+    })
+  }
+}
+
+/**
+ * POST /api/mentors/profile
+ * Crear o actualizar el perfil del mentor autenticado
+ */
+export const createOrUpdateMentorProfile = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Errores de validación',
+        errors: errors.array(),
+      })
+      return
+    }
+
+    const userId = req.user?._id
+
+    if (req.user?.role !== 'mentor') {
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden acceder a este recurso',
+      })
+      return
+    }
+
+    const {
+      title,
+      bio,
+      specialties,
+      experience,
+      yearsOfExperience,
+      credentials,
+      languages,
+      hourlyRate,
+      profileStatus,
+    } = req.body
+
+    // Validar especialidades (1-5)
+    if (specialties && specialties.length > 0) {
+      if (specialties.length > 5) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Máximo 5 especialidades permitidas',
+        })
+        return
+      }
+
+      const validSpecialties = await Specialty.find({
+        _id: { $in: specialties },
+        isActive: true,
+      })
+
+      if (validSpecialties.length !== specialties.length) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Una o más especialidades no son válidas',
+        })
+        return
+      }
+    }
+
+    // Validar campos obligatorios para publicar
+    if (profileStatus === 'published') {
+      const missingFields = []
+      if (!title || title.trim() === '')
+        missingFields.push('título profesional')
+      if (!bio || bio.trim() === '') missingFields.push('bio')
+      if (!specialties || specialties.length === 0)
+        missingFields.push('especialidades')
+      if (!hourlyRate || hourlyRate <= 0) missingFields.push('tarifa por hora')
+
+      if (missingFields.length > 0) {
+        res.status(400).json({
+          status: 'error',
+          message: `Para publicar el perfil, complete los siguientes campos: ${missingFields.join(', ')}`,
+        })
+        return
+      }
+    }
+
+    // Buscar o crear perfil de mentor
+    let mentor = await Mentor.findOne({ userId })
+
+    if (!mentor) {
+      mentor = await Mentor.create({
+        userId,
+        title: title || '',
+        bio: bio || '',
+        specialties: specialties || [],
+        experience: experience || '',
+        yearsOfExperience: yearsOfExperience || 0,
+        credentials: credentials || [],
+        languages: languages || [],
+        hourlyRate: hourlyRate || null,
+        profileStatus: profileStatus || 'draft',
+      })
+    } else {
+      // Actualizar perfil existente
+      if (title !== undefined) mentor.title = title
+      if (bio !== undefined) mentor.bio = bio
+      if (specialties !== undefined) mentor.specialties = specialties
+      if (experience !== undefined) mentor.experience = experience
+      if (yearsOfExperience !== undefined)
+        mentor.yearsOfExperience = yearsOfExperience
+      if (credentials !== undefined) mentor.credentials = credentials
+      if (languages !== undefined) mentor.languages = languages
+      if (hourlyRate !== undefined) mentor.hourlyRate = hourlyRate
+      if (profileStatus !== undefined) mentor.profileStatus = profileStatus
+
+      await mentor.save()
+    }
+
+    // Obtener el perfil actualizado con populate
+    const updatedMentor = await Mentor.findById(mentor._id)
+      .populate('specialties', 'name category icon')
+      .populate('userId', 'firstName lastName email avatar')
+
+    res.status(200).json({
+      status: 'success',
+      message:
+        profileStatus === 'published'
+          ? 'Perfil publicado correctamente'
+          : 'Perfil guardado como borrador',
+      data: {
+        mentor: updatedMentor,
+      },
+    })
+  } catch (error) {
+    console.error('Error guardando perfil de mentor:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Error al guardar el perfil del mentor',
+    })
+  }
+}
+
+/**
+ * PUT /api/mentors/profile
+ * Actualizar el perfil del mentor autenticado (alias de POST para compatibilidad REST)
+ */
+export const updateMentorProfile = createOrUpdateMentorProfile
+
+/**
+ * POST /api/mentors/profile/avatar
+ * Subir imagen de avatar del mentor
+ */
+export const uploadMentorAvatar = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id
+
+    if (req.user?.role !== 'mentor') {
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden acceder a este recurso',
+      })
+      return
+    }
+
+    if (!req.file) {
+      res.status(400).json({
+        status: 'error',
+        message: 'No se proporcionó ninguna imagen',
+      })
+      return
+    }
+
+    // Obtener el usuario para verificar si tiene avatar previo
+    const user = await User.findById(userId)
+    if (!user) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Usuario no encontrado',
+      })
+      return
+    }
+
+    // Si tiene avatar previo en Cloudinary, eliminarlo
+    if (user.avatar) {
+      const publicId = extractPublicId(user.avatar)
+      if (publicId) {
+        await deleteImage(publicId)
+      }
+    }
+
+    // Subir nueva imagen
+    const result = await uploadImage(req.file.buffer, 'mentors')
+
+    // Actualizar avatar en User
+    user.avatar = result.url
+    await user.save()
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Avatar actualizado correctamente',
+      data: {
+        avatar: result.url,
+      },
+    })
+  } catch (error) {
+    console.error('Error subiendo avatar:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Error al subir el avatar',
+    })
+  }
+}
+
+/**
+ * POST /api/upload/avatar
+ * Endpoint genérico para subir avatar (estudiantes y mentores)
+ */
+export const uploadAvatar = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id
+    const role = req.user?.role
+
+    if (!req.file) {
+      res.status(400).json({
+        status: 'error',
+        message: 'No se proporcionó ninguna imagen',
+      })
+      return
+    }
+
+    // Obtener el usuario
+    const user = await User.findById(userId)
+    if (!user) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Usuario no encontrado',
+      })
+      return
+    }
+
+    // Si tiene avatar previo en Cloudinary, eliminarlo
+    if (user.avatar && user.avatar.includes('cloudinary')) {
+      const publicId = extractPublicId(user.avatar)
+      if (publicId) {
+        await deleteImage(publicId)
+      }
+    }
+
+    // Determinar la carpeta según el rol
+    const folder = role === 'mentor' ? 'mentors' : 'students'
+
+    // Subir nueva imagen
+    const result = await uploadImage(req.file.buffer, folder)
+
+    // Actualizar avatar en User
+    user.avatar = result.url
+    await user.save()
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Avatar actualizado correctamente',
+      data: {
+        avatar: result.url,
+      },
+    })
+  } catch (error) {
+    console.error('Error subiendo avatar:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Error al subir el avatar',
+    })
   }
 }
