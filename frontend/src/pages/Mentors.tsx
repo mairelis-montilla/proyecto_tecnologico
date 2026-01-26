@@ -19,6 +19,7 @@ import type {
   CategoryWithSpecialties,
   Pagination,
 } from '../types/mentor.types'
+import { getAvatarUrl } from '../utils/avatar'
 
 const Mentors = () => {
   const navigate = useNavigate()
@@ -41,16 +42,6 @@ const Mentors = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
 
-  const availableLanguages = [
-    'Español',
-    'Inglés',
-    'Francés',
-    'Alemán',
-    'Italiano',
-    'Portugués',
-    'Chino',
-    'Japonés',
-  ]
   // Debounce para búsqueda
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -165,10 +156,7 @@ const Mentors = () => {
 
   // Obtener avatar del mentor
   const getMentorAvatar = (mentor: Mentor) => {
-    return (
-      mentor.userId.avatar ||
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${mentor.userId.firstName}`
-    )
+    return getAvatarUrl(mentor.userId.avatar)
   }
 
   // Componente de filtros reutilizable

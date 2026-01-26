@@ -331,7 +331,6 @@ Y a los mentores:
 | PTG3-3 | Registro de Usuario Mentor | 5 | ✅ |
 | PTG3-4 | Inicio Sesión | 3 | ✅ |
 | PTG3-5 | Cerrar sesión (logout) | 2 | ✅ |
-| PTG3-6 | Crear Perfil de Mentor | 8 | ✅ |
 | PTG3-7 | Editar Perfil de Mentor | 3 | ✅ |
 | PTG3-8 | Ver Marketplace de Mentores | 5 | ✅ |
 | PTG3-9 | Buscar Mentores por Categorías | 5 | ✅ |
@@ -364,18 +363,18 @@ Y a los mentores:
 | PTG3-27 | Ver Reseñas de Mentor | 3 |
 | PTG3-28 | Ver Ingresos (Mentor) | 5 |
 | PTG3-29 | Ver Historial de Pagos (Estudiante) | 3 |
-| PTG3-31 | Dashboard de Administrador | 5 |
+| PTG3-21 | Dashboard de Administrador | 5 |
 | PTG3-32 | Gestión de Usuarios (Admin) | 8 |
 | PTG3-34 | Bloquear/Desbloquear Usuarios (Admin) | 3 |
 | PTG3-36 | Historial de Transacciones (Admin) | 5 |
 | PTG3-37 | Gestión de Especialidades (Admin) | 3 |
-| PTG3-38 | Reportes y Estadísticas (Admin) | 5 |
+| PTG3-31 | Reportes y Estadísticas (Admin) | 5 |
 | **Total** | | **48 pts** |
 
 ### Backlog Futuro
 | ID | Historia de Usuario | Puntos |
 |---|---|---|
-| PTG3-21 | Recuperar Contraseña | 5 |
+| PTG3-6 | Recuperar Contraseña | 5 |
 | PTG3-22 | Notificación Nueva Reserva (Mentor) | 3 |
 | PTG3-23 | Notificación Confirmación (Estudiante) | 2 |
 | PTG3-30 | Recordatorio Sesión | 5 |
@@ -559,7 +558,7 @@ Y a los mentores:
 
 ---
 
-### PTG3-31: Dashboard de Administrador (5 pts)
+### PTG3-21: Dashboard de Administrador (5 pts)
 **Como** administrador
 **Quiero** ver un dashboard con métricas clave
 **Para** monitorear el estado de la plataforma
@@ -672,7 +671,7 @@ Y a los mentores:
 
 ---
 
-### PTG3-38: Reportes y Estadísticas - Admin (5 pts)
+### PTG3-31: Reportes y Estadísticas - Admin (5 pts)
 **Como** administrador
 **Quiero** generar reportes de la plataforma
 **Para** tomar decisiones basadas en datos

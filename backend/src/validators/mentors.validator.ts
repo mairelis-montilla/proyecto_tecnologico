@@ -1,4 +1,4 @@
-import { query, param } from 'express-validator'
+import { query, param, body } from 'express-validator'
 
 export const getMentorsValidator = [
   query('page')
@@ -78,4 +78,72 @@ export const getFeaturedMentorsValidator = [
     .optional()
     .isInt({ min: 1, max: 20 })
     .withMessage('El límite debe ser un número entre 1 y 20'),
+]
+
+// Validador para crear/actualizar perfil de mentor
+export const mentorProfileValidator = [
+  body('title')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('El título profesional no debe exceder 100 caracteres'),
+
+  body('bio')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('La bio no debe exceder 500 caracteres'),
+
+  body('specialties')
+    .optional()
+    .isArray({ max: 5 })
+    .withMessage('Máximo 5 especialidades permitidas'),
+
+  body('specialties.*')
+    .optional()
+    .isMongoId()
+    .withMessage('ID de especialidad inválido'),
+
+  body('experience')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 })
+    .withMessage('La experiencia no debe exceder 1000 caracteres'),
+
+  body('yearsOfExperience')
+    .optional()
+    .isInt({ min: 0, max: 50 })
+    .withMessage('Los años de experiencia deben ser un número entre 0 y 50'),
+
+  body('credentials')
+    .optional()
+    .isArray({ max: 10 })
+    .withMessage('Máximo 10 credenciales permitidas'),
+
+  body('credentials.*')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('Cada credencial no debe exceder 200 caracteres'),
+
+  body('languages')
+    .optional()
+    .isArray({ max: 10 })
+    .withMessage('Máximo 10 idiomas permitidos'),
+
+  body('languages.*')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Cada idioma debe tener entre 2 y 50 caracteres'),
+
+  body('hourlyRate')
+    .optional()
+    .isFloat({ min: 0, max: 10000 })
+    .withMessage('La tarifa por hora debe ser un número entre 0 y 10000'),
+
+  body('profileStatus')
+    .optional()
+    .isIn(['draft', 'published'])
+    .withMessage('El estado del perfil debe ser draft o published'),
 ]
