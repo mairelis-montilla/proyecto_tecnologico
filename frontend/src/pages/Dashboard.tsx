@@ -66,13 +66,12 @@ export default function Dashboard() {
                   </p>
                   <p className="text-sm text-gray-500">{user?.email}</p>
                   <span
-                    className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${
-                      isStudent
+                    className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${isStudent
                         ? 'bg-blue-100 text-blue-700'
                         : isMentor
                           ? 'bg-purple-100 text-purple-700'
                           : 'bg-red-100 text-red-700'
-                    }`}
+                      }`}
                   >
                     {isStudent ? 'Estudiante' : isMentor ? 'Mentor' : 'Admin'}
                   </span>
@@ -143,11 +142,10 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     <p className="text-xs text-gray-500">Estado:</p>
                     <span
-                      className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        mentorProfile.isApproved
+                      className={`px-2 py-0.5 text-xs font-medium rounded-full ${mentorProfile.isApproved
                           ? 'bg-green-100 text-green-700'
                           : 'bg-yellow-100 text-yellow-700'
-                      }`}
+                        }`}
                     >
                       {mentorProfile.isApproved
                         ? 'Aprobado'
@@ -308,7 +306,9 @@ export default function Dashboard() {
                   <p className="font-medium text-gray-800 group-hover:text-purpura">
                     Configuración
                   </p>
+                  {/* <Link to="/editar"> */}
                   <p className="text-sm text-gray-500">Editar mi perfil</p>
+                  {/* </Link> */}
                 </div>
               </Link>
             </div>

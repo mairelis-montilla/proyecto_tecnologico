@@ -26,6 +26,7 @@ export interface Mentor {
   totalReviews?: number
   totalSessions: number
   hourlyRate: number
+  yearsOfExperience: number
   languages?: string[]
   isApproved: boolean
   isActive: boolean

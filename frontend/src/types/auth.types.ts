@@ -23,6 +23,7 @@ export interface MentorProfile {
   bio: string
   specialties: string[]
   experience: string
+  yearsOfExperience: number
   credentials: string[]
   rating: number
   totalSessions: number
@@ -66,6 +67,7 @@ export interface RegisterMentorData {
   lastName: string
   bio: string
   experience: string
+  yearsOfExperience?: number
   specialties?: string[]
   credentials?: string[]
   hourlyRate?: number

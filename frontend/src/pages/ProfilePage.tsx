@@ -1,6 +1,6 @@
 import { useAuthStore } from '../stores/auth.store'
 import StudentProfile from './StudentProfile'
-import ComingSoon from './ComingSoon'
+import MentorProfile from './MentorProfile'
 
 function ProfilePage() {
   const user = useAuthStore(state => state.user)
@@ -13,10 +13,7 @@ function ProfilePage() {
 
     case 'mentor':
       return (
-        <ComingSoon
-          title="Mi Perfil"
-          description="El perfil de mentor estará disponible próximamente."
-        />
+        <MentorProfile />
       )
 
     default:
