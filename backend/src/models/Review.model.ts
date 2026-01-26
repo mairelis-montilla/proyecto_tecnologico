@@ -46,8 +46,7 @@ const reviewSchema = new Schema<IReview>(
   }
 )
 
-// Índices
-reviewSchema.index({ bookingId: 1 })
+// Índices (bookingId ya tiene índice por unique: true)
 reviewSchema.index({ mentorId: 1 })
 reviewSchema.index({ studentId: 1 })
 reviewSchema.index({ rating: -1 })

@@ -64,8 +64,7 @@ const studentSchema = new Schema<IStudent>(
   }
 )
 
-// Índices
-studentSchema.index({ userId: 1 })
+// Índices (userId ya tiene índice por unique: true)
 studentSchema.index({ institution: 1 })
 studentSchema.index({ interests: 1 })
 studentSchema.index({ isActive: 1 })

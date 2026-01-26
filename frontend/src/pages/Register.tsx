@@ -6,7 +6,8 @@ type UserType = 'student' | 'mentor'
 
 export default function Register() {
   const navigate = useNavigate()
-  const { registerStudent, registerMentor, isLoading, error, clearError } = useAuthStore()
+  const { registerStudent, registerMentor, isLoading, error, clearError } =
+    useAuthStore()
 
   const [userType, setUserType] = useState<UserType>('student')
   const [formData, setFormData] = useState({
@@ -26,7 +27,11 @@ export default function Register() {
   })
   const [validationError, setValidationError] = useState('')
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     clearError()
     setValidationError('')
     setFormData({
@@ -62,7 +67,9 @@ export default function Register() {
         })
       } else {
         if (!formData.bio || !formData.experience) {
-          setValidationError('La biografía y experiencia son requeridas para mentores')
+          setValidationError(
+            'La biografía y experiencia son requeridas para mentores'
+          )
           return
         }
         await registerMentor({
@@ -72,7 +79,9 @@ export default function Register() {
           lastName: formData.lastName,
           bio: formData.bio,
           experience: formData.experience,
-          hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : undefined,
+          hourlyRate: formData.hourlyRate
+            ? parseFloat(formData.hourlyRate)
+            : undefined,
         })
       }
       navigate('/dashboard')
@@ -131,7 +140,10 @@ export default function Register() {
           {/* Campos comunes */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Nombre
               </label>
               <input
@@ -145,7 +157,10 @@ export default function Register() {
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Apellido
               </label>
               <input
@@ -161,7 +176,10 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Correo electrónico
             </label>
             <input
@@ -178,7 +196,10 @@ export default function Register() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Contraseña
               </label>
               <input
@@ -193,7 +214,10 @@ export default function Register() {
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Confirmar contraseña
               </label>
               <input
@@ -213,7 +237,10 @@ export default function Register() {
           {userType === 'student' && (
             <>
               <div>
-                <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="institution"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Institución (opcional)
                 </label>
                 <input
@@ -228,7 +255,10 @@ export default function Register() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="career" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="career"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Carrera (opcional)
                   </label>
                   <input
@@ -242,7 +272,10 @@ export default function Register() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="semester" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="semester"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Semestre (opcional)
                   </label>
                   <select
@@ -253,7 +286,7 @@ export default function Register() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purpura focus:border-transparent transition"
                   >
                     <option value="">Seleccionar</option>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
                       <option key={num} value={num}>
                         {num}° semestre
                       </option>
@@ -268,7 +301,10 @@ export default function Register() {
           {userType === 'mentor' && (
             <>
               <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="bio"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Biografía profesional *
                 </label>
                 <textarea
@@ -283,7 +319,10 @@ export default function Register() {
                 />
               </div>
               <div>
-                <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="experience"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Experiencia *
                 </label>
                 <input
@@ -298,7 +337,10 @@ export default function Register() {
                 />
               </div>
               <div>
-                <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="hourlyRate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Tarifa por hora (opcional)
                 </label>
                 <input
@@ -314,7 +356,8 @@ export default function Register() {
                 />
               </div>
               <p className="text-sm text-gray-500">
-                * Los mentores requieren aprobación del administrador antes de aparecer en las búsquedas.
+                * Los mentores requieren aprobación del administrador antes de
+                aparecer en las búsquedas.
               </p>
             </>
           )}
@@ -357,14 +400,20 @@ export default function Register() {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             ¿Ya tienes una cuenta?{' '}
-            <Link to="/login" className="text-purpura font-semibold hover:text-rosa transition">
+            <Link
+              to="/login"
+              className="text-purpura font-semibold hover:text-rosa transition"
+            >
               Inicia sesión
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link to="/" className="text-sm text-gray-500 hover:text-gray-700 transition">
+          <Link
+            to="/"
+            className="text-sm text-gray-500 hover:text-gray-700 transition"
+          >
             ← Volver al inicio
           </Link>
         </div>

@@ -42,8 +42,7 @@ const specialtySchema = new Schema<ISpecialty>(
   }
 )
 
-// Índices
-specialtySchema.index({ name: 1 })
+// Índices (name ya tiene índice por unique: true)
 specialtySchema.index({ category: 1 })
 
 export const Specialty = model<ISpecialty>('Specialty', specialtySchema)

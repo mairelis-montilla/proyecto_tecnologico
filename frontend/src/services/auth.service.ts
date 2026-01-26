@@ -10,7 +10,10 @@ import type {
 
 export const authService = {
   async registerStudent(data: RegisterStudentData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/register/student', data)
+    const response = await api.post<AuthResponse>(
+      '/auth/register/student',
+      data
+    )
     return response.data
   },
 
@@ -29,9 +32,10 @@ export const authService = {
   },
 
   async getMe(): Promise<{ user: User; profile: Profile }> {
-    const response = await api.get<{ status: string; data: { user: User; profile: Profile } }>(
-      '/auth/me'
-    )
+    const response = await api.get<{
+      status: string
+      data: { user: User; profile: Profile }
+    }>('/auth/me')
     return response.data.data
   },
 }
