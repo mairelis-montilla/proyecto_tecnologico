@@ -60,14 +60,33 @@ Y a los mentores:
    - Historial de mentorías realizadas
 
 ### Para Administradores
-1. **Gestión de Usuarios**
-   - Aprobar cuentas de mentores
-   - Gestionar usuarios
-   - Ver estadísticas
+1. **Dashboard**
+   - Métricas clave de la plataforma
+   - Gráficos de sesiones e ingresos
+   - Accesos rápidos a secciones
 
-2. **Gestión de Especialidades**
-   - Crear y editar áreas de especialización
-   - Categorizar mentores
+2. **Gestión de Usuarios**
+   - Ver, editar y buscar usuarios
+   - Bloquear/desbloquear usuarios
+   - Cambiar roles
+
+3. **Aprobación de Mentores**
+   - Revisar solicitudes pendientes
+   - Aprobar o rechazar mentores
+   - Ver perfil completo antes de aprobar
+
+4. **Validación de Pagos**
+   - Ver comprobantes de pago subidos
+   - Aprobar o rechazar pagos
+   - Comparar monto pagado vs esperado
+
+5. **Gestión de Especialidades**
+   - CRUD de áreas de especialización
+   - Categorizar especialidades
+
+6. **Reportes y Estadísticas**
+   - Reportes de usuarios, sesiones e ingresos
+   - Exportar datos a CSV
 
 ## Arquitectura del Sistema
 
@@ -237,6 +256,38 @@ Y a los mentores:
 }
 ```
 
+### Payment
+```typescript
+{
+  _id: ObjectId,
+  bookingId: ObjectId (ref: Booking),
+  studentId: ObjectId (ref: User),
+  mentorId: ObjectId (ref: Mentor),
+  amount: number,
+  expectedAmount: number,
+  method: 'transfer' | 'yape' | 'plin' | 'other',
+  proofImage: string (URL),
+  status: 'pending' | 'approved' | 'rejected',
+  rejectionReason?: string,
+  validatedBy?: ObjectId (ref: User - Admin),
+  validatedAt?: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### BlockHistory
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId (ref: User),
+  action: 'block' | 'unblock',
+  reason: string,
+  adminId: ObjectId (ref: User),
+  createdAt: Date
+}
+```
+
 ## Características Técnicas
 
 ### Seguridad
@@ -269,29 +320,27 @@ Y a los mentores:
 4. **Notificaciones** (Rojo)
 5. **Pagos y Transacciones** (Morado)
 6. **Valoraciones y Reseñas** (Azul)
+7. **Panel de Administración** (Gris)
 
-### Sprint 1 - Autenticación y Setup
-| ID | Historia de Usuario | Puntos |
-|---|---|---|
-| PTG3-0 | Setup entornos | - |
-| PTG3-1 | Crear Mockups visuales y paleta de colores | - |
-| PTG3-2 | Registro de Usuario Estudiante | 5 |
-| PTG3-3 | Registro de Usuario Mentor | 5 |
-| PTG3-4 | Inicio Sesión | 3 |
-| PTG3-5 | Cerrar sesión (logout) | 2 |
-| PTG3-6 | Crear Perfil de Mentor | 8 |
-| PTG3-7 | Editar Perfil de Mentor | 3 |
+### Sprint 1 - Autenticación, Marketplace y Perfiles ✅ COMPLETADO
+| ID | Historia de Usuario | Puntos | Estado |
+|---|---|---|---|
+| PTG3-0 | Setup entornos | - | ✅ |
+| PTG3-1 | Crear Mockups visuales y paleta de colores | - | ✅ |
+| PTG3-2 | Registro de Usuario Estudiante | 5 | ✅ |
+| PTG3-3 | Registro de Usuario Mentor | 5 | ✅ |
+| PTG3-4 | Inicio Sesión | 3 | ✅ |
+| PTG3-5 | Cerrar sesión (logout) | 2 | ✅ |
+| PTG3-6 | Crear Perfil de Mentor | 8 | ✅ |
+| PTG3-7 | Editar Perfil de Mentor | 3 | ✅ |
+| PTG3-8 | Ver Marketplace de Mentores | 5 | ✅ |
+| PTG3-9 | Buscar Mentores por Categorías | 5 | ✅ |
+| PTG3-10 | Buscar Mentores por Nombre/Palabra Clave | 3 | ✅ |
+| PTG3-11 | Ver Perfil Completo de Mentor | 5 | ✅ |
+| PTG3-12 | Completar Perfil de Estudiante | 3 | ✅ |
+| **Total** | | **47 pts** | |
 
-### Sprint 2 - Marketplace y Búsqueda
-| ID | Historia de Usuario | Puntos |
-|---|---|---|
-| PTG3-8 | Ver Marketplace de Mentores | 5 |
-| PTG3-9 | Buscar Mentores por Categorías | 5 |
-| PTG3-10 | Buscar Mentores por Nombre/Palabra Clave | 3 |
-| PTG3-11 | Ver Perfil Completo de Mentor | 5 |
-| PTG3-12 | Completar Perfil de Estudiante | 3 |
-
-### Sprint 3 - Sistema de Reservas
+### Sprint 2 - Sistema de Reservas, Pagos y Admin Core
 | ID | Historia de Usuario | Puntos |
 |---|---|---|
 | PTG3-13 | Definir Disponibilidad como Mentor | 8 |
@@ -302,6 +351,26 @@ Y a los mentores:
 | PTG3-18 | Aprobar Sesión (Mentor) | 3 |
 | PTG3-19 | Rechazar Sesión (Mentor) | 3 |
 | PTG3-20 | Cancelar Sesión (Estudiante) | 5 |
+| PTG3-24 | Subir Comprobante de Pago (Estudiante) | 5 |
+| PTG3-33 | Aprobar Mentores (Admin) | 5 |
+| PTG3-35 | Validar Comprobantes de Pago (Admin) | 8 |
+| **Total** | | **60 pts** |
+
+### Sprint 3 - Panel Admin, Valoraciones e Historial
+| ID | Historia de Usuario | Puntos |
+|---|---|---|
+| PTG3-25 | Ver Estado de Mis Pagos (Estudiante) | 3 |
+| PTG3-26 | Calificar Mentor | 5 |
+| PTG3-27 | Ver Reseñas de Mentor | 3 |
+| PTG3-28 | Ver Ingresos (Mentor) | 5 |
+| PTG3-29 | Ver Historial de Pagos (Estudiante) | 3 |
+| PTG3-31 | Dashboard de Administrador | 5 |
+| PTG3-32 | Gestión de Usuarios (Admin) | 8 |
+| PTG3-34 | Bloquear/Desbloquear Usuarios (Admin) | 3 |
+| PTG3-36 | Historial de Transacciones (Admin) | 5 |
+| PTG3-37 | Gestión de Especialidades (Admin) | 3 |
+| PTG3-38 | Reportes y Estadísticas (Admin) | 5 |
+| **Total** | | **48 pts** |
 
 ### Backlog Futuro
 | ID | Historia de Usuario | Puntos |
@@ -309,13 +378,321 @@ Y a los mentores:
 | PTG3-21 | Recuperar Contraseña | 5 |
 | PTG3-22 | Notificación Nueva Reserva (Mentor) | 3 |
 | PTG3-23 | Notificación Confirmación (Estudiante) | 2 |
-| PTG3-24 | Procesar Pago de Sesión | 13 |
-| PTG3-25 | Procesar Reembolso | 8 |
-| PTG3-26 | Calificar Mentor | 5 |
-| PTG3-27 | Ver Reseñas de Mentor | 3 |
-| PTG3-28 | Ver Ingresos (Mentor) | 5 |
-| PTG3-29 | Ver Historial Pagos | 3 |
 | PTG3-30 | Recordatorio Sesión | 5 |
+
+---
+
+## Detalle de Historias de Usuario - Sprint 2
+
+### PTG3-24: Subir Comprobante de Pago (5 pts)
+**Como** estudiante
+**Quiero** subir un comprobante de pago al reservar una sesión
+**Para** que el admin pueda validar mi pago
+
+**Criterios de Aceptación:**
+- [FRONT] Formulario para subir imagen del comprobante (PNG, JPG, PDF)
+- [FRONT] Vista previa de la imagen antes de enviar
+- [FRONT] Campo para monto pagado
+- [FRONT] Campo para método de pago (transferencia, Yape, Plin, etc.)
+- [BACK] Validación de tamaño máximo de archivo (5MB)
+- [FRONT] Mensaje de confirmación "Pago pendiente de validación"
+- [BACK] Estado de la reserva: "Pendiente de pago"
+
+**Tareas:**
+- [ ] [BACK] Endpoint POST /api/payments/upload-proof
+- [ ] [BACK] Servicio de almacenamiento de imágenes (Cloudinary/S3)
+- [ ] [BACK] Modelo Payment con campos: bookingId, amount, method, proofImage, status
+- [ ] [FRONT] Componente de upload con vista previa
+- [ ] [FRONT] Validaciones de archivo (tipo, tamaño)
+- [ ] [FRONT] Integrar en flujo de reserva
+
+---
+
+### PTG3-33: Aprobar Mentores - Admin (5 pts)
+**Como** administrador
+**Quiero** revisar y aprobar solicitudes de mentores
+**Para** asegurar la calidad de los mentores en la plataforma
+
+**Criterios de Aceptación:**
+- [FRONT] Lista de mentores pendientes de aprobación
+- [FRONT] Ver perfil completo: bio, experiencia, credenciales, especialidades
+- [FRONT] Ver información del usuario asociado
+- [FRONT] Botones: Aprobar / Rechazar
+- [FRONT] Si rechaza, campo para motivo
+- [BACK] Notificar al mentor el resultado
+- [FRONT] Lista de mentores aprobados con opción de revocar
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/admin/mentors/pending
+- [ ] [BACK] Endpoint PATCH /api/admin/mentors/:id/approve
+- [ ] [BACK] Endpoint PATCH /api/admin/mentors/:id/reject
+- [ ] [BACK] Endpoint PATCH /api/admin/mentors/:id/revoke
+- [ ] [FRONT] Página de aprobación de mentores
+- [ ] [FRONT] Vista detallada del perfil del mentor
+- [ ] [BACK] Sistema de notificaciones
+
+---
+
+### PTG3-35: Validar Comprobantes de Pago - Admin (8 pts)
+**Como** administrador
+**Quiero** validar los comprobantes de pago de los estudiantes
+**Para** confirmar las reservas de sesiones
+
+**Criterios de Aceptación:**
+- [FRONT] Lista de pagos pendientes de validación
+- [FRONT] Ver imagen del comprobante en modal/lightbox
+- [FRONT] Ver datos de la reserva: estudiante, mentor, fecha, monto esperado
+- [FRONT] Comparar monto pagado vs monto esperado
+- [FRONT] Botones: Aprobar / Rechazar
+- [FRONT] Si rechaza, campo obligatorio para motivo
+- [BACK] Al aprobar: actualizar estado de reserva a "Confirmada"
+- [BACK] Al rechazar: notificar al estudiante con el motivo
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/admin/payments/pending
+- [ ] [BACK] Endpoint PATCH /api/admin/payments/:id/approve
+- [ ] [BACK] Endpoint PATCH /api/admin/payments/:id/reject
+- [ ] [FRONT] Página de validación de pagos en admin
+- [ ] [FRONT] Modal de visualización de comprobante
+- [ ] [BACK] Sistema de notificaciones al estudiante
+- [ ] [BACK] Actualización automática de estado de booking
+
+---
+
+## Detalle de Historias de Usuario - Sprint 3
+
+### PTG3-25: Ver Estado de Mis Pagos (3 pts)
+**Como** estudiante
+**Quiero** ver el estado de mis pagos
+**Para** saber si fueron aprobados o rechazados
+
+**Criterios de Aceptación:**
+- [FRONT] Lista de pagos con estados: Pendiente, Aprobado, Rechazado
+- [FRONT] Mostrar fecha, monto, mentor, y estado
+- [FRONT] Badge de color según estado (amarillo, verde, rojo)
+- [FRONT] Si rechazado, mostrar motivo del rechazo
+- [FRONT] Opción de volver a subir comprobante si fue rechazado
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/payments/my-payments
+- [ ] [FRONT] Página "Mis Pagos" en el dashboard del estudiante
+- [ ] [FRONT] Componente de lista de pagos con filtros
+- [ ] [FRONT] Flujo de resubir comprobante
+
+---
+
+### PTG3-26: Calificar Mentor (5 pts)
+**Como** estudiante
+**Quiero** calificar a un mentor después de una sesión
+**Para** compartir mi experiencia con otros estudiantes
+
+**Criterios de Aceptación:**
+- [FRONT] Formulario de calificación después de sesión completada
+- [FRONT] Rating de 1 a 5 estrellas
+- [FRONT] Campo de comentario (opcional, máx 500 caracteres)
+- [BACK] Solo puede calificar sesiones completadas
+- [BACK] Una sola calificación por sesión
+- [BACK] Actualizar rating promedio del mentor
+
+**Tareas:**
+- [ ] [BACK] Endpoint POST /api/reviews
+- [ ] [BACK] Validar que la sesión esté completada
+- [ ] [BACK] Validar que no exista review previa
+- [ ] [FRONT] Componente de formulario de calificación
+- [ ] [BACK] Actualizar rating del mentor automáticamente
+
+---
+
+### PTG3-27: Ver Reseñas de Mentor (3 pts)
+**Como** estudiante
+**Quiero** ver las reseñas de un mentor
+**Para** tomar una decisión informada antes de reservar
+
+**Criterios de Aceptación:**
+- [FRONT] Lista de reseñas en el perfil del mentor
+- [FRONT] Mostrar: estudiante, rating, comentario, fecha
+- [BACK] Ordenar por más recientes
+- [BACK] Paginación si hay muchas reseñas
+- [FRONT] Estadísticas: promedio y distribución de ratings
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/mentors/:id/reviews
+- [ ] [FRONT] Componente de lista de reseñas
+- [ ] [FRONT] Componente de estadísticas de ratings
+
+---
+
+### PTG3-28: Ver Ingresos - Mentor (5 pts)
+**Como** mentor
+**Quiero** ver mis ingresos por sesiones
+**Para** llevar control de mis ganancias
+
+**Criterios de Aceptación:**
+- [FRONT] Resumen de ingresos: total, mes actual, pendientes
+- [FRONT] Lista de pagos recibidos con fecha y estudiante
+- [FRONT] Filtrar por período (semana, mes, año)
+- [FRONT] Ver estado de cada pago
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/mentors/my-earnings
+- [ ] [FRONT] Página "Mis Ingresos" en dashboard del mentor
+- [ ] [FRONT] Componentes de resumen y lista
+- [ ] [FRONT] Filtros por fecha
+
+---
+
+### PTG3-29: Ver Historial de Pagos (3 pts)
+**Como** estudiante
+**Quiero** ver mi historial completo de pagos
+**Para** tener un registro de mis transacciones
+
+**Criterios de Aceptación:**
+- [FRONT] Lista paginada de todos los pagos realizados
+- [FRONT] Mostrar: fecha, mentor, monto, estado, comprobante
+- [FRONT] Filtrar por estado y fecha
+- [FRONT] Ver detalle de cada pago
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/payments/history
+- [ ] [FRONT] Página de historial de pagos
+- [ ] [FRONT] Filtros y paginación
+
+---
+
+### PTG3-31: Dashboard de Administrador (5 pts)
+**Como** administrador
+**Quiero** ver un dashboard con métricas clave
+**Para** monitorear el estado de la plataforma
+
+**Criterios de Aceptación:**
+- [FRONT] Cards con: Total usuarios, Mentores activos, Sesiones del mes, Ingresos del mes
+- [FRONT] Gráfico de sesiones por semana (últimas 4 semanas)
+- [FRONT] Gráfico de ingresos por mes (últimos 6 meses)
+- [FRONT] Lista de últimas 5 reservas
+- [FRONT] Lista de pagos pendientes de validación
+- [FRONT] Accesos rápidos a secciones principales
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/admin/dashboard/stats
+- [ ] [FRONT] Página Dashboard admin
+- [ ] [FRONT] Componentes de gráficos (Chart.js o Recharts)
+- [ ] [FRONT] Cards de métricas
+- [ ] [FRONT] Widgets de listas recientes
+
+---
+
+### PTG3-32: Gestión de Usuarios - Admin (8 pts)
+**Como** administrador
+**Quiero** gestionar los usuarios de la plataforma
+**Para** administrar cuentas de estudiantes y mentores
+
+**Criterios de Aceptación:**
+- [FRONT] Tabla de usuarios con paginación
+- [FRONT] Filtros: rol (estudiante/mentor/admin), estado (activo/bloqueado)
+- [FRONT] Búsqueda por nombre o email
+- [FRONT] Ver perfil completo de usuario
+- [FRONT] Editar datos básicos del usuario
+- [BACK] Cambiar rol de usuario
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/admin/users con filtros
+- [ ] [BACK] Endpoint GET /api/admin/users/:id
+- [ ] [BACK] Endpoint PATCH /api/admin/users/:id
+- [ ] [FRONT] Página de listado de usuarios
+- [ ] [FRONT] Modal/página de detalle de usuario
+- [ ] [FRONT] Formulario de edición
+
+---
+
+### PTG3-34: Bloquear/Desbloquear Usuarios - Admin (3 pts)
+**Como** administrador
+**Quiero** poder bloquear usuarios que violen las normas
+**Para** mantener un ambiente seguro en la plataforma
+
+**Criterios de Aceptación:**
+- [FRONT] Botón de bloqueo en perfil de usuario
+- [FRONT] Campo obligatorio para motivo del bloqueo
+- [BACK] Usuario bloqueado no puede iniciar sesión
+- [FRONT] Mostrar mensaje al usuario bloqueado al intentar login
+- [FRONT] Historial de bloqueos del usuario
+- [FRONT] Opción de desbloquear con motivo
+
+**Tareas:**
+- [ ] [BACK] Campos en modelo User: isBlocked, blockReason, blockedAt
+- [ ] [BACK] Modelo BlockHistory: userId, action, reason, adminId, date
+- [ ] [BACK] Middleware para verificar bloqueo en login
+- [ ] [BACK] Endpoint PATCH /api/admin/users/:id/block
+- [ ] [BACK] Endpoint PATCH /api/admin/users/:id/unblock
+- [ ] [BACK] Endpoint GET /api/admin/users/:id/block-history
+- [ ] [FRONT] UI de bloqueo con modal de confirmación
+- [ ] [FRONT] Mensaje de error personalizado en login
+
+---
+
+### PTG3-36: Historial de Transacciones - Admin (5 pts)
+**Como** administrador
+**Quiero** ver el historial completo de transacciones
+**Para** llevar control financiero de la plataforma
+
+**Criterios de Aceptación:**
+- [FRONT] Tabla con todas las transacciones (paginada)
+- [FRONT] Filtros: fecha, estado, mentor, estudiante
+- [FRONT] Búsqueda por nombre de usuario
+- [FRONT] Exportar a CSV/Excel
+- [FRONT] Resumen: total recaudado, pendientes, rechazados
+- [FRONT] Ver detalle de cada transacción
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/admin/payments con filtros
+- [ ] [BACK] Endpoint GET /api/admin/payments/export
+- [ ] [FRONT] Página de historial de transacciones
+- [ ] [FRONT] Componente de filtros avanzados
+- [ ] [FRONT] Función de exportación
+- [ ] [FRONT] Cards de resumen financiero
+
+---
+
+### PTG3-37: Gestión de Especialidades - Admin (3 pts)
+**Como** administrador
+**Quiero** gestionar las especialidades disponibles
+**Para** mantener actualizado el catálogo de áreas de mentoría
+
+**Criterios de Aceptación:**
+- [FRONT] CRUD completo de especialidades
+- [FRONT] Campos: nombre, descripción, categoría, icono
+- [FRONT] Activar/desactivar especialidades
+- [FRONT] Ver cantidad de mentores por especialidad
+- [BACK] No permitir eliminar si tiene mentores asociados
+
+**Tareas:**
+- [ ] [BACK] Endpoints CRUD /api/admin/specialties
+- [ ] [FRONT] Página de gestión de especialidades
+- [ ] [FRONT] Formulario de crear/editar
+- [ ] [BACK] Validación de eliminación
+
+---
+
+### PTG3-38: Reportes y Estadísticas - Admin (5 pts)
+**Como** administrador
+**Quiero** generar reportes de la plataforma
+**Para** tomar decisiones basadas en datos
+
+**Criterios de Aceptación:**
+- [FRONT] Reporte de usuarios registrados por período
+- [FRONT] Reporte de sesiones completadas vs canceladas
+- [FRONT] Reporte de ingresos por período
+- [FRONT] Reporte de mentores más activos
+- [FRONT] Filtros de fecha (hoy, semana, mes, rango personalizado)
+- [FRONT] Exportar reportes a CSV
+
+**Tareas:**
+- [ ] [BACK] Endpoint GET /api/admin/reports/users
+- [ ] [BACK] Endpoint GET /api/admin/reports/sessions
+- [ ] [BACK] Endpoint GET /api/admin/reports/revenue
+- [ ] [BACK] Endpoint GET /api/admin/reports/top-mentors
+- [ ] [FRONT] Página de reportes con tabs
+- [ ] [FRONT] Componentes de gráficos
+- [ ] [FRONT] Función de exportación
 
 ### Equipo de Desarrollo
 - **Product Owner**: Mairelis Montilla
@@ -331,28 +708,39 @@ URL: https://trello.com/b/0HwNdej9/product-backlog-sprints
 
 ## Roadmap
 
-### Fase 1: MVP (Minimum Viable Product) - Sprint 1
-- [ ] Sistema de autenticación (registro, login, logout)
-- [ ] Perfiles de mentores (crear, editar)
-- [ ] Setup de entornos y configuración inicial
+### Sprint 1 - Autenticación, Marketplace y Perfiles ✅ COMPLETADO
+- [x] Sistema de autenticación (registro, login, logout)
+- [x] Perfiles de mentores (crear, editar)
+- [x] Setup de entornos y configuración inicial
+- [x] Marketplace de mentores
+- [x] Sistema de búsqueda y filtros
+- [x] Perfiles completos de mentores
+- [x] Perfil de estudiante
 
-### Fase 2: Funcionalidades Core - Sprint 2
-- [ ] Marketplace de mentores
-- [ ] Sistema de búsqueda y filtros
-- [ ] Perfiles completos de mentores
-- [ ] Perfil de estudiante
-
-### Fase 3: Sistema de Reservas - Sprint 3
+### Sprint 2 - Sistema de Reservas, Pagos y Admin Core
 - [ ] Gestión de disponibilidad por mentores
-- [ ] Sistema de reservas
+- [ ] Sistema de reservas completo
 - [ ] Aprobación/rechazo de sesiones
 - [ ] Cancelación de sesiones
+- [ ] Subir comprobante de pago (estudiante)
+- [ ] Aprobar mentores (admin)
+- [ ] Validar comprobantes de pago (admin)
 
-### Fase 4: Mejoras y Optimización (Futuro)
+### Sprint 3 - Panel Admin, Valoraciones e Historial
+- [ ] Ver estado de pagos (estudiante)
+- [ ] Sistema de calificaciones y reseñas
+- [ ] Ver ingresos (mentor)
+- [ ] Dashboard de administrador
+- [ ] Gestión de usuarios (admin)
+- [ ] Bloquear/desbloquear usuarios (admin)
+- [ ] Historial de transacciones (admin)
+- [ ] Gestión de especialidades (admin)
+- [ ] Reportes y estadísticas (admin)
+
+### Backlog Futuro
 - [ ] Notificaciones (email)
-- [ ] Sistema de pagos
-- [ ] Sistema de valoraciones y reseñas
-- [ ] Reportes y estadísticas
+- [ ] Recuperación de contraseña
+- [ ] Recordatorios de sesión
 
 ## Consideraciones Adicionales
 
@@ -430,6 +818,6 @@ CORS_ORIGIN=http://localhost:3000
 
 ---
 
-**Versión**: 1.0
-**Última actualización**: 2026-01-14
+**Versión**: 1.1
+**Última actualización**: 2026-01-26
 **Equipo**: Desarrollo Full Stack

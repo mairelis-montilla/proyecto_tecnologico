@@ -6,7 +6,10 @@ interface ProtectedRouteProps {
   allowedRoles?: ('student' | 'mentor' | 'admin')[]
 }
 
-export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  allowedRoles,
+}: ProtectedRouteProps) {
   const { isAuthenticated, user, isLoading } = useAuthStore()
   const location = useLocation()
 

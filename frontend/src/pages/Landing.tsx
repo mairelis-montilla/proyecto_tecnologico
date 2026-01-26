@@ -36,11 +36,13 @@ function Landing() {
           <div className="space-y-8">
             <h1 className="text-5xl lg:text-6xl font-bold text-indigo-dark leading-tight">
               Conecta con el
-              <span className="text-purpura"> mentor perfecto</span> para tu carrera
+              <span className="text-purpura"> mentor perfecto</span> para tu
+              carrera
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Encuentra profesionales experimentados que te guiarán en tu desarrollo profesional.
-              Agenda sesiones personalizadas y alcanza tus metas.
+              Encuentra profesionales experimentados que te guiarán en tu
+              desarrollo profesional. Agenda sesiones personalizadas y alcanza
+              tus metas.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -91,8 +93,12 @@ function Landing() {
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">React</span>
-                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">TypeScript</span>
+                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">
+                    React
+                  </span>
+                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">
+                    TypeScript
+                  </span>
                 </div>
               </div>
 
@@ -100,13 +106,19 @@ function Landing() {
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-azul to-indigo rounded-full"></div>
                   <div>
-                    <p className="font-semibold text-indigo-dark">Carlos López</p>
+                    <p className="font-semibold text-indigo-dark">
+                      Carlos López
+                    </p>
                     <p className="text-gray-500 text-sm">Product Manager</p>
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">Agile</span>
-                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">Strategy</span>
+                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">
+                    Agile
+                  </span>
+                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">
+                    Strategy
+                  </span>
                 </div>
               </div>
 
@@ -114,13 +126,19 @@ function Landing() {
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-cielo to-azul rounded-full"></div>
                   <div>
-                    <p className="font-semibold text-indigo-dark">María Torres</p>
+                    <p className="font-semibold text-indigo-dark">
+                      María Torres
+                    </p>
                     <p className="text-gray-500 text-sm">UX Designer</p>
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">Figma</span>
-                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">Research</span>
+                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">
+                    Figma
+                  </span>
+                  <span className="px-3 py-1 bg-celeste text-indigo-dark text-sm rounded-full">
+                    Research
+                  </span>
                 </div>
               </div>
             </div>
@@ -131,32 +149,77 @@ function Landing() {
         <section className="mt-24 grid md:grid-cols-3 gap-8">
           <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-14 h-14 bg-gradient-to-br from-rosa to-rosa-dark rounded-xl flex items-center justify-center mb-6">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="w-7 h-7 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-indigo-dark mb-3">Encuentra tu mentor</h3>
-            <p className="text-gray-600">Busca entre cientos de profesionales por especialidad, experiencia y disponibilidad.</p>
+            <h3 className="text-xl font-bold text-indigo-dark mb-3">
+              Encuentra tu mentor
+            </h3>
+            <p className="text-gray-600">
+              Busca entre cientos de profesionales por especialidad, experiencia
+              y disponibilidad.
+            </p>
           </div>
 
           <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-14 h-14 bg-gradient-to-br from-purpura to-indigo rounded-xl flex items-center justify-center mb-6">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="w-7 h-7 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-indigo-dark mb-3">Agenda fácilmente</h3>
-            <p className="text-gray-600">Reserva sesiones según tu disponibilidad con nuestro sistema de calendario integrado.</p>
+            <h3 className="text-xl font-bold text-indigo-dark mb-3">
+              Agenda fácilmente
+            </h3>
+            <p className="text-gray-600">
+              Reserva sesiones según tu disponibilidad con nuestro sistema de
+              calendario integrado.
+            </p>
           </div>
 
           <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-14 h-14 bg-gradient-to-br from-azul to-cielo rounded-xl flex items-center justify-center mb-6">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                className="w-7 h-7 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-indigo-dark mb-3">Crece profesionalmente</h3>
-            <p className="text-gray-600">Recibe orientación personalizada y acelera tu desarrollo de carrera.</p>
+            <h3 className="text-xl font-bold text-indigo-dark mb-3">
+              Crece profesionalmente
+            </h3>
+            <p className="text-gray-600">
+              Recibe orientación personalizada y acelera tu desarrollo de
+              carrera.
+            </p>
           </div>
         </section>
       </main>
@@ -171,7 +234,9 @@ function Landing() {
               </div>
               <span className="text-xl font-bold">MentorMatch</span>
             </div>
-            <p className="text-celeste">© 2026 MentorMatch. Todos los derechos reservados.</p>
+            <p className="text-celeste">
+              © 2026 MentorMatch. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </footer>

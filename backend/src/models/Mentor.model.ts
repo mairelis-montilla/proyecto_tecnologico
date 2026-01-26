@@ -76,8 +76,7 @@ const mentorSchema = new Schema<IMentor>(
   }
 )
 
-// Índices
-mentorSchema.index({ userId: 1 })
+// Índices (userId ya tiene índice por unique: true)
 mentorSchema.index({ specialties: 1 })
 mentorSchema.index({ rating: -1 })
 mentorSchema.index({ isApproved: 1, isActive: 1 })

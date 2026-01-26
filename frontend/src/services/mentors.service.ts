@@ -24,16 +24,22 @@ export const mentorsService = {
   /**
    * Buscar mentores con filtros avanzados
    */
-  async searchMentors(filters: MentorSearchFilters): Promise<SearchMentorsResponse> {
+  async searchMentors(
+    filters: MentorSearchFilters
+  ): Promise<SearchMentorsResponse> {
     // Limpiar filtros vacíos
     const cleanFilters: Record<string, string | number> = {}
 
     if (filters.q?.trim()) cleanFilters.q = filters.q.trim()
     if (filters.specialties) cleanFilters.specialties = filters.specialties
-    if (filters.category?.trim()) cleanFilters.category = filters.category.trim()
-    if (filters.minRating && filters.minRating > 0) cleanFilters.minRating = filters.minRating
-    if (filters.minRate && filters.minRate > 0) cleanFilters.minRate = filters.minRate
-    if (filters.maxRate && filters.maxRate < 200) cleanFilters.maxRate = filters.maxRate
+    if (filters.category?.trim())
+      cleanFilters.category = filters.category.trim()
+    if (filters.minRating && filters.minRating > 0)
+      cleanFilters.minRating = filters.minRating
+    if (filters.minRate && filters.minRate > 0)
+      cleanFilters.minRate = filters.minRate
+    if (filters.maxRate && filters.maxRate < 200)
+      cleanFilters.maxRate = filters.maxRate
     if (filters.languages) cleanFilters.languages = filters.languages
     if (filters.page) cleanFilters.page = filters.page
     if (filters.limit) cleanFilters.limit = filters.limit

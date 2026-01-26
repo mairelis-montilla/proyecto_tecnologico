@@ -12,7 +12,9 @@ export default function Login() {
     password: '',
   })
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+  const from =
+    (location.state as { from?: { pathname: string } })?.from?.pathname ||
+    '/dashboard'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     clearError()
@@ -52,7 +54,10 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Correo electrónico
             </label>
             <input
@@ -68,7 +73,10 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Contraseña
             </label>
             <input
@@ -121,14 +129,20 @@ export default function Login() {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             ¿No tienes una cuenta?{' '}
-            <Link to="/register" className="text-purpura font-semibold hover:text-rosa transition">
+            <Link
+              to="/register"
+              className="text-purpura font-semibold hover:text-rosa transition"
+            >
               Regístrate
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link to="/" className="text-sm text-gray-500 hover:text-gray-700 transition">
+          <Link
+            to="/"
+            className="text-sm text-gray-500 hover:text-gray-700 transition"
+          >
             ← Volver al inicio
           </Link>
         </div>
