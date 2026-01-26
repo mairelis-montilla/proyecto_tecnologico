@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 import type { StudentProfile, MentorProfile } from '@/types/auth.types'
+import { getAvatarUrl } from '@/utils/avatar'
 
 export default function Dashboard() {
   const { user, profile, isLoading } = useAuthStore()
@@ -54,10 +55,11 @@ export default function Dashboard() {
             </h3>
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purpura to-rosa flex items-center justify-center text-white text-2xl font-bold">
-                  {user?.firstName?.charAt(0)}
-                  {user?.lastName?.charAt(0)}
-                </div>
+                <img
+                  src={getAvatarUrl(user?.avatar)}
+                  alt="Avatar"
+                  className="w-16 h-16 rounded-full bg-gray-100 object-cover"
+                />
                 <div>
                   <p className="font-semibold text-gray-800">
                     {user?.firstName} {user?.lastName}

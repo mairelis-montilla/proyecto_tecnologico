@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { mentorsService } from '../services/mentors.service'
 import type { Mentor } from '../types/mentor.types'
+import { getAvatarUrl } from '../utils/avatar'
 
 interface Review {
   _id: string
@@ -95,10 +96,7 @@ const MentorProfile = () => {
 
   const getMentorAvatar = () => {
     if (!mentor) return ''
-    return (
-      mentor.userId.avatar ||
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${mentor.userId.firstName}`
-    )
+    return getAvatarUrl(mentor.userId.avatar)
   }
 
   const formatDate = (dateString: string) => {
@@ -110,10 +108,7 @@ const MentorProfile = () => {
   }
 
   const getStudentAvatar = (review: Review) => {
-    return (
-      review.studentId.avatar ||
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.studentId.firstName}`
-    )
+    return getAvatarUrl(review.studentId.avatar)
   }
 
   // Agrupar disponibilidad por día

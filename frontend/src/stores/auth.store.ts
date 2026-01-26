@@ -23,6 +23,7 @@ interface AuthState {
   registerMentor: (data: RegisterMentorData) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
+  refreshUser: () => Promise<void>
   clearError: () => void
 }
 
@@ -173,6 +174,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         isInitialized: true,
       })
+    }
+  },
+
+  refreshUser: async () => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const { user, profile } = await authService.getMe()
+      localStorage.setItem('user', JSON.stringify(user))
+      set({ user, profile })
+    } catch {
+      // Ignorar errores de refresh
     }
   },
 

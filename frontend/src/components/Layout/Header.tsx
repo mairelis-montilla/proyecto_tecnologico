@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
+import { getAvatarUrl } from '@/utils/avatar'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -111,10 +112,11 @@ export function Header({ onMenuClick }: HeaderProps) {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition"
             >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-r from-purpura to-rosa flex items-center justify-center text-white font-semibold text-sm">
-                {user?.firstName?.charAt(0)}
-                {user?.lastName?.charAt(0)}
-              </div>
+              <img
+                src={getAvatarUrl(user?.avatar)}
+                alt="Avatar"
+                className="w-9 h-9 rounded-full bg-gray-100 object-cover"
+              />
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-800">
                   {user?.firstName} {user?.lastName}

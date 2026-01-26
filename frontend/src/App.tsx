@@ -10,6 +10,7 @@ import Dashboard from '@/pages/Dashboard'
 import ComingSoon from '@/pages/ComingSoon'
 import Mentors from '@/pages/Mentors'
 import MentorProfile from '@/pages/MentorProfile'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -139,13 +140,13 @@ function App() {
               />
             }
           />
+
           <Route
             path="/profile"
             element={
-              <ComingSoon
-                title="Mi Perfil"
-                description="Visualiza y edita la información de tu perfil."
-              />
+              <ProtectedRoute allowedRoles={['student', 'mentor']}>
+                <ProfilePage />
+              </ProtectedRoute>
             }
           />
           <Route
