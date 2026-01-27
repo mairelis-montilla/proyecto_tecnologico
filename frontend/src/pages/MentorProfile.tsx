@@ -17,11 +17,11 @@ import {
 import { useAuthStore } from '../stores/auth.store'
 import { getAvatarUrl } from '../utils/avatar'
 import type { MentorProfile } from '../types/auth.types'
-import { Specialty } from '../types/mentor.types'
+import { GroupedSpecialties, mentorsService } from '@/services/mentors.service'
 
 const MentorProfile = () => {
   const navigate = useNavigate()
-  const { user, profile, token, refreshUser, isLoading: authLoading } = useAuthStore()
+  const { user, profile, refreshUser, isLoading: authLoading } = useAuthStore()
 
   // Cast profile to MentorProfile (del auth.types)
   const mentorProfile = profile as MentorProfile | null
@@ -43,46 +43,63 @@ const MentorProfile = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [availableSpecialties, setAvailableSpecialties] = useState<Specialty[]>([])
+  // Línea donde defines el estado
+  const [availableSpecialties, setAvailableSpecialties] = useState<GroupedSpecialties>({})
 
-  // Cargar especialidades disponibles
-  const loadSpecialties = async () => {
+  // Cargar datos iniciales
+  const loadData = async () => {
+    setIsLoading(true)
+    setError(null)
+
     try {
-      const response = await fetch('/api/specialties')
-      const data = await response.json()
-      setAvailableSpecialties(data.data?.specialties || data.specialties || [])
-    } catch (err) {
-      console.error('Error loading specialties:', err)
-    }
-  }
+      const profileRes = await mentorsService.getMyProfile()
+      const mentorData = profileRes.data.data.mentor
 
-  // Cargar datos del perfil desde el store (igual que StudentProfile)
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true)
+      console.log('📋 Datos del mentor:', mentorData) // <-- Agrega esto para ver qué trae
 
-      // Cargar especialidades
-      await loadSpecialties()
+      if (mentorData) {
+        setBio(mentorData.bio || '')
+        setExperience(mentorData.experience || '')
+        setYearsOfExperience(mentorData.yearsOfExperience || 0)
+        setHourlyRate(mentorData.hourlyRate || 0)
 
-      if (mentorProfile) {
-        setBio(mentorProfile.bio || '')
-        setExperience(mentorProfile.experience || '')
-        setYearsOfExperience(mentorProfile.yearsOfExperience || 0)
-        setHourlyRate(mentorProfile.hourlyRate || 0)
-        setSelectedSpecialties(mentorProfile.specialties || [])
+        // Si las especialidades vienen populadas con el objeto completo
+        if (mentorData.specialties && Array.isArray(mentorData.specialties)) {
+          setSelectedSpecialties(mentorData.specialties.map((s: any) => s._id || s))
 
-        if (user?.avatar) {
-          setAvatarPreview(getAvatarUrl(user.avatar))
+          // Si vienen los objetos completos, úsalos como disponibles
+          if (typeof mentorData.specialties[0] === 'object') {
+            const grouped: GroupedSpecialties = {}
+            mentorData.specialties.forEach((spec: any) => {
+              const category = spec.category || 'Otras'
+              if (!grouped[category]) grouped[category] = []
+              grouped[category].push({
+                _id: spec._id,
+                name: spec.name,
+                icon: spec.icon
+              })
+            })
+            setAvailableSpecialties(grouped)
+          }
+        }
+
+        if (mentorData.userId?.avatar) {
+          setAvatarPreview(mentorData.userId.avatar)
         }
       }
 
+    } catch (err: any) {
+      console.error('Error cargando datos:', err)
+      console.error('Respuesta del error:', err?.response?.data) // <-- Para ver el error del backend
+      setError('Error al cargar los datos del perfil')
+    } finally {
       setIsLoading(false)
     }
+  }
 
-    if (!authLoading) {
-      loadData()
-    }
-  }, [mentorProfile, user, authLoading])
+  useEffect(() => {
+    loadData()
+  }, [])
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -100,11 +117,23 @@ const MentorProfile = () => {
       }
 
       setAvatarFile(file)
+
       const reader = new FileReader()
-      reader.onloadend = () => setAvatarPreview(reader.result as string)
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
       reader.readAsDataURL(file)
     }
   }
+
+  const toggleSpecialtys = (specialtyId: string) => {
+    setSelectedSpecialties(prev =>
+      prev.includes(specialtyId)
+        ? prev.filter(id => id !== specialtyId)
+        : [...prev, specialtyId]
+    )
+  }
+
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -112,53 +141,37 @@ const MentorProfile = () => {
     setSuccess(null)
 
     try {
-      // Subir avatar si hay uno nuevo
+      // Subir avatar si hay uno nuevo seleccionado
       if (avatarFile) {
-        const formData = new FormData()
-        formData.append('avatar', avatarFile)
-        const avatarResponse = await fetch('/api/mentors/profile/avatar', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
-        })
-
-        if (!avatarResponse.ok) {
-          throw new Error('Error al subir el avatar')
-        }
+        await mentorsService.uploadAvatar(avatarFile)
+        setAvatarFile(null)
       }
 
-      // Actualizar perfil de mentor
-      const response = await fetch('/api/mentors/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          bio,
-          experience,
-          yearsOfExperience,
-          hourlyRate,
-          specialties: selectedSpecialties
-        })
+      // Actualizar el resto del perfil
+      await mentorsService.updateMyProfile({
+        bio: bio || undefined,
+        experience: experience || undefined,
+        yearsOfExperience: yearsOfExperience || undefined,
+        hourlyRate: hourlyRate || undefined,
+        specialties: selectedSpecialties,
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Error al guardar el perfil')
-      }
-
-      // Refrescar el usuario (igual que StudentProfile)
+      // Refrescar datos del usuario en el store (actualiza avatar en header, etc.)
       await refreshUser()
+
+      // Recargar datos del perfil
+      await loadData()
 
       setSuccess('Perfil actualizado correctamente')
       setIsEditMode(false)
-      setAvatarFile(null)
 
-      setTimeout(() => setSuccess(null), 3000)
-    } catch (err: any) {
+      // Limpiar mensaje de éxito después de unos segundos
+      setTimeout(() => {
+        setSuccess(null)
+      }, 3000)
+    } catch (err) {
       console.error('Error guardando perfil:', err)
-      setError(err.message || 'Error al guardar el perfil')
+      setError('Error al guardar el perfil')
     } finally {
       setIsSaving(false)
     }
@@ -179,7 +192,6 @@ const MentorProfile = () => {
     setIsEditMode(false)
   }
 
-  // Obtener avatar (igual que StudentProfile)
   const getAvatarDisplay = () => {
     if (avatarPreview) return avatarPreview
     return getAvatarUrl(user?.avatar)
@@ -429,26 +441,30 @@ const MentorProfile = () => {
                   Selecciona las áreas en las que tienes experiencia
                 </p>
 
-                {availableSpecialties.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {availableSpecialties.map(spec => (
-                      <button
-                        key={spec._id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedSpecialties(prev =>
-                            prev.includes(spec._id)
-                              ? prev.filter(id => id !== spec._id)
-                              : [...prev, spec._id]
-                          )
-                        }}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedSpecialties.includes(spec._id)
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                      >
-                        {spec.name}
-                      </button>
+                {Object.keys(availableSpecialties).length > 0 ? (
+                  <div className="space-y-4">
+                    {Object.entries(availableSpecialties).map(([category, specs]) => (
+                      <div key={category}>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2 capitalize">
+                          {category}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {specs.map((spec: { _id: string; name: string; icon?: string }) => (
+                            <button
+                              key={spec._id}
+                              type="button"
+                              onClick={() => toggleSpecialtys(spec._id)}
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedSpecialties.includes(spec._id)
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                              {spec.icon && <span className="mr-1">{spec.icon}</span>}
+                              {spec.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -466,14 +482,21 @@ const MentorProfile = () => {
             ) : (
               <div className="flex flex-wrap gap-2">
                 {selectedSpecialties.length > 0 ? (
-                  selectedSpecialties.map(specialtyId => {
-                    const specialty = availableSpecialties.find(s => s._id === specialtyId)
+                  selectedSpecialties.map((specialtyId) => {
+                    // Buscar la especialidad en todas las categorías
+                    let foundSpecialty: { _id: string; name: string; icon?: string } | undefined
+                    Object.values(availableSpecialties).forEach((specs) => {
+                      const found = specs.find((s: { _id: string; name: string; icon?: string }) => s._id === specialtyId)
+                      if (found) foundSpecialty = found
+                    })
+
                     return (
                       <span
                         key={specialtyId}
                         className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-sm font-medium"
                       >
-                        {specialty?.name || specialtyId}
+                        {foundSpecialty?.icon && <span className="mr-1">{foundSpecialty.icon}</span>}
+                        {foundSpecialty?.name || specialtyId}
                       </span>
                     )
                   })

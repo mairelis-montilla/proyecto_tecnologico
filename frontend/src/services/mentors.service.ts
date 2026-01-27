@@ -6,6 +6,30 @@ import type {
   Mentor,
 } from '../types/mentor.types'
 
+export interface Specialty {
+  _id: string
+  name: string
+  category: string
+  icon?: string
+}
+
+export interface GroupedSpecialties {
+  [category: string]: Array<{
+    _id: string
+    name: string
+    icon?: string
+  }>
+}
+
+export interface UpdateMentorProfileData {
+  bio?: string
+  experience?: string
+  yearsOfExperience?: number
+  hourlyRate?: number
+  specialties?: string[] // Array de IDs de especialidades
+  avatar?: string // URL de la imagen (el upload a Cloudinary se hace por separado)
+}
+
 export const mentorsService = {
   /**
    * Obtener lista de mentores con paginación
@@ -101,5 +125,49 @@ export const mentorsService = {
   }> {
     const response = await api.get('/mentors/featured', { params: { limit } })
     return response.data
+  },
+
+  // Actualizar mi perfil
+  updateMyProfile: async (data: UpdateMentorProfileData) => {
+    const response = await api.put<{
+      status: string
+      message: string
+      data: { mentor: Mentor }
+    }>('/mentors/profile', data)
+    return response
+  },
+
+  // Obtener intereses disponibles
+  getAvailableSpecialties: async () => {
+    const response = await api.get<{
+      status: string
+      data: { specialties: GroupedSpecialties; total: number }
+    }>('/mentors/specialties')
+    return response
+  },
+
+  // Subir avatar
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const response = await api.post<{
+      status: string
+      message: string
+      data: { avatar: string }
+    }>('/mentors/profile/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response
+  },
+
+  getMyProfile: async () => {
+    const response = await api.get<{
+      status: string
+      data: { mentor: Mentor }
+    }>('/mentors/profile')
+    return response
   },
 }
