@@ -53,11 +53,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       })
     } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } } }
       const message =
-        error instanceof Error
-          ? error.message
-          : (error as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message || 'Error al iniciar sesión'
+        axiosError?.response?.data?.message || 'Error al iniciar sesión'
       set({ error: message, isLoading: false })
       throw error
     }
@@ -80,11 +78,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       })
     } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } } }
       const message =
-        error instanceof Error
-          ? error.message
-          : (error as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message || 'Error al registrar estudiante'
+        axiosError?.response?.data?.message || 'Error al registrar estudiante'
       set({ error: message, isLoading: false })
       throw error
     }
@@ -107,11 +103,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       })
     } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } } }
       const message =
-        error instanceof Error
-          ? error.message
-          : (error as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message || 'Error al registrar mentor'
+        axiosError?.response?.data?.message || 'Error al registrar mentor'
       set({ error: message, isLoading: false })
       throw error
     }

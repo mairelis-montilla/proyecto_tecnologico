@@ -22,12 +22,14 @@ export interface GroupedSpecialties {
 }
 
 export interface UpdateMentorProfileData {
+  title?: string
   bio?: string
   experience?: string
   yearsOfExperience?: number
   hourlyRate?: number
   specialties?: string[] // Array de IDs de especialidades
   avatar?: string // URL de la imagen (el upload a Cloudinary se hace por separado)
+  profileStatus?: 'draft' | 'published'
 }
 
 export const mentorsService = {
@@ -137,13 +139,52 @@ export const mentorsService = {
     return response
   },
 
-  // Obtener intereses disponibles
+  // Publicar perfil del mentor
+  publishProfile: async (data: {
+    title: string
+    bio: string
+    specialties: string[]
+    hourlyRate: number
+  }) => {
+    const response = await api.put<{
+      status: string
+      message: string
+      data: { mentor: Mentor }
+    }>('/mentors/profile', { ...data, profileStatus: 'published' })
+    return response
+  },
+
+  // Obtener especialidades disponibles agrupadas por categoría
   getAvailableSpecialties: async () => {
     const response = await api.get<{
       status: string
-      data: { specialties: GroupedSpecialties; total: number }
-    }>('/mentors/specialties')
-    return response
+      data: {
+        categories: Array<{
+          category: string
+          count: number
+          specialties: Array<{ _id: string; name: string; icon?: string }>
+        }>
+      }
+    }>('/specialties/categories')
+
+    // Transformar la respuesta al formato GroupedSpecialties
+    const grouped: GroupedSpecialties = {}
+    response.data.data.categories.forEach(cat => {
+      grouped[cat.category] = cat.specialties
+    })
+
+    return {
+      data: {
+        status: 'success',
+        data: {
+          specialties: grouped,
+          total: response.data.data.categories.reduce(
+            (acc, cat) => acc + cat.count,
+            0
+          ),
+        },
+      },
+    }
   },
 
   // Subir avatar

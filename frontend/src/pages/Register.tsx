@@ -49,8 +49,20 @@ export default function Register() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setValidationError('La contraseña debe tener al menos 6 caracteres')
+    if (formData.password.length < 8) {
+      setValidationError('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+
+    if (!/[a-z]/.test(formData.password)) {
+      setValidationError(
+        'La contraseña debe contener al menos una letra minúscula'
+      )
+      return
+    }
+
+    if (!/[0-9]/.test(formData.password)) {
+      setValidationError('La contraseña debe contener al menos un número')
       return
     }
 

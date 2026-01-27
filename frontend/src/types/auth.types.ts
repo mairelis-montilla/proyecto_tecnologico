@@ -20,6 +20,7 @@ export interface StudentProfile {
 
 export interface MentorProfile {
   id: string
+  title?: string
   bio: string
   specialties: string[]
   experience: string
@@ -30,6 +31,7 @@ export interface MentorProfile {
   hourlyRate?: number
   isApproved: boolean
   isActive: boolean
+  profileStatus?: 'draft' | 'published'
 }
 
 export type Profile = StudentProfile | MentorProfile

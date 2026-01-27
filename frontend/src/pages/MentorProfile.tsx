@@ -13,6 +13,7 @@ import {
   Award,
   DollarSign,
   BadgeCheck,
+  Send,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { getAvatarUrl } from '../utils/avatar'
@@ -30,6 +31,7 @@ const MentorProfile = () => {
   const [isEditMode, setIsEditMode] = useState(false)
 
   // Estado del formulario
+  const [title, setTitle] = useState('')
   const [bio, setBio] = useState('')
   const [experience, setExperience] = useState('')
   const [yearsOfExperience, setYearsOfExperience] = useState<number>(0)
@@ -37,14 +39,19 @@ const MentorProfile = () => {
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([])
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [profileStatus, setProfileStatus] = useState<'draft' | 'published'>(
+    'draft'
+  )
 
   // Estado de la UI
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   // Línea donde defines el estado
-  const [availableSpecialties, setAvailableSpecialties] = useState<GroupedSpecialties>({})
+  const [availableSpecialties, setAvailableSpecialties] =
+    useState<GroupedSpecialties>({})
 
   // Cargar datos iniciales
   const loadData = async () => {
@@ -52,45 +59,40 @@ const MentorProfile = () => {
     setError(null)
 
     try {
-      const profileRes = await mentorsService.getMyProfile()
+      // Cargar perfil del mentor y especialidades disponibles en paralelo
+      const [profileRes, specialtiesRes] = await Promise.all([
+        mentorsService.getMyProfile(),
+        mentorsService.getAvailableSpecialties(),
+      ])
+
       const mentorData = profileRes.data.data.mentor
 
-      console.log('📋 Datos del mentor:', mentorData) // <-- Agrega esto para ver qué trae
+      // Establecer las especialidades disponibles
+      if (specialtiesRes.data.data.specialties) {
+        setAvailableSpecialties(specialtiesRes.data.data.specialties)
+      }
 
       if (mentorData) {
+        setTitle(mentorData.title || '')
         setBio(mentorData.bio || '')
         setExperience(mentorData.experience || '')
         setYearsOfExperience(mentorData.yearsOfExperience || 0)
         setHourlyRate(mentorData.hourlyRate || 0)
+        setProfileStatus(mentorData.profileStatus || 'draft')
 
-        // Si las especialidades vienen populadas con el objeto completo
+        // Establecer las especialidades seleccionadas del mentor
         if (mentorData.specialties && Array.isArray(mentorData.specialties)) {
-          setSelectedSpecialties(mentorData.specialties.map((s: any) => s._id || s))
-
-          // Si vienen los objetos completos, úsalos como disponibles
-          if (typeof mentorData.specialties[0] === 'object') {
-            const grouped: GroupedSpecialties = {}
-            mentorData.specialties.forEach((spec: any) => {
-              const category = spec.category || 'Otras'
-              if (!grouped[category]) grouped[category] = []
-              grouped[category].push({
-                _id: spec._id,
-                name: spec.name,
-                icon: spec.icon
-              })
-            })
-            setAvailableSpecialties(grouped)
-          }
+          setSelectedSpecialties(
+            mentorData.specialties.map((s: any) => s._id || s)
+          )
         }
 
         if (mentorData.userId?.avatar) {
           setAvatarPreview(mentorData.userId.avatar)
         }
       }
-
     } catch (err: any) {
       console.error('Error cargando datos:', err)
-      console.error('Respuesta del error:', err?.response?.data) // <-- Para ver el error del backend
       setError('Error al cargar los datos del perfil')
     } finally {
       setIsLoading(false)
@@ -134,7 +136,6 @@ const MentorProfile = () => {
     )
   }
 
-
   const handleSave = async () => {
     setIsSaving(true)
     setError(null)
@@ -149,6 +150,7 @@ const MentorProfile = () => {
 
       // Actualizar el resto del perfil
       await mentorsService.updateMyProfile({
+        title: title || undefined,
         bio: bio || undefined,
         experience: experience || undefined,
         yearsOfExperience: yearsOfExperience || undefined,
@@ -180,6 +182,7 @@ const MentorProfile = () => {
   const handleCancel = () => {
     // Restaurar valores originales (igual que StudentProfile)
     if (mentorProfile) {
+      setTitle(mentorProfile.title || '')
       setBio(mentorProfile.bio || '')
       setExperience(mentorProfile.experience || '')
       setYearsOfExperience(mentorProfile.yearsOfExperience || 0)
@@ -190,6 +193,30 @@ const MentorProfile = () => {
     }
     setError(null)
     setIsEditMode(false)
+  }
+
+  const handlePublish = async () => {
+    setIsPublishing(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      await mentorsService.publishProfile({
+        title,
+        bio,
+        specialties: selectedSpecialties,
+        hourlyRate,
+      })
+      await loadData()
+      setSuccess('Perfil publicado correctamente')
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message || 'Error al publicar el perfil'
+      setError(errorMessage)
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   const getAvatarDisplay = () => {
@@ -210,7 +237,9 @@ const MentorProfile = () => {
     return (
       <div className="flex flex-col items-center justify-center py-20 min-h-screen bg-gray-50">
         <X className="w-16 h-16 text-red-500 mb-4" />
-        <p className="text-lg text-gray-600">Acceso denegado. Esta página es solo para mentores.</p>
+        <p className="text-lg text-gray-600">
+          Acceso denegado. Esta página es solo para mentores.
+        </p>
         <button
           onClick={() => navigate('/dashboard')}
           className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -234,7 +263,9 @@ const MentorProfile = () => {
               <ArrowLeft className="w-4 h-4 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Mi Perfil de Mentor</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                Mi Perfil de Mentor
+              </h1>
               <p className="text-gray-500 text-sm">
                 {isEditMode
                   ? 'Edita tu información profesional'
@@ -243,13 +274,29 @@ const MentorProfile = () => {
             </div>
           </div>
           {!isEditMode && (
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors font-medium"
-            >
-              <Pencil className="w-4 h-4" />
-              Editar
-            </button>
+            <div className="flex items-center gap-2">
+              {profileStatus === 'draft' && (
+                <button
+                  onClick={handlePublish}
+                  disabled={isPublishing}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPublishing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  Publicar
+                </button>
+              )}
+              <button
+                onClick={() => setIsEditMode(true)}
+                className="flex items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors font-medium"
+              >
+                <Pencil className="w-4 h-4" />
+                Editar
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -309,9 +356,46 @@ const MentorProfile = () => {
             </div>
           </div>
 
+          {/* Título Profesional */}
+          <div>
+            <label
+              htmlFor="title"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Título Profesional{' '}
+              {profileStatus === 'draft' && (
+                <span className="text-red-500">*</span>
+              )}
+            </label>
+            {isEditMode ? (
+              <input
+                type="text"
+                id="title"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="Ej: Senior Full Stack Developer"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            ) : (
+              <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                {title || (
+                  <span className="text-gray-400">No especificado</span>
+                )}
+              </div>
+            )}
+            {profileStatus === 'draft' && (
+              <p className="text-sm text-gray-500 mt-1">
+                Requerido para publicar tu perfil
+              </p>
+            )}
+          </div>
+
           {/* Bio */}
           <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="bio"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Biografía Profesional
             </label>
             {isEditMode ? (
@@ -319,7 +403,7 @@ const MentorProfile = () => {
                 <textarea
                   id="bio"
                   value={bio}
-                  onChange={(e) => setBio(e.target.value.slice(0, 500))}
+                  onChange={e => setBio(e.target.value.slice(0, 500))}
                   placeholder="Describe tu experiencia y especialización profesional..."
                   rows={4}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
@@ -337,7 +421,10 @@ const MentorProfile = () => {
 
           {/* Experiencia Laboral */}
           <div>
-            <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="experience"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               <Briefcase className="w-4 h-4 inline-block mr-1" />
               Experiencia Laboral
             </label>
@@ -346,13 +433,15 @@ const MentorProfile = () => {
                 type="text"
                 id="experience"
                 value={experience}
-                onChange={(e) => setExperience(e.target.value)}
+                onChange={e => setExperience(e.target.value)}
                 placeholder="Ej: Senior Developer en Google"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             ) : (
               <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                {experience || <span className="text-gray-400">No especificada</span>}
+                {experience || (
+                  <span className="text-gray-400">No especificada</span>
+                )}
               </div>
             )}
           </div>
@@ -361,7 +450,10 @@ const MentorProfile = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Años de Experiencia */}
             <div>
-              <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="yearsOfExperience"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <Award className="w-4 h-4 inline-block mr-1" />
                 Años de Experiencia
               </label>
@@ -370,7 +462,7 @@ const MentorProfile = () => {
                   type="number"
                   id="yearsOfExperience"
                   value={yearsOfExperience}
-                  onChange={(e) => setYearsOfExperience(Number(e.target.value))}
+                  onChange={e => setYearsOfExperience(Number(e.target.value))}
                   min="0"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
@@ -383,7 +475,10 @@ const MentorProfile = () => {
 
             {/* Tarifa por Hora */}
             <div>
-              <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="hourlyRate"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 <DollarSign className="w-4 h-4 inline-block mr-1" />
                 Tarifa por Hora (S/.)
               </label>
@@ -392,7 +487,7 @@ const MentorProfile = () => {
                   type="number"
                   id="hourlyRate"
                   value={hourlyRate}
-                  onChange={(e) => setHourlyRate(Number(e.target.value))}
+                  onChange={e => setHourlyRate(Number(e.target.value))}
                   min="0"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
@@ -404,28 +499,55 @@ const MentorProfile = () => {
             </div>
           </div>
 
-          {/* Estado de Aprobación */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estado de Aprobación
-            </label>
-            <div className="flex items-center gap-2">
-              <span
-                className={`px-4 py-2 text-sm font-medium rounded-full ${mentorProfile?.isApproved
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-yellow-100 text-yellow-700'
+          {/* Estados del Perfil */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Estado de Publicación */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Estado de Publicación
+              </label>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`px-4 py-2 text-sm font-medium rounded-full ${
+                    profileStatus === 'published'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-700'
                   }`}
-              >
-                {mentorProfile?.isApproved
-                  ? '✓ Perfil Aprobado'
-                  : '⏳ Pendiente de aprobación'}
-              </span>
+                >
+                  {profileStatus === 'published'
+                    ? '🌐 Publicado'
+                    : '📝 Borrador'}
+                </span>
+              </div>
+              {profileStatus === 'draft' && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Tu perfil no es visible para estudiantes.
+                </p>
+              )}
             </div>
-            {!mentorProfile?.isApproved && (
-              <p className="text-sm text-gray-500 mt-2">
-                Tu perfil está siendo revisado por el equipo de administración.
-              </p>
-            )}
+
+            {/* Estado de Aprobación */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Estado de Aprobación
+              </label>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`px-4 py-2 text-sm font-medium rounded-full ${
+                    mentorProfile?.isApproved
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {mentorProfile?.isApproved ? '✓ Aprobado' : '⏳ Pendiente'}
+                </span>
+              </div>
+              {!mentorProfile?.isApproved && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Revisión pendiente por administración.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Especialidades */}
@@ -443,29 +565,40 @@ const MentorProfile = () => {
 
                 {Object.keys(availableSpecialties).length > 0 ? (
                   <div className="space-y-4">
-                    {Object.entries(availableSpecialties).map(([category, specs]) => (
-                      <div key={category}>
-                        <h4 className="text-sm font-medium text-gray-700 mb-2 capitalize">
-                          {category}
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {specs.map((spec: { _id: string; name: string; icon?: string }) => (
-                            <button
-                              key={spec._id}
-                              type="button"
-                              onClick={() => toggleSpecialtys(spec._id)}
-                              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedSpecialties.includes(spec._id)
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                            >
-                              {spec.icon && <span className="mr-1">{spec.icon}</span>}
-                              {spec.name}
-                            </button>
-                          ))}
+                    {Object.entries(availableSpecialties).map(
+                      ([category, specs]) => (
+                        <div key={category}>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 capitalize">
+                            {category}
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {specs.map(
+                              (spec: {
+                                _id: string
+                                name: string
+                                icon?: string
+                              }) => (
+                                <button
+                                  key={spec._id}
+                                  type="button"
+                                  onClick={() => toggleSpecialtys(spec._id)}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                    selectedSpecialties.includes(spec._id)
+                                      ? 'bg-purple-600 text-white'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {spec.icon && (
+                                    <span className="mr-1">{spec.icon}</span>
+                                  )}
+                                  {spec.name}
+                                </button>
+                              )
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-4">
@@ -475,18 +608,24 @@ const MentorProfile = () => {
 
                 {selectedSpecialties.length > 0 && (
                   <p className="text-sm text-purple-600 mt-3">
-                    {selectedSpecialties.length} especialidad(es) seleccionada(s)
+                    {selectedSpecialties.length} especialidad(es)
+                    seleccionada(s)
                   </p>
                 )}
               </>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {selectedSpecialties.length > 0 ? (
-                  selectedSpecialties.map((specialtyId) => {
+                  selectedSpecialties.map(specialtyId => {
                     // Buscar la especialidad en todas las categorías
-                    let foundSpecialty: { _id: string; name: string; icon?: string } | undefined
-                    Object.values(availableSpecialties).forEach((specs) => {
-                      const found = specs.find((s: { _id: string; name: string; icon?: string }) => s._id === specialtyId)
+                    let foundSpecialty:
+                      | { _id: string; name: string; icon?: string }
+                      | undefined
+                    Object.values(availableSpecialties).forEach(specs => {
+                      const found = specs.find(
+                        (s: { _id: string; name: string; icon?: string }) =>
+                          s._id === specialtyId
+                      )
                       if (found) foundSpecialty = found
                     })
 
@@ -495,7 +634,9 @@ const MentorProfile = () => {
                         key={specialtyId}
                         className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-sm font-medium"
                       >
-                        {foundSpecialty?.icon && <span className="mr-1">{foundSpecialty.icon}</span>}
+                        {foundSpecialty?.icon && (
+                          <span className="mr-1">{foundSpecialty.icon}</span>
+                        )}
                         {foundSpecialty?.name || specialtyId}
                       </span>
                     )
@@ -512,7 +653,9 @@ const MentorProfile = () => {
           {/* Estadísticas */}
           {!isEditMode && (
             <div className="border-t pt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Estadísticas</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                Estadísticas
+              </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">Calificación</p>
@@ -525,7 +668,9 @@ const MentorProfile = () => {
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Sesiones completadas</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Sesiones completadas
+                  </p>
                   <p className="text-lg font-bold text-gray-800">
                     {mentorProfile?.totalSessions || 0}
                   </p>

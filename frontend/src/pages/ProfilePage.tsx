@@ -12,9 +12,7 @@ function ProfilePage() {
       return <StudentProfile />
 
     case 'mentor':
-      return (
-        <MentorProfile />
-      )
+      return <MentorProfile />
 
     default:
       return null
