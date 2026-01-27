@@ -20,15 +20,18 @@ export interface StudentProfile {
 
 export interface MentorProfile {
   id: string
+  title?: string
   bio: string
   specialties: string[]
   experience: string
+  yearsOfExperience: number
   credentials: string[]
   rating: number
   totalSessions: number
   hourlyRate?: number
   isApproved: boolean
   isActive: boolean
+  profileStatus?: 'draft' | 'published'
 }
 
 export type Profile = StudentProfile | MentorProfile
@@ -66,6 +69,7 @@ export interface RegisterMentorData {
   lastName: string
   bio: string
   experience: string
+  yearsOfExperience?: number
   specialties?: string[]
   credentials?: string[]
   hourlyRate?: number

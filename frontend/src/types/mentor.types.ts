@@ -18,6 +18,7 @@ export interface MentorUser {
 export interface Mentor {
   _id: string
   userId: MentorUser
+  title?: string
   bio: string
   experience?: string
   credentials?: string[]
@@ -26,9 +27,11 @@ export interface Mentor {
   totalReviews?: number
   totalSessions: number
   hourlyRate: number
+  yearsOfExperience: number
   languages?: string[]
   isApproved: boolean
   isActive: boolean
+  profileStatus?: 'draft' | 'published'
   createdAt: string
 }
 

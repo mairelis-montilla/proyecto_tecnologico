@@ -6,6 +6,32 @@ import type {
   Mentor,
 } from '../types/mentor.types'
 
+export interface Specialty {
+  _id: string
+  name: string
+  category: string
+  icon?: string
+}
+
+export interface GroupedSpecialties {
+  [category: string]: Array<{
+    _id: string
+    name: string
+    icon?: string
+  }>
+}
+
+export interface UpdateMentorProfileData {
+  title?: string
+  bio?: string
+  experience?: string
+  yearsOfExperience?: number
+  hourlyRate?: number
+  specialties?: string[] // Array de IDs de especialidades
+  avatar?: string // URL de la imagen (el upload a Cloudinary se hace por separado)
+  profileStatus?: 'draft' | 'published'
+}
+
 export const mentorsService = {
   /**
    * Obtener lista de mentores con paginación
@@ -101,5 +127,88 @@ export const mentorsService = {
   }> {
     const response = await api.get('/mentors/featured', { params: { limit } })
     return response.data
+  },
+
+  // Actualizar mi perfil
+  updateMyProfile: async (data: UpdateMentorProfileData) => {
+    const response = await api.put<{
+      status: string
+      message: string
+      data: { mentor: Mentor }
+    }>('/mentors/profile', data)
+    return response
+  },
+
+  // Publicar perfil del mentor
+  publishProfile: async (data: {
+    title: string
+    bio: string
+    specialties: string[]
+    hourlyRate: number
+  }) => {
+    const response = await api.put<{
+      status: string
+      message: string
+      data: { mentor: Mentor }
+    }>('/mentors/profile', { ...data, profileStatus: 'published' })
+    return response
+  },
+
+  // Obtener especialidades disponibles agrupadas por categoría
+  getAvailableSpecialties: async () => {
+    const response = await api.get<{
+      status: string
+      data: {
+        categories: Array<{
+          category: string
+          count: number
+          specialties: Array<{ _id: string; name: string; icon?: string }>
+        }>
+      }
+    }>('/specialties/categories')
+
+    // Transformar la respuesta al formato GroupedSpecialties
+    const grouped: GroupedSpecialties = {}
+    response.data.data.categories.forEach(cat => {
+      grouped[cat.category] = cat.specialties
+    })
+
+    return {
+      data: {
+        status: 'success',
+        data: {
+          specialties: grouped,
+          total: response.data.data.categories.reduce(
+            (acc, cat) => acc + cat.count,
+            0
+          ),
+        },
+      },
+    }
+  },
+
+  // Subir avatar
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const response = await api.post<{
+      status: string
+      message: string
+      data: { avatar: string }
+    }>('/mentors/profile/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response
+  },
+
+  getMyProfile: async () => {
+    const response = await api.get<{
+      status: string
+      data: { mentor: Mentor }
+    }>('/mentors/profile')
+    return response
   },
 }

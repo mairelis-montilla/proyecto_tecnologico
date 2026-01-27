@@ -308,7 +308,9 @@ export default function Dashboard() {
                   <p className="font-medium text-gray-800 group-hover:text-purpura">
                     Configuración
                   </p>
+                  {/* <Link to="/editar"> */}
                   <p className="text-sm text-gray-500">Editar mi perfil</p>
+                  {/* </Link> */}
                 </div>
               </Link>
             </div>
