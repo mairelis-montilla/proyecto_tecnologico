@@ -5,6 +5,7 @@ import {
   updateMyProfile,
   getAvailableInterests,
   uploadStudentAvatar,
+  getStudentById,
 } from '../controllers/students.controller.js'
 import { upload, handleMulterError } from '../middlewares/upload.middleware.js'
 
@@ -32,5 +33,8 @@ router.post(
   handleMulterError,
   uploadStudentAvatar
 )
+
+// GET /api/students/:id - Obtener perfil público (al final para no chocar con las otras rutas)
+router.get('/:id', getStudentById)
 
 export default router

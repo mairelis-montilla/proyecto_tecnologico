@@ -45,6 +45,41 @@ export const getMyProfile = async (
   }
 }
 
+// GET /api/students/:id - Obtener perfil público de estudiante por ID
+export const getStudentById = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params
+
+    const student = await Student.findById(id)
+      .populate('interests', 'name category icon')
+      .populate('userId', 'firstName lastName avatar')
+
+    if (!student) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Estudiante no encontrado',
+      })
+      return
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        student,
+      },
+    })
+  } catch (error) {
+    console.error('Error obteniendo perfil de estudiante:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Error al obtener el perfil del estudiante',
+    })
+  }
+}
+
 // PUT /api/students/profile - Actualizar perfil del estudiante
 export const updateMyProfile = async (
   req: AuthRequest,

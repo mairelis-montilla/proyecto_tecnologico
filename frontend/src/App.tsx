@@ -9,8 +9,9 @@ import Register from '@/pages/Register'
 import Dashboard from '@/pages/Dashboard'
 import ComingSoon from '@/pages/ComingSoon'
 import Mentors from '@/pages/Mentors'
-import MentorProfile from '@/pages/MentorProfile'
 import ProfilePage from './pages/ProfilePage'
+import PublicMentorProfile from '@/pages/PublicMentorProfile'
+import PublicStudentProfile from '@/pages/PublicStudentProfile'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -70,7 +71,7 @@ function App() {
           <Route
             path="/mentors"
             element={
-              <ProtectedRoute allowedRoles={['student']}>
+              <ProtectedRoute allowedRoles={['student', 'mentor']}>
                 <Mentors />
               </ProtectedRoute>
             }
@@ -78,8 +79,8 @@ function App() {
           <Route
             path="/mentors/:id"
             element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <MentorProfile />
+              <ProtectedRoute allowedRoles={['student', 'mentor']}>
+                <PublicMentorProfile />
               </ProtectedRoute>
             }
           />
@@ -138,6 +139,14 @@ function App() {
                 title="Mensajes"
                 description="Comunícate con tus mentores o estudiantes de forma directa."
               />
+            }
+          />
+          <Route
+            path="/students/:id"
+            element={
+              <ProtectedRoute allowedRoles={['student', 'mentor']}>
+                <PublicStudentProfile />
+              </ProtectedRoute>
             }
           />
 

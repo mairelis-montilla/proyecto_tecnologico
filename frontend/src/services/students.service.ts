@@ -56,6 +56,15 @@ export const studentsService = {
     return response
   },
 
+  // Obtener perfil público de un estudiante por ID
+  getStudentById: async (id: string) => {
+    const response = await api.get<{
+      status: string
+      data: { student: Student }
+    }>(`/students/${id}`)
+    return response.data
+  },
+
   // Actualizar mi perfil de estudiante
   updateMyProfile: async (data: UpdateStudentProfileData) => {
     const response = await api.put<{

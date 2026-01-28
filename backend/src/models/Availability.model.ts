@@ -43,8 +43,8 @@ const availabilitySchema = new Schema<IAvailability>(
     duration: {
       type: Number,
       required: [true, 'Duration is required'],
+      enum: [45, 60],
       default: 60,
-      min: 15,
     },
     isActive: {
       type: Boolean,
