@@ -6,6 +6,7 @@ import { Availability } from '../models/Availability.model.js'
 import { Review } from '../models/Review.model.js'
 import { User } from '../models/User.model.js'
 import { Specialty } from '../models/Specialty.model.js'
+import { Student } from '../models/Student.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 import {
   uploadImage,
@@ -366,6 +367,40 @@ export const searchMentors = async (
       pipeline.push({ $match: matchFilters })
     }
 
+    // ==========================================================
+    // Lógica de Ordenamiento por Relevancia (Intereses del Estudiante)
+    // ==========================================================
+    const authReq = req as AuthRequest
+    let studentInterests: mongoose.Types.ObjectId[] = []
+
+    // Si el usuario es un estudiante, obtener sus intereses
+    if (authReq.user && authReq.user.role === 'student') {
+      const student = await Student.findOne({ userId: authReq.user._id })
+      if (student && student.interests && student.interests.length > 0) {
+        studentInterests = student.interests
+      }
+    }
+
+    // Calcular score de relevancia si hay intereses
+    if (studentInterests.length > 0) {
+      pipeline.push({
+        $addFields: {
+          relevanceScore: {
+            $size: {
+              $setIntersection: ['$specialties', studentInterests],
+            },
+          },
+        },
+      })
+    } else {
+      // Si no hay intereses o no es estudiante, score 0
+      pipeline.push({
+        $addFields: {
+          relevanceScore: 0,
+        },
+      })
+    }
+
     // Proyección de campos
     // IMPORTANTE: Solo incluir campos que existen en el modelo Mentor
     pipeline.push({
@@ -379,6 +414,7 @@ export const searchMentors = async (
         totalSessions: 1,
         hourlyRate: 1,
         languages: 1,
+        relevanceScore: 1, // Incluir score en el resultado
         createdAt: 1,
         updatedAt: 1,
         userId: {
@@ -403,8 +439,14 @@ export const searchMentors = async (
       },
     })
 
-    // Ordenamiento
-    pipeline.push({ $sort: { [sortBy]: sortOrder } as Record<string, 1 | -1> })
+    // Ordenamiento: Primero por relevancia (desc), luego por el criterio solicitado
+    pipeline.push({
+      $sort: {
+        relevanceScore: -1,
+        [sortBy]: sortOrder,
+        _id: 1
+      } as Record<string, 1 | -1>,
+    })
 
     // Facet para paginación y conteo en una sola query
     pipeline.push({

@@ -74,6 +74,12 @@ router.get('/featured', getFeaturedMentorsValidator, getFeaturedMentors)
 // GET /api/mentors - Listar todos los mentores (marketplace)
 router.get('/', authenticateToken, getMentorsValidator, getMentors)
 
+// Import availability routes
+import availabilityRouter from './availability.routes.js'
+
+// Mount availability routes - this will handle /:id/availability
+router.use('/', availabilityRouter)
+
 // GET /api/mentors/:id - Perfil completo de un mentor
 router.get('/:id', authenticateToken, getMentorByIdValidator, getMentorById)
 

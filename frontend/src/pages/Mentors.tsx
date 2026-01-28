@@ -11,6 +11,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react'
 import { mentorsService } from '../services/mentors.service'
 import { specialtiesService } from '../services/specialties.service'
@@ -20,6 +21,7 @@ import type {
   Pagination,
 } from '../types/mentor.types'
 import { getAvatarUrl } from '../utils/avatar'
+import PriceRangeSlider from '../components/PriceRangeSlider'
 
 const Mentors = () => {
   const navigate = useNavigate()
@@ -34,7 +36,7 @@ const Mentors = () => {
   // Estado de filtros
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null) // Visual state only
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200])
   const [minRating, setMinRating] = useState(0)
@@ -71,8 +73,10 @@ const Mentors = () => {
 
     try {
       const response = await mentorsService.searchMentors({
-        q: debouncedSearch || undefined,
-        category: selectedCategory || undefined,
+        // Only send search term if it has 3 or more characters to avoid 400 error
+        q: debouncedSearch.length >= 3 ? debouncedSearch : undefined,
+        // Category filter removed to allow multi-category via specialties
+        // category: selectedCategory || undefined, 
         specialties:
           selectedSpecialties.length > 0
             ? selectedSpecialties.join(',')
@@ -98,7 +102,7 @@ const Mentors = () => {
     }
   }, [
     debouncedSearch,
-    selectedCategory,
+    // expandedCategory, // Not needed for fetching
     selectedSpecialties,
     selectedLanguages,
     minRating,
@@ -132,7 +136,7 @@ const Mentors = () => {
   const clearFilters = () => {
     setSearchTerm('')
     setDebouncedSearch('')
-    setSelectedCategory('')
+    setExpandedCategory(null)
     setSelectedLanguages([])
     setSelectedSpecialties([])
     setPriceRange([0, 200])
@@ -141,7 +145,6 @@ const Mentors = () => {
   }
 
   const hasActiveFilters =
-    selectedCategory !== '' ||
     selectedSpecialties.length > 0 ||
     selectedLanguages.length > 0 ||
     priceRange[0] > 0 ||
@@ -149,6 +152,7 @@ const Mentors = () => {
     minRating > 0 ||
     searchTerm.length > 0
 
+  // ... (getMentorName, getMentorAvatar omitted for brevity if unchanged, but included in block)
   // Obtener nombre completo del mentor
   const getMentorName = (mentor: Mentor) => {
     return `${mentor.userId.firstName} ${mentor.userId.lastName}`
@@ -180,52 +184,49 @@ const Mentors = () => {
           <BookOpen className="w-4 h-4" />
           Categorías
         </h3>
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {categories.map(cat => (
-            <div key={cat.category}>
-              <label className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
-                <input
-                  type="radio"
-                  name="category"
-                  checked={selectedCategory === cat.category}
-                  onChange={() => {
-                    setSelectedCategory(cat.category)
-                    setSelectedSpecialties([])
-                    setCurrentPage(1)
-                  }}
-                  className="border-gray-300 text-purple-600 focus:ring-purple-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  {cat.category} ({cat.count})
-                </span>
-              </label>
-              {/* Mostrar especialidades si la categoría está seleccionada */}
-              {selectedCategory === cat.category && (
-                <div className="ml-6 mt-2 space-y-1">
-                  {cat.specialties.map(spec => (
+        <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-2">
+          {categories.map((cat) => (
+            <div key={cat.category} className="border-b border-gray-50 last:border-0">
+              <div
+                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${expandedCategory === cat.category ? 'bg-purple-50 text-purple-700' : 'hover:bg-gray-50 text-gray-700'}`}
+                onClick={() => {
+                  // Toggle expansion only
+                  setExpandedCategory(expandedCategory === cat.category ? null : cat.category)
+                }}
+              >
+                <span className="text-sm font-medium">{cat.category} <span className="text-xs opacity-70">({cat.count})</span></span>
+                {expandedCategory === cat.category ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 opacity-50" />
+                )}
+              </div>
+
+              {/* Sub-opciones (Especialidades) - Estilo Dropdown/Collapsible */}
+              {expandedCategory === cat.category && (
+                <div className="pl-4 pr-2 py-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                  {cat.specialties.map((spec) => (
                     <label
                       key={spec._id}
-                      className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded"
+                      className="flex items-center cursor-pointer hover:bg-white p-1.5 rounded-md transition-colors"
                     >
                       <input
                         type="checkbox"
                         checked={selectedSpecialties.includes(spec._id)}
-                        onChange={e => {
+                        onChange={(e) => {
+                          // Add/Remove specialty irrespective of category logic
                           if (e.target.checked) {
-                            setSelectedSpecialties([
-                              ...selectedSpecialties,
-                              spec._id,
-                            ])
+                            setSelectedSpecialties([...selectedSpecialties, spec._id])
                           } else {
                             setSelectedSpecialties(
-                              selectedSpecialties.filter(s => s !== spec._id)
+                              selectedSpecialties.filter((s) => s !== spec._id)
                             )
                           }
                           setCurrentPage(1)
                         }}
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
                       />
-                      <span className="ml-2 text-xs text-gray-600">
+                      <span className="ml-2 text-sm text-gray-600">
                         {spec.name}
                       </span>
                     </label>
@@ -234,18 +235,6 @@ const Mentors = () => {
               )}
             </div>
           ))}
-          {selectedCategory && (
-            <button
-              onClick={() => {
-                setSelectedCategory('')
-                setSelectedSpecialties([])
-                setCurrentPage(1)
-              }}
-              className="text-xs text-purple-600 hover:text-purple-700 mt-2"
-            >
-              Todas las categorías
-            </button>
-          )}
         </div>
       </div>
 
@@ -287,44 +276,16 @@ const Mentors = () => {
           Precio por hora
         </h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span className="font-medium">${priceRange[0]}</span>
-            <span className="font-medium">${priceRange[1]}</span>
-          </div>
-          <div className="space-y-1">
-            <input
-              type="range"
-              min="0"
-              max="200"
-              step="10"
-              value={priceRange[0]}
-              onChange={e => {
-                const newMin = parseInt(e.target.value)
-                if (newMin <= priceRange[1]) {
-                  setPriceRange([newMin, priceRange[1]])
-                }
-              }}
-              onMouseUp={() => setCurrentPage(1)}
-              onTouchEnd={() => setCurrentPage(1)}
-              className="w-full accent-purple-600"
-            />
-            <input
-              type="range"
-              min="0"
-              max="200"
-              step="10"
-              value={priceRange[1]}
-              onChange={e => {
-                const newMax = parseInt(e.target.value)
-                if (newMax >= priceRange[0]) {
-                  setPriceRange([priceRange[0], newMax])
-                }
-              }}
-              onMouseUp={() => setCurrentPage(1)}
-              onTouchEnd={() => setCurrentPage(1)}
-              className="w-full accent-purple-600"
-            />
-          </div>
+          <PriceRangeSlider
+            min={0}
+            max={200}
+            step={10}
+            value={priceRange}
+            onChange={(newValue) => {
+              setPriceRange(newValue)
+              setCurrentPage(1) // Reset page on change
+            }}
+          />
         </div>
       </div>
 
@@ -380,8 +341,9 @@ const Mentors = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Buscar por nombre, especialidad o palabra clave..."
+                placeholder="Buscar por nombre, especialidad o palabra clave (mín. 3 caracteres)..."
                 value={searchTerm}
+                maxLength={50}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
@@ -597,11 +559,10 @@ const Mentors = () => {
                             <button
                               key={pageNum}
                               onClick={() => setCurrentPage(pageNum)}
-                              className={`w-10 h-10 rounded-lg font-medium ${
-                                currentPage === pageNum
-                                  ? 'bg-purple-600 text-white'
-                                  : 'border border-gray-300 hover:bg-gray-50'
-                              }`}
+                              className={`w-10 h-10 rounded-lg font-medium ${currentPage === pageNum
+                                ? 'bg-purple-600 text-white'
+                                : 'border border-gray-300 hover:bg-gray-50'
+                                }`}
                             >
                               {pageNum}
                             </button>

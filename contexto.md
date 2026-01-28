@@ -322,21 +322,20 @@ Y a los mentores:
 6. **Valoraciones y Reseñas** (Azul)
 7. **Panel de Administración** (Gris)
 
-### Sprint 1 - Autenticación, Marketplace y Perfiles ✅ COMPLETADO
-| ID | Historia de Usuario | Puntos | Estado |
-|---|---|---|---|
-| PTG3-0 | Setup entornos | - | ✅ |
-| PTG3-1 | Crear Mockups visuales y paleta de colores | - | ✅ |
-| PTG3-2 | Registro de Usuario Estudiante | 5 | ✅ |
-| PTG3-3 | Registro de Usuario Mentor | 5 | ✅ |
-| PTG3-4 | Inicio Sesión | 3 | ✅ |
-| PTG3-5 | Cerrar sesión (logout) | 2 | ✅ |
-| PTG3-7 | Editar Perfil de Mentor | 3 | ✅ |
-| PTG3-8 | Ver Marketplace de Mentores | 5 | ✅ |
-| PTG3-9 | Buscar Mentores por Categorías | 5 | ✅ |
-| PTG3-10 | Buscar Mentores por Nombre/Palabra Clave | 3 | ✅ |
-| PTG3-11 | Ver Perfil Completo de Mentor | 5 | ✅ |
-| PTG3-12 | Completar Perfil de Estudiante | 3 | ✅ |
+### Sprint 1 - Autenticación, Marketplace y Perfiles
+| ID | Historia de Usuario | Puntos |
+|---|---|---|
+| PTG3-1 | Setup entornos | 2 |
+| PTG3-2 | Registro de Usuario Estudiante | 5 |
+| PTG3-3 | Registro de Usuario Mentor | 5 |
+| PTG3-4 | Inicio Sesión | 3 |
+| PTG3-5 | Cerrar sesión (logout) | 2 |
+| PTG3-7 | Editar Perfil de Mentor | 3 |
+| PTG3-8 | Ver Marketplace de Mentores | 5 |
+| PTG3-9 | Buscar Mentores por Categorías | 5 |
+| PTG3-10 | Buscar Mentores por Nombre/Palabra Clave | 3 |
+| PTG3-11 | Ver Perfil Completo de Mentor | 5 |
+| PTG3-12 | Completar Perfil de Estudiante | 3 |
 | **Total** | | **47 pts** | |
 
 ### Sprint 2 - Sistema de Reservas, Pagos y Admin Core
@@ -353,7 +352,9 @@ Y a los mentores:
 | PTG3-24 | Subir Comprobante de Pago (Estudiante) | 5 |
 | PTG3-33 | Aprobar Mentores (Admin) | 5 |
 | PTG3-35 | Validar Comprobantes de Pago (Admin) | 8 |
-| **Total** | | **60 pts** |
+| PTG3-38 | Agregar validación de correo por código | 5 |
+| PTG3-39 | Agregar algoritmo de mostrar por preferencias | 5 |
+| **Total** | | **70 pts** |
 
 ### Sprint 3 - Panel Admin, Valoraciones e Historial
 | ID | Historia de Usuario | Puntos |
@@ -455,6 +456,48 @@ Y a los mentores:
 - [ ] [FRONT] Modal de visualización de comprobante
 - [ ] [BACK] Sistema de notificaciones al estudiante
 - [ ] [BACK] Actualización automática de estado de booking
+
+---
+
+### PTG3-38: Agregar validación de correo por código (5 pts)
+**Como** Administrador del sistema 
+**Quiero** verificar que los correos electrónico mediante un código 
+**Para** asegurar que la cuenta existe y es segura
+
+**Criterios de Aceptación:**
+- [FRONT] Pantalla de ingreso de código de 6 dígitos tras registro
+- [BACK] Envío automático de correo con código al registrarse
+- [BACK] Endpoint para validar el código ingresado
+- [FRONT/BACK] Tiempo de expiración del código (ej. 15 minutos)
+- [FRONT] Opción de "Reenviar código"
+- [BACK] No permitir acceso completo hasta verificar correo
+
+**Tareas:**
+- [ ] [BACK] Implementar servicio de envío de emails (Nodemailer/SendGrid)
+- [ ] [BACK] Modelo/Lógica para almacenar códigos temporales (Redis o DB)
+- [ ] [BACK] Endpoint POST /api/auth/verify-email
+- [ ] [BACK] Endpoint POST /api/auth/resend-code
+- [ ] [FRONT] Pantalla de verificación de OTP
+
+---
+
+### PTG3-39: Agregar algoritmo de mostrar por preferencias (5 pts)
+**Como** estudiante
+**Quiero** ver primero los mentores que coinciden con mis intereses
+**Para** encontrar ayuda relevante más rápidamente
+
+**Criterios de Aceptación:**
+- [BACK] Identificar intereses del estudiante autenticado desde su perfil
+- [BACK] Calcular "Puntaje de Relevancia" basado en coincidencias con especialidades del mentor
+- [BACK] Ordenar resultados de búsqueda por Relevancia (descendente)
+- [BACK] Mantener criterios de búsqueda y filtros adicionales funcionando
+- [FRONT] Los resultados más relevantes aparecen arriba automáticamente
+
+**Tareas:**
+- [x] [BACK] Modificar `searchMentors` en controller
+- [x] [BACK] Implementar lógica de intersección de arrays en agregación
+- [x] [BACK] Actualizar pipeline de ordenamiento
+
 
 ---
 
@@ -707,7 +750,7 @@ URL: https://trello.com/b/0HwNdej9/product-backlog-sprints
 
 ## Roadmap
 
-### Sprint 1 - Autenticación, Marketplace y Perfiles ✅ COMPLETADO
+### Sprint 1 - Autenticación, Marketplace y Perfiles
 - [x] Sistema de autenticación (registro, login, logout)
 - [x] Perfiles de mentores (crear, editar)
 - [x] Setup de entornos y configuración inicial
