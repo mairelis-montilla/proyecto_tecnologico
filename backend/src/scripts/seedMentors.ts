@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import { User } from '../models/User.model.js'
 import { Mentor } from '../models/Mentor.model.js'
 import { Specialty } from '../models/Specialty.model.js'
+import { Availability } from '../models/Availability.model.js'
 
 dotenv.config()
 
@@ -163,7 +164,7 @@ async function seedMentors() {
         .filter(Boolean)
 
       // Crear perfil de mentor
-      await Mentor.create({
+      const mentor = await Mentor.create({
         userId: user._id,
         bio: data.mentor.bio,
         experience: data.mentor.experience,
@@ -176,10 +177,31 @@ async function seedMentors() {
         totalSessions: data.mentor.totalSessions,
         isApproved: true,
         isActive: true,
+        timezone: 'America/Lima' // Default timezone
       })
 
+      // Add default availability (Mon, Wed, Fri: 09:00 - 12:00)
+      const availabilitySlots = []
+      const days = [1, 3, 5] // Mon, Wed, Fri
+      const hours = ['09:00', '10:00', '11:00']
+
+      for (const day of days) {
+        for (const hour of hours) {
+          availabilitySlots.push({
+            mentorId: mentor._id,
+            dayOfWeek: day,
+            startTime: hour,
+            endTime: hour.replace(/:00/, ':59'), // Just rough estimation, mostly using duration
+            duration: 60,
+            isActive: true
+          })
+        }
+      }
+
+      await Availability.insertMany(availabilitySlots)
+
       console.log(
-        `  + Creado mentor: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`
+        `  + Creado mentor con disponibilidad: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`
       )
       created++
     }
@@ -205,5 +227,6 @@ async function seedMentors() {
     process.exit(1)
   }
 }
+
 
 seedMentors()

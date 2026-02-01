@@ -9,11 +9,12 @@ import {
   Star,
   Languages,
   Loader2,
-  Calendar,
   MessageSquare,
 } from 'lucide-react'
-import { mentorsService } from '../services/mentors.service'
+import Calendar from '../components/Calendar'
+import moment from 'moment-timezone'
 import { getAvatarUrl } from '../utils/avatar'
+import { mentorsService } from '../services/mentors.service'
 import type { Mentor } from '../types/mentor.types'
 
 const PublicMentorProfile = () => {
@@ -23,10 +24,7 @@ const PublicMentorProfile = () => {
   const [mentor, setMentor] = useState<Mentor | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // Estado para la disponibilidad y reseñas (si quisieras mostrarlas)
-  // const [availability, setAvailability] = useState<any[]>([])
-  // const [reviews, setReviews] = useState<any>(null)
+  const [selectedSlot, setSelectedSlot] = useState<any>(null)
 
   useEffect(() => {
     const loadMentor = async () => {
@@ -38,8 +36,6 @@ const PublicMentorProfile = () => {
         const response = await mentorsService.getMentorById(id)
         if (response.data && response.data.mentor) {
           setMentor(response.data.mentor)
-          // setAvailability(response.data.availability || [])
-          // setReviews(response.data.reviews || null)
         } else {
           setError('Mentor no encontrado')
         }
@@ -134,7 +130,7 @@ const PublicMentorProfile = () => {
                 </div>
 
                 <button className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-lg hover:bg-purple-700 hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 shadow-purple-200 shadow-md flex items-center justify-center gap-2">
-                  <Calendar className="w-5 h-5" />
+                  <Calendar mentorId={mentor._id} />
                   Reservar Sesión
                 </button>
 
@@ -179,6 +175,24 @@ const PublicMentorProfile = () => {
 
           {/* Columna Derecha: Detalles Completos */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Calendar Section */}
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+              <Calendar mentorId={id!} onSelectSlot={setSelectedSlot} />
+              {selectedSlot && (
+                <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div>
+                    <p className="font-semibold text-purple-900 text-sm">Horario seleccionado:</p>
+                    <p className="text-purple-700 font-bold text-lg">
+                      {moment(selectedSlot.startIso).format('dddd, D [de] MMMM [a las] HH:mm')}
+                    </p>
+                  </div>
+                  <button className="px-8 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 shadow-purple-200 shadow-md">
+                    Confirmar Reserva
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Acerca de */}
             <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
@@ -227,5 +241,6 @@ const PublicMentorProfile = () => {
     </div>
   )
 }
+
 
 export default PublicMentorProfile
