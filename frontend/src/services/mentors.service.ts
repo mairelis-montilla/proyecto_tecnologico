@@ -211,4 +211,21 @@ export const mentorsService = {
     }>('/mentors/profile')
     return response
   },
+
+  async getAvailabilityPreview(mentorId: string, weeks: number = 2) {
+    const response = await api.get<{
+      status: string
+      data: Array<{
+        date: string
+        dayOfWeek: number
+        startTime: string
+        endTime: string
+        startIso: string
+        endIso: string
+        duration: number
+      }>
+    }>(`/mentors/${mentorId}/availability/preview`, { params: { weeks } })
+    return response.data
+  },
 }
+
