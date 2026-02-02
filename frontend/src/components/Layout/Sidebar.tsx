@@ -267,8 +267,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between p-4 border-b">
+          {/* Logo - same height as header (h-16 = 64px) */}
+          <div className="flex items-center justify-between px-4 h-16 border-b flex-shrink-0">
             <Link to="/dashboard" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-purpura to-indigo rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-lg">M</span>

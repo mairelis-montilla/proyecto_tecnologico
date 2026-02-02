@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Clock, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Calendar as CalendarIcon,
+  Loader2,
+  CalendarX,
+} from 'lucide-react'
 import moment from 'moment-timezone'
 import { mentorsService } from '../services/mentors.service'
 
@@ -29,21 +36,11 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
 
   useEffect(() => {
     fetchAvailability()
-  }, [mentorId, currentDate]) // Refetch when week changes? Or fetch enough in advance?
-  // Let's fetch 2 weeks from currentDate to be safe, currently preview fetches X weeks from "now"
-  // So maybe we just fetch once or when navigating far? 
-  // Simplified: Navigate weeks client side if we fetched enough, or refetch. 
-  // API returns "weeks=1" by default. Let's ask for 4 weeks on mount and manage navigation locally?
-  // Or fetch per week. Let's fetch per view change for simplicity or 2 weeks.
+  }, [mentorId])
 
   const fetchAvailability = async () => {
     setIsLoading(true)
     try {
-      // Calculate weeks offset? API is "weeks from now". 
-      // If user navigates to next month, we might need a different API parameter "startDate".
-      // Current API only supports "weeks" from TODAY.
-      // Limitation: Can only see next X weeks.
-      // Let's fetch 4 weeks initially.
       const response = await mentorsService.getAvailabilityPreview(mentorId, 4)
       if (response.data) {
         setSlots(response.data)
@@ -57,7 +54,7 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
   }
 
   const nextWeek = () => {
-    setCurrentDate(prev => prev.clone().add(1, 'week'))
+    setCurrentDate((prev) => prev.clone().add(1, 'week'))
   }
 
   const prevWeek = () => {
@@ -68,10 +65,10 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
   }
 
   // Filter slots for the currently displayed week
-  const startOfWeek = currentDate.clone().startOf('week') // Sunday based
+  const startOfWeek = currentDate.clone().startOf('week')
   const endOfWeek = currentDate.clone().endOf('week')
 
-  const weekSlots = slots.filter(slot => {
+  const weekSlots = slots.filter((slot) => {
     const slotTime = moment(slot.startIso)
     return slotTime.isBetween(startOfWeek, endOfWeek, undefined, '[]')
   })
@@ -82,13 +79,15 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
     const date = startOfWeek.clone().add(i, 'days')
     const dateStr = date.format('YYYY-MM-DD')
 
-    const daySlots = weekSlots.filter(slot => {
-      return moment(slot.startIso).format('YYYY-MM-DD') === dateStr
-    }).sort((a, b) => moment(a.startIso).diff(moment(b.startIso)))
+    const daySlots = weekSlots
+      .filter((slot) => {
+        return moment(slot.startIso).format('YYYY-MM-DD') === dateStr
+      })
+      .sort((a, b) => moment(a.startIso).diff(moment(b.startIso)))
 
     days.push({
       date,
-      slots: daySlots
+      slots: daySlots,
     })
   }
 
@@ -96,6 +95,9 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
     setSelectedSlotIso(slot.startIso)
     if (onSelectSlot) onSelectSlot(slot)
   }
+
+  // Check if there are any slots in this week
+  const hasAvailableSlots = weekSlots.length > 0
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -127,7 +129,8 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
       <div className="p-4">
         <div className="text-xs text-gray-500 mb-4 flex items-center gap-1 justify-end">
           <Clock className="w-3 h-3" />
-          Horarios en tu zona horaria: <span className="font-medium text-gray-700">{userTimezone}</span>
+          Horarios en tu zona horaria:{' '}
+          <span className="font-medium text-gray-700">{userTimezone}</span>
         </div>
 
         {isLoading ? (
@@ -136,6 +139,19 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
           </div>
         ) : error ? (
           <div className="text-center py-8 text-red-500 text-sm">{error}</div>
+        ) : !hasAvailableSlots ? (
+          // Empty state - no availability this week
+          <div className="text-center py-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+              <CalendarX className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-600 font-medium mb-1">
+              No hay horarios disponibles
+            </p>
+            <p className="text-sm text-gray-500">
+              Prueba navegando a otra semana
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-7 gap-2 min-h-[200px]">
             {days.map((day, idx) => (
@@ -144,7 +160,13 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
                   <div className="text-xs font-semibold text-gray-500 uppercase">
                     {day.date.format('ddd')}
                   </div>
-                  <div className={`text-sm font-bold ${day.date.isSame(moment(), 'day') ? 'text-purple-600 bg-purple-50 rounded-full w-8 h-8 flex items-center justify-center mx-auto' : 'text-gray-900'}`}>
+                  <div
+                    className={`text-sm font-bold ${
+                      day.date.isSame(moment(), 'day')
+                        ? 'text-purple-600 bg-purple-50 rounded-full w-8 h-8 flex items-center justify-center mx-auto'
+                        : 'text-gray-900'
+                    }`}
+                  >
                     {day.date.format('D')}
                   </div>
                 </div>
@@ -159,10 +181,11 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
                         <button
                           key={slot.startIso}
                           onClick={() => handleSelect(slot)}
-                          className={`w-full py-2 px-1 text-xs font-medium rounded-lg transition-all border ${isActive
+                          className={`w-full py-2 px-1 text-xs font-medium rounded-lg transition-all border ${
+                            isActive
                               ? 'bg-purple-600 text-white border-purple-600 shadow-md transform scale-105'
-                              : 'bg-white text-gray-700 border-gray-200 hover:border-purple-300 hover:bg-purple-50'
-                            }`}
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400 hover:bg-emerald-100'
+                          }`}
                         >
                           {slotLocalStart}
                         </button>
@@ -178,6 +201,20 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Legend */}
+        {!isLoading && !error && hasAvailableSlots && (
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-6 text-xs text-gray-500">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-emerald-50 border border-emerald-200"></div>
+              <span>Disponible</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-purple-600 border border-purple-600"></div>
+              <span>Seleccionado</span>
+            </div>
           </div>
         )}
       </div>
