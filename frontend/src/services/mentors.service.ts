@@ -211,4 +211,70 @@ export const mentorsService = {
     }>('/mentors/profile')
     return response
   },
+
+  // ========================================
+  // Availability endpoints
+  // ========================================
+
+  /**
+   * Obtener disponibilidad de un mentor
+   */
+  getAvailability: async (mentorId: string) => {
+    const response = await api.get<{
+      status: string
+      data: Array<{
+        _id: string
+        mentorId: string
+        dayOfWeek: number
+        startTime: string
+        endTime: string
+        duration: number
+        isActive: boolean
+      }>
+    }>(`/mentors/${mentorId}/availability`)
+    return response
+  },
+
+  /**
+   * Guardar disponibilidad del mentor
+   */
+  setAvailability: async (
+    mentorId: string,
+    data: {
+      slots: Array<{ dayOfWeek: number; startTime: string }>
+      duration: 45 | 60
+    }
+  ) => {
+    const response = await api.post<{
+      status: string
+      message: string
+      data: Array<{
+        _id: string
+        mentorId: string
+        dayOfWeek: number
+        startTime: string
+        endTime: string
+        duration: number
+        isActive: boolean
+      }>
+    }>(`/mentors/${mentorId}/availability`, data)
+    return response
+  },
+
+  /**
+   * Obtener preview de slots concretos
+   */
+  getAvailabilityPreview: async (mentorId: string, weeks: number = 4) => {
+    const response = await api.get<{
+      status: string
+      data: Array<{
+        date: string
+        dayOfWeek: number
+        startTime: string
+        endTime: string
+        duration: number
+      }>
+    }>(`/mentors/${mentorId}/availability/preview`, { params: { weeks } })
+    return response
+  },
 }

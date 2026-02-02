@@ -4,7 +4,8 @@ import interactionPlugin from '@fullcalendar/interaction'
 import { EventInput, DateSelectArg, EventClickArg } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { mentorsService } from '../services/mentors.service'
+import { useAuthStore } from '../stores/auth.store'
 
 interface AvailabilitySlot {
     _id?: string
@@ -38,10 +39,12 @@ const DEFAULT_TIME_SLOTS = [
 ]
 
 const Calendar = () => {
+    const { isAuthenticated } = useAuthStore()
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     const [events, setEvents] = useState<EventInput[]>([])
     const [slots, setSlots] = useState<AvailabilitySlot[]>([])
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const [duration] = useState<60>(60)
     const [showDaySelector, setShowDaySelector] = useState(false)
     const [mentorId, setMentorId] = useState<string>('')
@@ -56,78 +59,35 @@ const Calendar = () => {
         { dayOfWeek: 0, dayName: 'Domingo', timeSlots: [], isFullDaySelected: false },
     ])
 
-    const token = localStorage.getItem('token') || ''
-
-    const api = axios.create({
-        baseURL: `${import.meta.env.VITE_API_URL}/api`,
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
-
-    api.interceptors.request.use((config) => {
-        console.log('Request:', config.method?.toUpperCase(), config.url, config.data)
-        return config
-    })
-
-    api.interceptors.response.use(
-        (response) => {
-            console.log('Response:', response.status, response.data)
-            return response
-        },
-        (error) => {
-            console.error('Error:', {
-                url: error.config?.url,
-                status: error.response?.status,
-                message: error.response?.data?.message || error.message,
-                fullError: error.response?.data
-            })
-            return Promise.reject(error)
-        }
-    )
-
+    // Obtener el perfil del mentor para conseguir el mentorId correcto
     useEffect(() => {
-        const fetchMentorId = async () => {
+        const fetchMentorProfile = async () => {
             try {
                 setLoading(true)
+                setError(null)
 
-                // Intentar obtener del localStorage primero
-                const userStr = localStorage.getItem('user') || '{}'
-                const user = JSON.parse(userStr)
-                const userId = user._id || user.id
+                // Llamar al endpoint que devuelve el perfil del mentor autenticado
+                const response = await mentorsService.getMyProfile()
 
-                console.log('Usuario del localStorage:', user)
-                console.log('UserId encontrado:', userId)
-
-                if (userId) {
-                    // Buscar el mentor asociado a este usuario
-                    // La API debe tener un endpoint GET /mentors que devuelva todos los mentores
-                    // O podemos buscar el mentor haciendo una petición a /mentors con query params
-
-                    // Primero intentamos si el user ya tiene mentorId guardado
-                    if (user.mentorId) {
-                        console.log('MentorId encontrado en localStorage:', user.mentorId)
-                        setMentorId(user.mentorId)
-                        return
-                    }
-
-                    // Si no, asumimos que el _id del user ES el mentorId
-                    // (esto depende de cómo esté estructurado tu sistema de auth)
-                    console.log('Usando userId como mentorId:', userId)
-                    setMentorId(userId)
+                if (response.data.status === 'success' && response.data.data.mentor) {
+                    const mentor = response.data.data.mentor
+                    console.log('Perfil de mentor obtenido:', mentor)
+                    setMentorId(mentor._id)
+                } else {
+                    setError('No se pudo obtener el perfil de mentor')
                 }
-            } catch (error) {
-                console.error('Error obteniendo mentor:', error)
+            } catch (err: any) {
+                console.error('Error obteniendo perfil de mentor:', err)
+                setError(err.response?.data?.message || 'Error al cargar perfil de mentor')
             } finally {
                 setLoading(false)
             }
         }
 
-        if (token) {
-            fetchMentorId()
+        if (isAuthenticated) {
+            fetchMentorProfile()
         }
-    }, [token])
+    }, [isAuthenticated])
 
     useEffect(() => {
         const handleResize = () => {
@@ -138,12 +98,12 @@ const Calendar = () => {
     }, [])
 
     useEffect(() => {
-        if (mentorId && token) {
+        if (mentorId) {
             console.log('Cargando disponibilidad para mentor:', mentorId)
             fetchAvailability()
             fetchPreview()
         }
-    }, [mentorId, token])
+    }, [mentorId])
 
     useEffect(() => {
         if (slots.length > 0) {
@@ -165,20 +125,18 @@ const Calendar = () => {
     const fetchAvailability = async () => {
         try {
             console.log('Obteniendo disponibilidad...')
-            const response = await api.get(`/mentors/${mentorId}/availability`)
+            const response = await mentorsService.getAvailability(mentorId)
 
             if (response.data.status === 'success') {
                 console.log('Slots obtenidos:', response.data.data)
                 setSlots(response.data.data)
             }
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                if (error.response?.status === 404) {
-                    console.log('No hay disponibilidad configurada')
-                    setSlots([])
-                } else {
-                    console.error('Error obteniendo disponibilidad:', error.response?.data)
-                }
+        } catch (err: any) {
+            if (err.response?.status === 404) {
+                console.log('No hay disponibilidad configurada')
+                setSlots([])
+            } else {
+                console.error('Error obteniendo disponibilidad:', err.response?.data)
             }
         }
     }
@@ -188,10 +146,7 @@ const Calendar = () => {
             setLoading(true)
             console.log(`Obteniendo preview de ${weeks} semanas...`)
 
-            const response = await api.get(
-                `/mentors/${mentorId}/availability/preview`,
-                { params: { weeks } }
-            )
+            const response = await mentorsService.getAvailabilityPreview(mentorId, weeks)
 
             if (response.data.status === 'success') {
                 console.log('Preview obtenido:', response.data.data.length, 'slots')
@@ -211,12 +166,10 @@ const Calendar = () => {
 
                 setEvents(calendarEvents)
             }
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                if (error.response?.status === 404) {
-                    console.log('No hay preview disponible')
-                    setEvents([])
-                }
+        } catch (err: any) {
+            if (err.response?.status === 404) {
+                console.log('No hay preview disponible')
+                setEvents([])
             }
         } finally {
             setLoading(false)
@@ -228,7 +181,7 @@ const Calendar = () => {
             setLoading(true)
             console.log('Guardando disponibilidad:', { duration, slots: newSlots })
 
-            const response = await api.post(`/mentors/${mentorId}/availability`, {
+            const response = await mentorsService.setAvailability(mentorId, {
                 duration,
                 slots: newSlots
             })
@@ -239,12 +192,10 @@ const Calendar = () => {
                 await fetchPreview()
                 alert('Disponibilidad actualizada exitosamente')
             }
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                const errorMessage = error.response?.data?.message || error.message
-                console.error('Error guardando:', error.response?.data)
-                alert(`Error al guardar: ${errorMessage}`)
-            }
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || err.message
+            console.error('Error guardando:', err.response?.data)
+            alert(`Error al guardar: ${errorMessage}`)
         } finally {
             setLoading(false)
         }
@@ -349,7 +300,7 @@ const Calendar = () => {
         return daysConfig.reduce((sum, day) => sum + day.timeSlots.length, 0)
     }
 
-    if (!token) {
+    if (!isAuthenticated) {
         return (
             <div className="p-4">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -360,6 +311,23 @@ const Calendar = () => {
                         className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                     >
                         Ir a Login
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="p-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h2 className="text-red-800 font-bold mb-2">Error</h2>
+                    <p className="text-red-600">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                        Reintentar
                     </button>
                 </div>
             </div>
