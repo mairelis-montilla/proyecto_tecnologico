@@ -12,6 +12,7 @@ import Mentors from '@/pages/Mentors'
 import ProfilePage from './pages/ProfilePage'
 import PublicMentorProfile from '@/pages/PublicMentorProfile'
 import PublicStudentProfile from '@/pages/PublicStudentProfile'
+import Calendar from '@/pages/Calendar'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -90,10 +91,11 @@ function App() {
             path="/availability"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon
+                {/* <ComingSoon
                   title="Mi Disponibilidad"
                   description="Configura tus horarios disponibles para que los estudiantes puedan agendar sesiones contigo."
-                />
+                /> */}
+                <Calendar />
               </ProtectedRoute>
             }
           />
