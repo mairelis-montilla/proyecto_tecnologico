@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import { User } from '../models/User.model.js'
 import { Mentor } from '../models/Mentor.model.js'
 import { Specialty } from '../models/Specialty.model.js'
+import { Availability } from '../models/Availability.model.js'
 
 dotenv.config()
 
@@ -163,7 +164,7 @@ async function seedMentors() {
         .filter(Boolean)
 
       // Crear perfil de mentor
-      await Mentor.create({
+      const mentor = await Mentor.create({
         userId: user._id,
         bio: data.mentor.bio,
         experience: data.mentor.experience,
@@ -176,10 +177,70 @@ async function seedMentors() {
         totalSessions: data.mentor.totalSessions,
         isApproved: true,
         isActive: true,
+        timezone: 'America/Lima' // Default timezone
       })
 
+      // Add availability patterns (covers next 20+ days with weekly recurrence)
+      // Different patterns per mentor for variety
+      const availabilitySlots: Array<{
+        mentorId: typeof mentor._id
+        dayOfWeek: number
+        startTime: string
+        endTime: string
+        duration: number
+        isActive: boolean
+      }> = []
+
+      const mentorIndex = mentorsData.indexOf(data)
+
+      // Availability patterns by mentor (more slots = more availability)
+      const patterns = [
+        // Ana: Lun-Vie, mañana y tarde (30 slots/semana)
+        {
+          days: [1, 2, 3, 4, 5],
+          hours: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
+        },
+        // Carlos: Lun, Mie, Vie, Sab - horarios variados (24 slots/semana)
+        {
+          days: [1, 3, 5, 6],
+          hours: ['10:00', '11:00', '12:00', '17:00', '18:00', '19:00'],
+        },
+        // Maria: Lun-Sab mañanas (30 slots/semana)
+        {
+          days: [1, 2, 3, 4, 5, 6],
+          hours: ['08:00', '09:00', '10:00', '11:00', '12:00'],
+        },
+        // David: Lun-Sab tardes (24 slots/semana)
+        {
+          days: [1, 2, 3, 4, 5, 6],
+          hours: ['14:00', '15:00', '16:00', '17:00'],
+        },
+      ]
+
+      const pattern = patterns[mentorIndex % patterns.length]
+
+      for (const day of pattern.days) {
+        for (const hour of pattern.hours) {
+          const [h, m] = hour.split(':').map(Number)
+          const endHour = h + 1
+          const endTime = `${endHour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+
+          availabilitySlots.push({
+            mentorId: mentor._id,
+            dayOfWeek: day,
+            startTime: hour,
+            endTime: endTime,
+            duration: 60,
+            isActive: true,
+          })
+        }
+      }
+
+      await Availability.insertMany(availabilitySlots)
+      console.log(`    -> ${availabilitySlots.length} slots de disponibilidad creados`)
+
       console.log(
-        `  + Creado mentor: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`
+        `  + Creado mentor con disponibilidad: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`
       )
       created++
     }
@@ -205,5 +266,6 @@ async function seedMentors() {
     process.exit(1)
   }
 }
+
 
 seedMentors()

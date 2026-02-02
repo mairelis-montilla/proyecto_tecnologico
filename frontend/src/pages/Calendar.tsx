@@ -22,6 +22,8 @@ interface PreviewSlot {
     dayOfWeek: number
     startTime: string
     endTime: string
+    startIso?: string
+    endIso?: string
     duration: number
 }
 
@@ -47,6 +49,8 @@ const Calendar = () => {
     const [error, setError] = useState<string | null>(null)
     const [duration] = useState<60>(60)
     const [showDaySelector, setShowDaySelector] = useState(false)
+    const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number | null>(null) // Para modal de un solo día
+    const [deleteConfirm, setDeleteConfirm] = useState<{ dayOfWeek: number; startTime: string } | null>(null) // Para modal de eliminar
     const [mentorId, setMentorId] = useState<string>('')
 
     const [daysConfig, setDaysConfig] = useState<DayConfig[]>([
@@ -205,25 +209,10 @@ const Calendar = () => {
         const calendarApi = selectInfo.view.calendar
         calendarApi.unselect()
 
+        // Al hacer click en el calendario, abrir el modal para ese día específico
         const startDate = new Date(selectInfo.start)
         const dayOfWeek = startDate.getDay()
-        const startTime = startDate.toTimeString().slice(0, 5)
-
-        console.log('Fecha seleccionada:', { dayOfWeek, startTime })
-
-        const confirmAdd = window.confirm(
-            `Agregar disponibilidad para ${getDayName(dayOfWeek)} a las ${startTime}?\n(Duración: 60 minutos)`
-        )
-
-        if (confirmAdd) {
-            const newSlot = { dayOfWeek, startTime }
-            const existingSlots = slots.map(s => ({
-                dayOfWeek: s.dayOfWeek,
-                startTime: s.startTime
-            }))
-
-            saveAvailability([...existingSlots, newSlot])
-        }
+        setSelectedDayOfWeek(dayOfWeek)
     }
 
     const handleEventClick = (clickInfo: EventClickArg) => {
@@ -231,16 +220,22 @@ const Calendar = () => {
         const dayOfWeek = eventProps.dayOfWeek
         const startTime = eventProps.originalStartTime
 
-        if (window.confirm(`Eliminar disponibilidad de ${getDayName(dayOfWeek)} a las ${startTime}?`)) {
-            const updatedSlots = slots
-                .filter(s => !(s.dayOfWeek === dayOfWeek && s.startTime === startTime))
-                .map(s => ({
-                    dayOfWeek: s.dayOfWeek,
-                    startTime: s.startTime
-                }))
+        // Abrir modal de confirmación en lugar de window.confirm
+        setDeleteConfirm({ dayOfWeek, startTime })
+    }
 
-            saveAvailability(updatedSlots)
-        }
+    const handleConfirmDelete = () => {
+        if (!deleteConfirm) return
+
+        const updatedSlots = slots
+            .filter(s => !(s.dayOfWeek === deleteConfirm.dayOfWeek && s.startTime === deleteConfirm.startTime))
+            .map(s => ({
+                dayOfWeek: s.dayOfWeek,
+                startTime: s.startTime
+            }))
+
+        saveAvailability(updatedSlots)
+        setDeleteConfirm(null)
     }
 
     const handleToggleFullDay = (dayOfWeek: number) => {
@@ -394,6 +389,86 @@ const Calendar = () => {
                 />
             </div>
 
+            {/* Modal para configurar UN día específico (al hacer click en el calendario) */}
+            {selectedDayOfWeek !== null && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+                        <div className="border-b border-gray-200 p-6">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Configurar {getDayName(selectedDayOfWeek)}
+                            </h2>
+                            <p className="text-gray-600 mt-1 text-sm">
+                                Selecciona los horarios disponibles para todos los {getDayName(selectedDayOfWeek).toLowerCase()}
+                            </p>
+                        </div>
+
+                        <div className="p-6">
+                            {(() => {
+                                const dayConfig = daysConfig.find(d => d.dayOfWeek === selectedDayOfWeek)
+                                if (!dayConfig) return null
+                                return (
+                                    <>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className="text-sm text-gray-500">
+                                                {dayConfig.timeSlots.length} horario{dayConfig.timeSlots.length !== 1 ? 's' : ''} seleccionado{dayConfig.timeSlots.length !== 1 ? 's' : ''}
+                                            </span>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={dayConfig.isFullDaySelected}
+                                                    onChange={() => handleToggleFullDay(selectedDayOfWeek)}
+                                                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                                                />
+                                                <span className="text-sm font-medium text-gray-700">
+                                                    Todo el día
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {DEFAULT_TIME_SLOTS.map((time) => (
+                                                <button
+                                                    key={time}
+                                                    onClick={() => handleToggleTimeSlot(selectedDayOfWeek, time)}
+                                                    className={`
+                                                        px-3 py-2 rounded-md text-sm font-medium transition-all
+                                                        ${dayConfig.timeSlots.includes(time)
+                                                            ? 'bg-purple-600 text-white shadow-sm'
+                                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                        }
+                                                    `}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )
+                            })()}
+                        </div>
+
+                        <div className="bg-gray-50 border-t border-gray-200 p-4 flex justify-end gap-3">
+                            <button
+                                onClick={() => setSelectedDayOfWeek(null)}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleSaveDayConfig()
+                                    setSelectedDayOfWeek(null)
+                                }}
+                                disabled={loading}
+                                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            >
+                                {loading ? 'Guardando...' : 'Guardar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para configurar TODA la semana */}
             {showDaySelector && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -471,6 +546,45 @@ const Calendar = () => {
                                     {loading ? 'Guardando...' : 'Guardar disponibilidad'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de confirmación para eliminar */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+                        <div className="p-6">
+                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
+                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                                Eliminar disponibilidad
+                            </h3>
+                            <p className="text-gray-600 text-center text-sm">
+                                ¿Eliminar la disponibilidad de <strong>{getDayName(deleteConfirm.dayOfWeek)}</strong> a las <strong>{deleteConfirm.startTime}</strong>?
+                            </p>
+                            <p className="text-gray-500 text-center text-xs mt-2">
+                                Esto eliminará este horario de todos los {getDayName(deleteConfirm.dayOfWeek).toLowerCase()}.
+                            </p>
+                        </div>
+                        <div className="bg-gray-50 px-6 py-4 flex gap-3 justify-end rounded-b-lg">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                disabled={loading}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                            >
+                                {loading ? 'Eliminando...' : 'Eliminar'}
+                            </button>
                         </div>
                     </div>
                 </div>

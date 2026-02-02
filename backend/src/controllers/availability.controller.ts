@@ -1,6 +1,8 @@
 import { Response } from 'express'
+import moment from 'moment-timezone'
 import { Availability } from '../models/Availability.model.js'
 import { Mentor } from '../models/Mentor.model.js'
+import { Booking } from '../models/Booking.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 
 interface ITimeSlot {
@@ -134,6 +136,12 @@ export const previewAvailability = async (req: AuthRequest, res: Response): Prom
         const mentorId = req.params.id
         const weeks = parseInt(req.query.weeks as string) || 1
         
+        const mentor = await Mentor.findById(mentorId)
+        if (!mentor) {
+             res.status(404).json({ message: 'Mentor not found' })
+             return
+        }
+
         const availability = await Availability.find({ mentorId, isActive: true })
         
         if (!availability.length) {
@@ -141,29 +149,58 @@ export const previewAvailability = async (req: AuthRequest, res: Response): Prom
             return
         }
 
+        // Get bookings for the next X weeks to filter out taken slots
+        const startDate = new Date()
+        const endDate = new Date()
+        endDate.setDate(endDate.getDate() + (weeks * 7) + 1) // +1 buffer
+        
+        const bookings = await Booking.find({
+            mentorId,
+            scheduledDate: { $gte: startDate, $lte: endDate },
+            status: { $ne: 'cancelled' }
+        })
+
         const concreteSlots: any[] = []
-        const today = new Date()
-        // Start from today or tomorrow? Let's start from today.
+        const timezone = mentor.timezone || 'America/Lima'
+        
+        // Start from "now" in mentor's timezone
+        const now = moment().tz(timezone)
+        const today = now.clone().startOf('day')
         
         for (let i = 0; i < weeks * 7; i++) {
-            const currentDate = new Date(today)
-            currentDate.setDate(today.getDate() + i)
-            const dayOfWeek = currentDate.getDay() // 0 = Sunday
-            
-            // Availability stores dayOfWeek (check if it matches 0-6 or 1-7 conventions)
-            // Availability model: 0-6. Date.getDay(): 0-6 (Sun-Sat).
-            // Usually 0=Sun. Let's assume consistency.
+            const currentDate = today.clone().add(i, 'days')
+            const dayOfWeek = currentDate.day() // 0 = Sunday
             
             const daysSlots = availability.filter(a => a.dayOfWeek === dayOfWeek)
             
             daysSlots.forEach(slot => {
-                concreteSlots.push({
-                    date: currentDate.toISOString().split('T')[0],
-                    dayOfWeek,
-                    startTime: slot.startTime,
-                    endTime: slot.endTime,
-                    duration: slot.duration
+                // Construct slot timestamp in mentor's timezone
+                const [startHour, startMinute] = slot.startTime.split(':').map(Number)
+                const slotStart = currentDate.clone().hour(startHour).minute(startMinute).second(0)
+                
+                // Skip if slot is in the past
+                if (slotStart.isBefore(now)) return
+
+                // Check for bookings
+                // We check if there's a booking on the same day (formatted YYYY-MM-DD) and same start time
+                // This assumes 1:1 slot mapping. For more complex overlaps, we'd compare ranges.
+                const isBooked = bookings.some(booking => {
+                    const bookingDate = moment(booking.scheduledDate).tz(timezone).format('YYYY-MM-DD')
+                    const slotDate = slotStart.format('YYYY-MM-DD')
+                    return bookingDate === slotDate && booking.startTime === slot.startTime
                 })
+
+                if (!isBooked) {
+                    concreteSlots.push({
+                        date: slotStart.format('YYYY-MM-DD'), // Local date string for reference
+                        dayOfWeek,
+                        startTime: slot.startTime,
+                        endTime: slot.endTime,
+                        startIso: slotStart.toISOString(), // UTC ISO for frontend
+                        endIso: slotStart.clone().add(slot.duration, 'minutes').toISOString(),
+                        duration: slot.duration
+                    })
+                }
             })
         }
         
@@ -176,3 +213,4 @@ export const previewAvailability = async (req: AuthRequest, res: Response): Prom
         res.status(500).json({ message: 'Internal server error' })
     }
 }
+

@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage'
 import PublicMentorProfile from '@/pages/PublicMentorProfile'
 import PublicStudentProfile from '@/pages/PublicStudentProfile'
 import Calendar from '@/pages/Calendar'
+import Sessions from '@/pages/Sessions'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -127,10 +128,7 @@ function App() {
             path="/sessions"
             element={
               <ProtectedRoute allowedRoles={['student', 'mentor']}>
-                <ComingSoon
-                  title="Mis Sesiones"
-                  description="Visualiza tus sesiones programadas, completadas y pendientes."
-                />
+                <Sessions />
               </ProtectedRoute>
             }
           />

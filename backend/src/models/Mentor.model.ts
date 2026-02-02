@@ -4,6 +4,7 @@ export interface IMentor extends Document {
   userId: Types.ObjectId
   title: string
   bio: string
+  timezone: string
   specialties: Types.ObjectId[]
   experience: string
   yearsOfExperience: number
@@ -38,6 +39,10 @@ const mentorSchema = new Schema<IMentor>(
       trim: true,
       maxlength: [500, 'Bio must not exceed 500 characters'],
       default: '',
+    },
+    timezone: {
+      type: String,
+      default: 'America/Lima',
     },
     specialties: [
       {

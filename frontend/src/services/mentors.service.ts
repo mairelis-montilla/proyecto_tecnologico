@@ -262,7 +262,7 @@ export const mentorsService = {
   },
 
   /**
-   * Obtener preview de slots concretos
+   * Obtener preview de slots concretos (incluye startIso/endIso para timezone)
    */
   getAvailabilityPreview: async (mentorId: string, weeks: number = 4) => {
     const response = await api.get<{
@@ -272,9 +272,12 @@ export const mentorsService = {
         dayOfWeek: number
         startTime: string
         endTime: string
+        startIso: string
+        endIso: string
         duration: number
       }>
     }>(`/mentors/${mentorId}/availability/preview`, { params: { weeks } })
     return response
   },
 }
+

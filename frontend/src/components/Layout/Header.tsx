@@ -49,8 +49,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const roleBadge = getRoleBadge()
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-30">
-      <div className="flex items-center justify-between px-4 py-3">
+    <header className="bg-white shadow-sm sticky top-0 z-30 h-16 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 h-full">
         {/* Botón menú móvil */}
         <button
           onClick={onMenuClick}
