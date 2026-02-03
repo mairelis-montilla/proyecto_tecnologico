@@ -13,6 +13,8 @@ export interface INotification extends Document {
     | 'payment_rejected'
     | 'review_received'
     | 'mentor_approved'
+    | 'mentor_rejected'
+    | 'mentor_revoked'
     | 'system'
   title: string
   message: string
@@ -44,6 +46,8 @@ const notificationSchema = new Schema<INotification>(
         'payment_rejected',
         'review_received',
         'mentor_approved',
+        'mentor_rejected',
+        'mentor_revoked',
         'system',
       ],
       required: [true, 'Notification type is required'],
