@@ -27,8 +27,12 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await login(formData)
-      navigate(from, { replace: true })
+      const result = await login(formData)
+      if (result.requiresVerification) {
+        navigate('/verify-email', { state: { email: result.email } })
+      } else {
+        navigate(from, { replace: true })
+      }
     } catch {
       // Error ya manejado en el store
     }
@@ -125,6 +129,15 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-purpura hover:text-rosa transition"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">

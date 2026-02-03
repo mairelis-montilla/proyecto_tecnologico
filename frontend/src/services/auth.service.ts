@@ -6,6 +6,10 @@ import type {
   RegisterMentorData,
   User,
   Profile,
+  VerifyEmailData,
+  ForgotPasswordData,
+  ResetPasswordData,
+  GenericResponse,
 } from '@/types/auth.types'
 
 export const authService = {
@@ -37,5 +41,35 @@ export const authService = {
       data: { user: User; profile: Profile }
     }>('/auth/me')
     return response.data.data
+  },
+
+  // Verificación de email
+  async verifyEmail(data: VerifyEmailData): Promise<GenericResponse> {
+    const response = await api.post<GenericResponse>('/auth/verify-email', data)
+    return response.data
+  },
+
+  async resendVerificationCode(email: string): Promise<GenericResponse> {
+    const response = await api.post<GenericResponse>('/auth/resend-code', {
+      email,
+    })
+    return response.data
+  },
+
+  // Recuperación de contraseña
+  async forgotPassword(data: ForgotPasswordData): Promise<GenericResponse> {
+    const response = await api.post<GenericResponse>(
+      '/auth/forgot-password',
+      data
+    )
+    return response.data
+  },
+
+  async resetPassword(data: ResetPasswordData): Promise<GenericResponse> {
+    const response = await api.post<GenericResponse>(
+      '/auth/reset-password',
+      data
+    )
+    return response.data
   },
 }

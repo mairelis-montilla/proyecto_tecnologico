@@ -8,6 +8,7 @@ export interface IUser extends Document {
   role: 'student' | 'mentor' | 'admin'
   avatar?: string
   isActive: boolean
+  isEmailVerified: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -50,6 +51,10 @@ const userSchema = new Schema<IUser>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -99,3 +99,52 @@ export const loginValidator = [
     .normalizeEmail({ gmail_remove_subaddress: false }),
   body('password').notEmpty().withMessage('La contraseña es requerida'),
 ]
+
+export const verifyEmailValidator = [
+  body('email')
+    .isEmail()
+    .withMessage('Debe proporcionar un email válido')
+    .normalizeEmail({ gmail_remove_subaddress: false }),
+  body('code')
+    .trim()
+    .notEmpty()
+    .withMessage('El código es requerido')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('El código debe tener 6 dígitos')
+    .isNumeric()
+    .withMessage('El código debe ser numérico'),
+]
+
+export const resendCodeValidator = [
+  body('email')
+    .isEmail()
+    .withMessage('Debe proporcionar un email válido')
+    .normalizeEmail({ gmail_remove_subaddress: false }),
+]
+
+export const forgotPasswordValidator = [
+  body('email')
+    .isEmail()
+    .withMessage('Debe proporcionar un email válido')
+    .normalizeEmail({ gmail_remove_subaddress: false }),
+]
+
+export const resetPasswordValidator = [
+  body('email')
+    .isEmail()
+    .withMessage('Debe proporcionar un email válido')
+    .normalizeEmail({ gmail_remove_subaddress: false }),
+  body('code')
+    .trim()
+    .notEmpty()
+    .withMessage('El código es requerido')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('El código debe tener 6 dígitos')
+    .isNumeric()
+    .withMessage('El código debe ser numérico'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('La contraseña debe tener al menos 6 caracteres')
+    .matches(/\d/)
+    .withMessage('La contraseña debe contener al menos un número'),
+]

@@ -5,6 +5,7 @@ export interface User {
   lastName: string
   role: 'student' | 'mentor' | 'admin'
   avatar?: string
+  isEmailVerified?: boolean
 }
 
 export interface StudentProfile {
@@ -43,6 +44,7 @@ export interface AuthResponse {
     user: User
     profile: Profile
     token: string
+    requiresVerification?: boolean
   }
 }
 
@@ -82,4 +84,25 @@ export interface ApiError {
     msg: string
     param: string
   }>
+}
+
+export interface VerifyEmailData {
+  email: string
+  code: string
+}
+
+export interface ForgotPasswordData {
+  email: string
+}
+
+export interface ResetPasswordData {
+  email: string
+  code: string
+  newPassword: string
+}
+
+export interface GenericResponse {
+  status: 'success' | 'error'
+  message: string
+  attemptsRemaining?: number
 }

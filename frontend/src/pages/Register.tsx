@@ -67,8 +67,9 @@ export default function Register() {
     }
 
     try {
+      let result
       if (userType === 'student') {
-        await registerStudent({
+        result = await registerStudent({
           email: formData.email,
           password: formData.password,
           firstName: formData.firstName,
@@ -84,7 +85,7 @@ export default function Register() {
           )
           return
         }
-        await registerMentor({
+        result = await registerMentor({
           email: formData.email,
           password: formData.password,
           firstName: formData.firstName,
@@ -96,7 +97,12 @@ export default function Register() {
             : undefined,
         })
       }
-      navigate('/dashboard')
+
+      if (result.requiresVerification) {
+        navigate('/verify-email', { state: { email: result.email } })
+      } else {
+        navigate('/dashboard')
+      }
     } catch {
       // Error ya manejado en el store
     }

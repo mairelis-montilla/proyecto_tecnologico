@@ -16,15 +16,18 @@ interface AuthState {
   isAuthenticated: boolean
   isInitialized: boolean
   error: string | null
+  requiresVerification: boolean
+  pendingVerificationEmail: string | null
 
   // Acciones
-  login: (credentials: LoginCredentials) => Promise<void>
-  registerStudent: (data: RegisterStudentData) => Promise<void>
-  registerMentor: (data: RegisterMentorData) => Promise<void>
+  login: (credentials: LoginCredentials) => Promise<{ requiresVerification: boolean; email: string }>
+  registerStudent: (data: RegisterStudentData) => Promise<{ requiresVerification: boolean; email: string }>
+  registerMentor: (data: RegisterMentorData) => Promise<{ requiresVerification: boolean; email: string }>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
   refreshUser: () => Promise<void>
   clearError: () => void
+  setPendingVerificationEmail: (email: string | null) => void
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -35,12 +38,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: !!localStorage.getItem('token'),
   isInitialized: false,
   error: null,
+  requiresVerification: false,
+  pendingVerificationEmail: null,
 
   login: async (credentials: LoginCredentials) => {
     set({ isLoading: true, error: null })
     try {
       const response = await authService.login(credentials)
-      const { user, profile, token } = response.data
+      const { user, profile, token, requiresVerification } = response.data
 
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
@@ -51,7 +56,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token,
         isAuthenticated: true,
         isLoading: false,
+        requiresVerification: requiresVerification || false,
+        pendingVerificationEmail: requiresVerification ? user.email : null,
       })
+
+      return {
+        requiresVerification: requiresVerification || false,
+        email: user.email
+      }
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } } }
       const message =
@@ -65,7 +77,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const response = await authService.registerStudent(data)
-      const { user, profile, token } = response.data
+      const { user, profile, token, requiresVerification } = response.data
 
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
@@ -76,7 +88,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token,
         isAuthenticated: true,
         isLoading: false,
+        requiresVerification: requiresVerification || false,
+        pendingVerificationEmail: requiresVerification ? user.email : null,
       })
+
+      return {
+        requiresVerification: requiresVerification || false,
+        email: user.email
+      }
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } } }
       const message =
@@ -90,7 +109,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const response = await authService.registerMentor(data)
-      const { user, profile, token } = response.data
+      const { user, profile, token, requiresVerification } = response.data
 
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
@@ -101,7 +120,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token,
         isAuthenticated: true,
         isLoading: false,
+        requiresVerification: requiresVerification || false,
+        pendingVerificationEmail: requiresVerification ? user.email : null,
       })
+
+      return {
+        requiresVerification: requiresVerification || false,
+        email: user.email
+      }
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } } }
       const message =
@@ -126,6 +152,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: null,
         isAuthenticated: false,
         isLoading: false,
+        requiresVerification: false,
+        pendingVerificationEmail: null,
       })
     }
   },
@@ -156,6 +184,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
         isInitialized: true,
+        requiresVerification: !user.isEmailVerified,
+        pendingVerificationEmail: !user.isEmailVerified ? user.email : null,
       })
     } catch {
       localStorage.removeItem('token')
@@ -178,11 +208,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { user, profile } = await authService.getMe()
       localStorage.setItem('user', JSON.stringify(user))
-      set({ user, profile })
+      set({
+        user,
+        profile,
+        requiresVerification: !user.isEmailVerified,
+        pendingVerificationEmail: !user.isEmailVerified ? user.email : null,
+      })
     } catch {
       // Ignorar errores de refresh
     }
   },
 
   clearError: () => set({ error: null }),
+
+  setPendingVerificationEmail: (email: string | null) =>
+    set({ pendingVerificationEmail: email }),
 }))

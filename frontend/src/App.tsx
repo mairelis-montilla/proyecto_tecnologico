@@ -6,6 +6,8 @@ import { Layout } from '@/components/Layout'
 import Landing from '@/pages/Landing'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
+import VerifyEmail from '@/pages/VerifyEmail'
+import ForgotPassword from '@/pages/ForgotPassword'
 import Dashboard from '@/pages/Dashboard'
 import ComingSoon from '@/pages/ComingSoon'
 import Mentors from '@/pages/Mentors'
@@ -58,6 +60,8 @@ function App() {
             )
           }
         />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Rutas protegidas con Layout */}
         <Route
