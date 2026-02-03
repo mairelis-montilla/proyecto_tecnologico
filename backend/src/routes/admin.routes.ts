@@ -7,6 +7,14 @@ import {
   deleteSpecialty,
 } from '../controllers/specialties.controller.js'
 import {
+  getPendingMentors,
+  getApprovedMentors,
+  getMentorDetail,
+  approveMentor,
+  rejectMentor,
+  revokeMentor,
+} from '../controllers/admin-mentors.controller.js'
+import {
   authenticateToken,
   authorizeRoles,
 } from '../middlewares/auth.middleware.js'
@@ -109,5 +117,64 @@ router.put('/specialties/:id', updateSpecialtyValidator, updateSpecialty)
 
 // DELETE /api/admin/specialties/:id - Eliminar especialidad
 router.delete('/specialties/:id', deleteSpecialtyValidator, deleteSpecialty)
+
+// ==================== MENTORS ====================
+
+// Validadores para mentores
+const getMentorsValidator = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('La página debe ser un número entero mayor a 0'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('El límite debe ser un número entre 1 y 50'),
+  query('search')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('La búsqueda debe tener entre 2 y 100 caracteres'),
+]
+
+const mentorIdValidator = [
+  param('id').isMongoId().withMessage('ID de mentor inválido'),
+]
+
+const rejectMentorValidator = [
+  param('id').isMongoId().withMessage('ID de mentor inválido'),
+  body('reason')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('El motivo no puede exceder 500 caracteres'),
+]
+
+const revokeMentorValidator = [
+  param('id').isMongoId().withMessage('ID de mentor inválido'),
+  body('reason')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('El motivo no puede exceder 500 caracteres'),
+]
+
+// GET /api/admin/mentors/pending - Listar mentores pendientes de aprobación
+router.get('/mentors/pending', getMentorsValidator, getPendingMentors)
+
+// GET /api/admin/mentors/approved - Listar mentores aprobados
+router.get('/mentors/approved', getMentorsValidator, getApprovedMentors)
+
+// GET /api/admin/mentors/:id - Obtener detalle de un mentor
+router.get('/mentors/:id', mentorIdValidator, getMentorDetail)
+
+// PATCH /api/admin/mentors/:id/approve - Aprobar mentor
+router.patch('/mentors/:id/approve', mentorIdValidator, approveMentor)
+
+// PATCH /api/admin/mentors/:id/reject - Rechazar mentor
+router.patch('/mentors/:id/reject', rejectMentorValidator, rejectMentor)
+
+// PATCH /api/admin/mentors/:id/revoke - Revocar aprobación de mentor
+router.patch('/mentors/:id/revoke', revokeMentorValidator, revokeMentor)
 
 export default router
