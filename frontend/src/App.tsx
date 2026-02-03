@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage'
 import PublicMentorProfile from '@/pages/PublicMentorProfile'
 import PublicStudentProfile from '@/pages/PublicStudentProfile'
 import Sessions from '@/pages/Sessions'
+import AdminMentorApproval from './pages/AdminAproveMentors'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -182,7 +183,7 @@ function App() {
             path="/admin/mentors"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <ComingSoon
+                <AdminMentorApproval
                   title="Aprobar Mentores"
                   description="Revisa y aprueba las solicitudes de nuevos mentores."
                 />
