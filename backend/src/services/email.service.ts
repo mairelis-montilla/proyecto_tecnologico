@@ -8,7 +8,9 @@ const createTransporter = () => {
   const pass = process.env.SMTP_PASS
 
   if (!user || !pass) {
-    console.warn('⚠️ SMTP credentials not configured. Email sending will be simulated.')
+    console.warn(
+      '⚠️ SMTP credentials not configured. Email sending will be simulated.'
+    )
     return null
   }
 
@@ -213,7 +215,10 @@ export const sendEmail = async (
         emailContent = emailTemplates.mentorApproved(data.firstName)
         break
       case 'mentorRejected':
-        emailContent = emailTemplates.mentorRejected(data.firstName, data.reason)
+        emailContent = emailTemplates.mentorRejected(
+          data.firstName,
+          data.reason
+        )
         break
       default:
         throw new Error(`Template ${template} not found`)

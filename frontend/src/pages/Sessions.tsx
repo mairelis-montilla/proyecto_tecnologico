@@ -40,7 +40,9 @@ const Sessions = () => {
     setError(null)
 
     try {
-      const response = await bookingsService.getMyBookings({ status: activeTab })
+      const response = await bookingsService.getMyBookings({
+        status: activeTab,
+      })
       setBookings(response.data.bookings)
     } catch (err: any) {
       console.error('Error fetching bookings:', err)
@@ -183,7 +185,7 @@ const Sessions = () => {
           <SessionsEmptyState tab={activeTab} />
         ) : (
           <div className="space-y-4">
-            {bookings.map((booking) => (
+            {bookings.map(booking => (
               <SessionCard
                 key={booking._id}
                 booking={booking}

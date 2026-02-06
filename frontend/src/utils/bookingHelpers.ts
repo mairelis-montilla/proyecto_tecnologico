@@ -62,7 +62,9 @@ export const getHoursUntilSession = (dateIso: string): number => {
 /**
  * Calcular politica de reembolso basada en horas restantes
  */
-export const calculateRefundPolicy = (hoursBeforeSession: number): RefundPolicy => {
+export const calculateRefundPolicy = (
+  hoursBeforeSession: number
+): RefundPolicy => {
   if (hoursBeforeSession >= 24) {
     return {
       hoursBeforeSession,

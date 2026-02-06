@@ -444,7 +444,7 @@ export const searchMentors = async (
       $sort: {
         relevanceScore: -1,
         [sortBy]: sortOrder,
-        _id: 1
+        _id: 1,
       } as Record<string, 1 | -1>,
     })
 

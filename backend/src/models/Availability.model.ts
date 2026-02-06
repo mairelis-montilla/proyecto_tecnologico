@@ -1,12 +1,20 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
+export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly'
+
 export interface IAvailability extends Document {
   mentorId: Types.ObjectId
-  dayOfWeek: number
+  // Para slots de fecha específica
+  date?: Date
+  // Para slots recurrentes (legacy - opcional si hay date)
+  dayOfWeek?: number
   startTime: string
   endTime: string
   duration: number
   isActive: boolean
+  // Configuración de recurrencia
+  recurrence: RecurrenceType
+  recurrenceEndDate?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -18,11 +26,17 @@ const availabilitySchema = new Schema<IAvailability>(
       ref: 'Mentor',
       required: [true, 'Mentor ID is required'],
     },
+    // Fecha específica para el slot
+    date: {
+      type: Date,
+      default: null,
+    },
+    // Día de la semana (0-6, donde 0 = domingo) - solo para recurrencia semanal legacy
     dayOfWeek: {
       type: Number,
-      required: [true, 'Day of week is required'],
       min: 0,
       max: 6,
+      default: null,
     },
     startTime: {
       type: String,
@@ -50,6 +64,15 @@ const availabilitySchema = new Schema<IAvailability>(
       type: Boolean,
       default: true,
     },
+    recurrence: {
+      type: String,
+      enum: ['none', 'daily', 'weekly', 'monthly'],
+      default: 'none',
+    },
+    recurrenceEndDate: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -57,8 +80,10 @@ const availabilitySchema = new Schema<IAvailability>(
 )
 
 // Índices
+availabilitySchema.index({ mentorId: 1, date: 1 })
 availabilitySchema.index({ mentorId: 1, dayOfWeek: 1 })
 availabilitySchema.index({ isActive: 1 })
+availabilitySchema.index({ date: 1 })
 
 export const Availability = model<IAvailability>(
   'Availability',

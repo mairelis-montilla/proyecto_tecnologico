@@ -144,7 +144,9 @@ const PublicMentorProfile = () => {
                 ></div>
               </div>
 
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{fullName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {fullName}
+              </h1>
               <p className="text-purple-600 font-medium mb-4">
                 {mentor.title || 'Mentor Especialista'}
               </p>
@@ -197,7 +199,7 @@ const PublicMentorProfile = () => {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {mentor.languages && mentor.languages.length > 0 ? (
-                    mentor.languages.map((lang) => (
+                    mentor.languages.map(lang => (
                       <span
                         key={lang}
                         className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full font-medium"
@@ -262,7 +264,8 @@ const PublicMentorProfile = () => {
                 Acerca de mi
               </h2>
               <div className="prose prose-purple max-w-none text-gray-600 leading-relaxed whitespace-pre-line">
-                {mentor.bio || 'Este mentor no ha añadido una descripcion todavia.'}
+                {mentor.bio ||
+                  'Este mentor no ha añadido una descripcion todavia.'}
               </div>
             </div>
 

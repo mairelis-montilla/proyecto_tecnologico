@@ -45,7 +45,7 @@ const FileUpload = ({
       // Crear preview si es imagen
       if (isImageFile(selectedFile)) {
         const reader = new FileReader()
-        reader.onload = (e) => {
+        reader.onload = e => {
           setPreview(e.target?.result as string)
         }
         reader.readAsDataURL(selectedFile)
@@ -172,7 +172,9 @@ const FileUpload = ({
             {/* Info del archivo */}
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">{file.name}</p>
-              <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+              <p className="text-sm text-gray-500">
+                {formatFileSize(file.size)}
+              </p>
               <p className="text-xs text-green-600 mt-1">
                 Archivo listo para enviar
               </p>

@@ -1,12 +1,9 @@
 import { Response } from 'express'
-import { Availability } from '../models/Availability.model.js'
+import moment from 'moment-timezone'
+import { Availability, RecurrenceType } from '../models/Availability.model.js'
 import { Mentor } from '../models/Mentor.model.js'
+import { Booking } from '../models/Booking.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
-
-interface ITimeSlot {
-  dayOfWeek: number
-  startTime: string
-}
 
 const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number)
@@ -19,29 +16,463 @@ const minutesToTime = (minutes: number): string => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
 }
 
-export const setAvailability = async (req: AuthRequest, res: Response): Promise<void> => {
+interface SlotInput {
+  date: string // YYYY-MM-DD
+  startTime: string // HH:MM
+  recurrence?: RecurrenceType
+  recurrenceEndDate?: string // YYYY-MM-DD
+}
+
+/**
+ * Agregar slots de disponibilidad
+ * POST /api/mentors/:id/availability
+ */
+export const addAvailability = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const mentorId = req.params.id
     const userId = req.user?._id
 
     if (!userId) {
-        res.status(401).json({ message: 'User not authenticated' })
-        return
+      res
+        .status(401)
+        .json({ status: 'error', message: 'Usuario no autenticado' })
+      return
     }
 
-    // Authorization: Check if the mentor belongs to the user
     const mentor = await Mentor.findById(mentorId)
     if (!mentor) {
-        res.status(404).json({ message: 'Mentor not found' })
-        return
+      res.status(404).json({ status: 'error', message: 'Mentor no encontrado' })
+      return
     }
 
     if (mentor.userId.toString() !== userId.toString()) {
-        res.status(403).json({ message: 'Not authorized to update this mentor\'s availability' })
-        return
+      res.status(403).json({ status: 'error', message: 'No autorizado' })
+      return
     }
 
-    const { slots, duration } = req.body // slots: [{ dayOfWeek, startTime }], duration: 45 | 60
+    const { slots, duration = 60 } = req.body as {
+      slots: SlotInput[]
+      duration: number
+    }
+
+    if (!slots || !Array.isArray(slots) || slots.length === 0) {
+      res
+        .status(400)
+        .json({ status: 'error', message: 'Se requiere al menos un slot' })
+      return
+    }
+
+    if (![45, 60].includes(duration)) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'La duración debe ser 45 o 60 minutos',
+        })
+      return
+    }
+
+    const createdSlots = []
+
+    for (const slot of slots) {
+      const { date, startTime, recurrence = 'none', recurrenceEndDate } = slot
+
+      // Validar fecha
+      const slotDate = moment(date, 'YYYY-MM-DD', true)
+      if (!slotDate.isValid()) {
+        res
+          .status(400)
+          .json({ status: 'error', message: `Fecha inválida: ${date}` })
+        return
+      }
+
+      // No permitir fechas pasadas
+      if (slotDate.isBefore(moment(), 'day')) {
+        res
+          .status(400)
+          .json({
+            status: 'error',
+            message: 'No se pueden agregar slots en fechas pasadas',
+          })
+        return
+      }
+
+      // Validar hora
+      if (!/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(startTime)) {
+        res
+          .status(400)
+          .json({ status: 'error', message: `Hora inválida: ${startTime}` })
+        return
+      }
+
+      const startMin = timeToMinutes(startTime)
+      const endMin = startMin + duration
+      const endTime = minutesToTime(endMin)
+
+      // Verificar superposición con slots existentes
+      const existingSlot = await Availability.findOne({
+        mentorId,
+        date: slotDate.toDate(),
+        isActive: true,
+        $or: [
+          {
+            $and: [
+              { startTime: { $lte: startTime } },
+              { endTime: { $gt: startTime } },
+            ],
+          },
+          {
+            $and: [
+              { startTime: { $lt: endTime } },
+              { endTime: { $gte: endTime } },
+            ],
+          },
+          {
+            $and: [
+              { startTime: { $gte: startTime } },
+              { endTime: { $lte: endTime } },
+            ],
+          },
+        ],
+      })
+
+      if (existingSlot) {
+        res.status(400).json({
+          status: 'error',
+          message: `Ya existe un slot que se superpone el ${date} a las ${startTime}`,
+        })
+        return
+      }
+
+      // Crear el primer slot (siempre independiente)
+      const newSlot = await Availability.create({
+        mentorId,
+        date: slotDate.toDate(),
+        dayOfWeek: slotDate.day(),
+        startTime,
+        endTime,
+        duration,
+        isActive: true,
+        recurrence: 'none', // Todos los slots son independientes
+      })
+
+      createdSlots.push(newSlot)
+
+      // Si hay recurrencia, crear slots adicionales independientes
+      if (recurrence !== 'none') {
+        const endRecurrence = recurrenceEndDate
+          ? moment(recurrenceEndDate)
+          : moment(date).add(3, 'months') // Por defecto 3 meses
+
+        let nextDate = slotDate.clone()
+
+        while (true) {
+          if (recurrence === 'daily') {
+            nextDate.add(1, 'day')
+          } else if (recurrence === 'weekly') {
+            nextDate.add(1, 'week')
+          } else if (recurrence === 'monthly') {
+            nextDate.add(1, 'month')
+          }
+
+          if (nextDate.isAfter(endRecurrence)) break
+
+          // Verificar que no exista ya
+          const exists = await Availability.findOne({
+            mentorId,
+            date: nextDate.toDate(),
+            startTime,
+            isActive: true,
+          })
+
+          if (!exists) {
+            const additionalSlot = await Availability.create({
+              mentorId,
+              date: nextDate.toDate(),
+              dayOfWeek: nextDate.day(),
+              startTime,
+              endTime,
+              duration,
+              isActive: true,
+              recurrence: 'none', // Todos los slots son independientes
+            })
+            createdSlots.push(additionalSlot)
+          }
+        }
+      }
+    }
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Disponibilidad agregada correctamente',
+      data: createdSlots,
+    })
+  } catch (error) {
+    console.error('Error adding availability:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Eliminar un slot de disponibilidad
+ * DELETE /api/mentors/:id/availability/:slotId
+ */
+export const deleteAvailability = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id: mentorId, slotId } = req.params
+    const userId = req.user?._id
+
+    if (!userId) {
+      res
+        .status(401)
+        .json({ status: 'error', message: 'Usuario no autenticado' })
+      return
+    }
+
+    const mentor = await Mentor.findById(mentorId)
+    if (!mentor) {
+      res.status(404).json({ status: 'error', message: 'Mentor no encontrado' })
+      return
+    }
+
+    if (mentor.userId.toString() !== userId.toString()) {
+      res.status(403).json({ status: 'error', message: 'No autorizado' })
+      return
+    }
+
+    const slot = await Availability.findOne({ _id: slotId, mentorId })
+    if (!slot) {
+      res.status(404).json({ status: 'error', message: 'Slot no encontrado' })
+      return
+    }
+
+    // Verificar si hay una reserva para este slot
+    if (slot.date) {
+      const slotDate = moment(slot.date)
+      const [hours, minutes] = slot.startTime.split(':').map(Number)
+      const scheduledAt = slotDate.clone().hour(hours).minute(minutes).second(0)
+
+      const booking = await Booking.findOne({
+        mentorId,
+        scheduledAt: scheduledAt.toDate(),
+        status: { $nin: ['cancelled', 'refunded'] },
+      })
+
+      if (booking) {
+        res.status(400).json({
+          status: 'error',
+          message: 'No se puede eliminar un slot con una reserva activa',
+        })
+        return
+      }
+    }
+
+    await Availability.findByIdAndDelete(slotId)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Slot eliminado correctamente',
+    })
+  } catch (error) {
+    console.error('Error deleting availability:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Obtener disponibilidad del mentor
+ * GET /api/mentors/:id/availability
+ */
+export const getAvailability = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const mentorId = req.params.id
+    const { startDate, endDate } = req.query
+
+    const filter: Record<string, unknown> = {
+      mentorId,
+      isActive: true,
+    }
+
+    // Si se proporcionan fechas, filtrar por rango
+    if (startDate && endDate) {
+      filter.date = {
+        $gte: moment(startDate as string)
+          .startOf('day')
+          .toDate(),
+        $lte: moment(endDate as string)
+          .endOf('day')
+          .toDate(),
+      }
+    } else {
+      // Por defecto, mostrar desde hoy en adelante
+      filter.date = { $gte: moment().startOf('day').toDate() }
+    }
+
+    const availability = await Availability.find(filter)
+      .sort({ date: 1, startTime: 1 })
+      .lean()
+
+    res.status(200).json({
+      status: 'success',
+      data: availability,
+    })
+  } catch (error) {
+    console.error('Error fetching availability:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Obtener preview de slots disponibles (para estudiantes)
+ * GET /api/mentors/:id/availability/preview
+ */
+export const previewAvailability = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const mentorId = req.params.id
+    const weeks = parseInt(req.query.weeks as string) || 2
+
+    const mentor = await Mentor.findById(mentorId)
+    if (!mentor) {
+      res.status(404).json({ status: 'error', message: 'Mentor no encontrado' })
+      return
+    }
+
+    const timezone = mentor.timezone || 'America/Lima'
+    const now = moment().tz(timezone)
+    const startDate = now.clone().startOf('day')
+    const endDate = now.clone().add(weeks, 'weeks').endOf('day')
+
+    // Obtener slots de disponibilidad
+    const availability = await Availability.find({
+      mentorId,
+      isActive: true,
+      date: {
+        $gte: startDate.toDate(),
+        $lte: endDate.toDate(),
+      },
+    }).lean()
+
+    // Obtener reservas existentes
+    const bookings = await Booking.find({
+      mentorId,
+      scheduledDate: {
+        $gte: startDate.toDate(),
+        $lte: endDate.toDate(),
+      },
+      status: { $nin: ['cancelled', 'rejected'] },
+    }).lean()
+
+    const concreteSlots: Array<{
+      date: string
+      startTime: string
+      endTime: string
+      startIso: string
+      endIso: string
+      duration: number
+      slotId: string
+    }> = []
+
+    for (const slot of availability) {
+      if (!slot.date) continue
+
+      const slotDate = moment(slot.date).tz(timezone)
+      const [startHour, startMinute] = slot.startTime.split(':').map(Number)
+      const slotStart = slotDate
+        .clone()
+        .hour(startHour)
+        .minute(startMinute)
+        .second(0)
+
+      // Saltar slots en el pasado
+      if (slotStart.isBefore(now)) continue
+
+      // Verificar si hay una reserva
+      const isBooked = bookings.some(booking => {
+        const bookingStart = moment(booking.scheduledAt).tz(timezone)
+        const bookingDate = bookingStart.format('YYYY-MM-DD')
+        const bookingTime = bookingStart.format('HH:mm')
+        const slotDateStr = slotStart.format('YYYY-MM-DD')
+        return bookingDate === slotDateStr && bookingTime === slot.startTime
+      })
+
+      if (!isBooked) {
+        concreteSlots.push({
+          date: slotStart.format('YYYY-MM-DD'),
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          startIso: slotStart.toISOString(),
+          endIso: slotStart.clone().add(slot.duration, 'minutes').toISOString(),
+          duration: slot.duration,
+          slotId: slot._id!.toString(),
+        })
+      }
+    }
+
+    // Ordenar por fecha y hora
+    concreteSlots.sort(
+      (a, b) => new Date(a.startIso).getTime() - new Date(b.startIso).getTime()
+    )
+
+    res.status(200).json({
+      status: 'success',
+      data: concreteSlots,
+    })
+  } catch (error) {
+    console.error('Error generating preview:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+// Legacy: Mantener compatibilidad con el método anterior
+export const setAvailability = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const mentorId = req.params.id
+    const userId = req.user?._id
+
+    if (!userId) {
+      res.status(401).json({ message: 'User not authenticated' })
+      return
+    }
+
+    const mentor = await Mentor.findById(mentorId)
+    if (!mentor) {
+      res.status(404).json({ message: 'Mentor not found' })
+      return
+    }
+
+    if (mentor.userId.toString() !== userId.toString()) {
+      res
+        .status(403)
+        .json({
+          message: "Not authorized to update this mentor's availability",
+        })
+      return
+    }
+
+    const { slots, duration } = req.body
 
     if (!slots || !Array.isArray(slots)) {
       res.status(400).json({ message: 'Slots array is required' })
@@ -53,166 +484,35 @@ export const setAvailability = async (req: AuthRequest, res: Response): Promise<
       return
     }
 
-    // Validate and process slots
-    const newSlots = []
-    
-    // Sort slots by day and time to easily check overlaps
-    const sortedSlots = [...(slots as ITimeSlot[])].sort((a, b) => {
-      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek
-      return timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
-    })
+    // Eliminar disponibilidad antigua
+    await Availability.deleteMany({ mentorId })
 
-    for (let i = 0; i < sortedSlots.length; i++) {
-        const slot = sortedSlots[i];
-        
-        // Basic validation
-        if (slot.dayOfWeek < 0 || slot.dayOfWeek > 6) {
-             res.status(400).json({ message: `Invalid day of week: ${slot.dayOfWeek}` })
-             return
-        }
-        
+    // Crear nueva disponibilidad
+    const newSlots = slots.map(
+      (slot: { dayOfWeek: number; startTime: string }) => {
         const startMin = timeToMinutes(slot.startTime)
         const endMin = startMin + duration
-        
-        // Check for overlaps with the NEXT slot in the sorted list (if same day)
-        if (i < sortedSlots.length - 1) {
-            const nextSlot = sortedSlots[i+1];
-            if (nextSlot.dayOfWeek === slot.dayOfWeek) {
-                 const nextStartMin = timeToMinutes(nextSlot.startTime);
-                 if (nextStartMin < endMin) {
-                      res.status(400).json({ 
-                          message: `Overlapping slots detected on day ${slot.dayOfWeek} at ${slot.startTime}` 
-                      })
-                      return
-                 }
-            }
+        return {
+          mentorId,
+          dayOfWeek: slot.dayOfWeek,
+          startTime: slot.startTime,
+          endTime: minutesToTime(endMin),
+          duration,
+          isActive: true,
+          recurrence: 'weekly' as RecurrenceType,
         }
+      }
+    )
 
-        newSlots.push({
-            mentorId,
-            dayOfWeek: slot.dayOfWeek,
-            startTime: slot.startTime,
-            endTime: minutesToTime(endMin),
-            duration,
-            isActive: true
-        })
-    }
-
-    // If validation passes, delete old availability and insert new
-    await Availability.deleteMany({ mentorId })
     const createdSlots = await Availability.insertMany(newSlots)
 
-    res.status(200).json({ 
-        status: 'success', 
-        message: 'Availability updated successfully', 
-        data: createdSlots 
+    res.status(200).json({
+      status: 'success',
+      message: 'Availability updated successfully',
+      data: createdSlots,
     })
   } catch (error) {
     console.error('Error setting availability:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 }
-
-export const getAvailability = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const mentorId = req.params.id
-    
-    const availability = await Availability.find({ mentorId, isActive: true }).sort({ dayOfWeek: 1, startTime: 1 })
-    res.status(200).json({
-        status: 'success',
-        data: availability
-    })
-  } catch (error) {
-    console.error('Error fetching availability:', error)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-}
-
-import moment from 'moment-timezone'
-import { Booking } from '../models/Booking.model.js'
-
-// ... (existing imports/interfaces)
-
-// Generate concrete slots for preview
-export const previewAvailability = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const mentorId = req.params.id
-        const weeks = parseInt(req.query.weeks as string) || 1
-        
-        const mentor = await Mentor.findById(mentorId)
-        if (!mentor) {
-             res.status(404).json({ message: 'Mentor not found' })
-             return
-        }
-
-        const availability = await Availability.find({ mentorId, isActive: true })
-        
-        if (!availability.length) {
-            res.status(200).json({ status: 'success', data: [] })
-            return
-        }
-
-        // Get bookings for the next X weeks to filter out taken slots
-        const startDate = new Date()
-        const endDate = new Date()
-        endDate.setDate(endDate.getDate() + (weeks * 7) + 1) // +1 buffer
-        
-        const bookings = await Booking.find({
-            mentorId,
-            scheduledDate: { $gte: startDate, $lte: endDate },
-            status: { $ne: 'cancelled' }
-        })
-
-        const concreteSlots: any[] = []
-        const timezone = mentor.timezone || 'America/Lima'
-        
-        // Start from "now" in mentor's timezone
-        const now = moment().tz(timezone)
-        const today = now.clone().startOf('day')
-        
-        for (let i = 0; i < weeks * 7; i++) {
-            const currentDate = today.clone().add(i, 'days')
-            const dayOfWeek = currentDate.day() // 0 = Sunday
-            
-            const daysSlots = availability.filter(a => a.dayOfWeek === dayOfWeek)
-            
-            daysSlots.forEach(slot => {
-                // Construct slot timestamp in mentor's timezone
-                const [startHour, startMinute] = slot.startTime.split(':').map(Number)
-                const slotStart = currentDate.clone().hour(startHour).minute(startMinute).second(0)
-                
-                // Skip if slot is in the past
-                if (slotStart.isBefore(now)) return
-
-                // Check for bookings
-                // We check if there's a booking on the same day (formatted YYYY-MM-DD) and same start time
-                // This assumes 1:1 slot mapping. For more complex overlaps, we'd compare ranges.
-                const isBooked = bookings.some(booking => {
-                    const bookingDate = moment(booking.scheduledDate).tz(timezone).format('YYYY-MM-DD')
-                    const slotDate = slotStart.format('YYYY-MM-DD')
-                    return bookingDate === slotDate && booking.startTime === slot.startTime
-                })
-
-                if (!isBooked) {
-                    concreteSlots.push({
-                        date: slotStart.format('YYYY-MM-DD'), // Local date string for reference
-                        startTime: slot.startTime,
-                        endTime: slot.endTime,
-                        startIso: slotStart.toISOString(), // UTC ISO for frontend
-                        endIso: slotStart.clone().add(slot.duration, 'minutes').toISOString(),
-                        duration: slot.duration
-                    })
-                }
-            })
-        }
-        
-        res.status(200).json({
-            status: 'success',
-            data: concreteSlots
-        })
-    } catch (error) {
-        console.error('Error generating preview:', error)
-        res.status(500).json({ message: 'Internal server error' })
-    }
-}
-

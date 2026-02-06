@@ -223,9 +223,70 @@ export const mentorsService = {
         startIso: string
         endIso: string
         duration: number
+        slotId: string
       }>
     }>(`/mentors/${mentorId}/availability/preview`, { params: { weeks } })
     return response.data
   },
-}
 
+  // Obtener disponibilidad del mentor (para el mentor)
+  async getMyAvailability(
+    mentorId: string,
+    startDate?: string,
+    endDate?: string
+  ) {
+    const params: Record<string, string> = {}
+    if (startDate) params.startDate = startDate
+    if (endDate) params.endDate = endDate
+
+    const response = await api.get<{
+      status: string
+      data: Array<{
+        _id: string
+        date: string
+        dayOfWeek: number
+        startTime: string
+        endTime: string
+        duration: number
+        recurrence: 'none' | 'daily' | 'weekly' | 'monthly'
+        recurrenceEndDate?: string
+        isActive: boolean
+      }>
+    }>(`/mentors/${mentorId}/availability`, { params })
+    return response.data
+  },
+
+  // Agregar slots de disponibilidad
+  async addAvailability(
+    mentorId: string,
+    slots: Array<{
+      date: string
+      startTime: string
+      recurrence?: 'none' | 'daily' | 'weekly' | 'monthly'
+      recurrenceEndDate?: string
+    }>,
+    duration: number = 60
+  ) {
+    const response = await api.post<{
+      status: string
+      message: string
+      data: Array<{
+        _id: string
+        date: string
+        startTime: string
+        endTime: string
+        duration: number
+      }>
+    }>(`/mentors/${mentorId}/availability`, { slots, duration })
+    return response.data
+  },
+
+  // Eliminar un slot de disponibilidad
+  async deleteAvailability(mentorId: string, slotId: string) {
+    const response = await api.delete<{
+      status: string
+      message: string
+    }>(`/mentors/${mentorId}/availability/${slotId}`)
+    return response.data
+  },
+}

@@ -39,7 +39,8 @@ const CancelBookingModal = ({
 
   const hoursRemaining = getHoursUntilSession(booking.scheduledAt)
   const refundPolicy = calculateRefundPolicy(hoursRemaining)
-  const refundAmount = (booking.totalAmount * refundPolicy.refundPercentage) / 100
+  const refundAmount =
+    (booking.totalAmount * refundPolicy.refundPercentage) / 100
 
   const mentorName = `${booking.mentorId.userId.firstName} ${booking.mentorId.userId.lastName}`
 
@@ -118,7 +119,12 @@ const CancelBookingModal = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Cancelar Sesion" size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Cancelar Sesion"
+      size="lg"
+    >
       <ModalBody>
         {/* Warning */}
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 mb-6">
@@ -170,9 +176,7 @@ const CancelBookingModal = ({
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  Mas de 24 horas de anticipacion
-                </span>
+                <span className="text-sm">Mas de 24 horas de anticipacion</span>
                 <span className="font-bold text-green-600">100%</span>
               </div>
             </div>
@@ -208,7 +212,9 @@ const CancelBookingModal = ({
           <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
             <p className="text-sm text-purple-800">
               <strong>Tu situacion:</strong> Faltan{' '}
-              <span className="font-bold">{Math.round(hoursRemaining)} horas</span>{' '}
+              <span className="font-bold">
+                {Math.round(hoursRemaining)} horas
+              </span>{' '}
               para tu sesion
             </p>
             <p className="text-lg font-bold text-purple-900 mt-2">
@@ -230,7 +236,7 @@ const CancelBookingModal = ({
           <textarea
             id="reason"
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onChange={e => setReason(e.target.value)}
             placeholder="Cuentanos por que necesitas cancelar..."
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all"
             rows={3}

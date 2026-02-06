@@ -177,7 +177,7 @@ async function seedMentors() {
         totalSessions: data.mentor.totalSessions,
         isApproved: true,
         isActive: true,
-        timezone: 'America/Lima' // Default timezone
+        timezone: 'America/Lima', // Default timezone
       })
 
       // Add availability patterns (covers next 20+ days with weekly recurrence)
@@ -237,7 +237,9 @@ async function seedMentors() {
       }
 
       await Availability.insertMany(availabilitySlots)
-      console.log(`    -> ${availabilitySlots.length} slots de disponibilidad creados`)
+      console.log(
+        `    -> ${availabilitySlots.length} slots de disponibilidad creados`
+      )
 
       console.log(
         `  + Creado mentor con disponibilidad: ${data.user.firstName} ${data.user.lastName} (${data.user.email})`
@@ -266,6 +268,5 @@ async function seedMentors() {
     process.exit(1)
   }
 }
-
 
 seedMentors()

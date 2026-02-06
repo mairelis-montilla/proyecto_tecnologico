@@ -84,7 +84,7 @@ const PriceRangeSlider = ({
       <div
         ref={sliderRef}
         className="relative w-full h-1 bg-gray-200 rounded-full cursor-pointer"
-        onClick={(e) => {
+        onClick={e => {
           // Click en el track mueve la manija más cercana
           const rect = e.currentTarget.getBoundingClientRect()
           const percent = ((e.clientX - rect.left) / rect.width) * 100
@@ -114,20 +114,23 @@ const PriceRangeSlider = ({
 
         {/* Manija Min */}
         <div
-          className={`absolute rounded-full shadow cursor-grab flex items-center justify-center -top-2 hover:scale-110 transition-transform ${isDragging === 'min' ? 'scale-110 z-30 cursor-grabbing ring-2 ring-purple-300' : 'z-20'
-            }`}
+          className={`absolute rounded-full shadow cursor-grab flex items-center justify-center -top-2 hover:scale-110 transition-transform ${
+            isDragging === 'min'
+              ? 'scale-110 z-30 cursor-grabbing ring-2 ring-purple-300'
+              : 'z-20'
+          }`}
           style={{
             left: `calc(${minPercent}% - 10px)`,
             width: '20px',
             height: '20px',
             backgroundColor: 'white',
-            border: '2px solid #9333ea' // purple-600
+            border: '2px solid #9333ea', // purple-600
           }}
-          onMouseDown={(e) => {
+          onMouseDown={e => {
             e.stopPropagation()
             setIsDragging('min')
           }}
-          onTouchStart={(e) => {
+          onTouchStart={e => {
             e.stopPropagation()
             setIsDragging('min')
           }}
@@ -135,20 +138,23 @@ const PriceRangeSlider = ({
 
         {/* Manija Max */}
         <div
-          className={`absolute rounded-full shadow cursor-grab flex items-center justify-center -top-2 hover:scale-110 transition-transform ${isDragging === 'max' ? 'scale-110 z-30 cursor-grabbing ring-2 ring-purple-300' : 'z-20'
-            }`}
+          className={`absolute rounded-full shadow cursor-grab flex items-center justify-center -top-2 hover:scale-110 transition-transform ${
+            isDragging === 'max'
+              ? 'scale-110 z-30 cursor-grabbing ring-2 ring-purple-300'
+              : 'z-20'
+          }`}
           style={{
             left: `calc(${maxPercent}% - 10px)`,
             width: '20px',
             height: '20px',
             backgroundColor: 'white',
-            border: '2px solid #9333ea' // purple-600
+            border: '2px solid #9333ea', // purple-600
           }}
-          onMouseDown={(e) => {
+          onMouseDown={e => {
             e.stopPropagation()
             setIsDragging('max')
           }}
-          onTouchStart={(e) => {
+          onTouchStart={e => {
             e.stopPropagation()
             setIsDragging('max')
           }}
@@ -157,28 +163,38 @@ const PriceRangeSlider = ({
 
       <div className="flex items-center justify-between mt-4 text-sm font-medium text-gray-700 gap-4">
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            $
+          </span>
           <input
             type="number"
             min={min}
             max={value[1]}
             value={value[0]}
-            onChange={(e) => {
-              const val = Math.max(min, Math.min(Number(e.target.value), value[1] - step))
+            onChange={e => {
+              const val = Math.max(
+                min,
+                Math.min(Number(e.target.value), value[1] - step)
+              )
               onChange([val, value[1]])
             }}
             className="w-24 pl-6 pr-2 py-1 bg-white border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            $
+          </span>
           <input
             type="number"
             min={value[0]}
             max={max}
             value={value[1]}
-            onChange={(e) => {
-              const val = Math.min(max, Math.max(Number(e.target.value), value[0] + step))
+            onChange={e => {
+              const val = Math.min(
+                max,
+                Math.max(Number(e.target.value), value[0] + step)
+              )
               onChange([value[0], val])
             }}
             className="w-24 pl-6 pr-2 py-1 bg-white border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"

@@ -233,7 +233,10 @@ export const approveMentor = async (
     await mentor.save()
 
     // Crear notificación para el mentor
-    const user = mentor.userId as { firstName?: string; _id: mongoose.Types.ObjectId }
+    const user = mentor.userId as {
+      firstName?: string
+      _id: mongoose.Types.ObjectId
+    }
     await Notification.create({
       userId: user._id,
       type: 'mentor_approved',
@@ -309,7 +312,10 @@ export const rejectMentor = async (
     await mentor.save()
 
     // Crear notificación para el mentor
-    const user = mentor.userId as { firstName?: string; _id: mongoose.Types.ObjectId }
+    const user = mentor.userId as {
+      firstName?: string
+      _id: mongoose.Types.ObjectId
+    }
     await Notification.create({
       userId: user._id,
       type: 'mentor_rejected',
@@ -386,7 +392,10 @@ export const revokeMentor = async (
     await mentor.save()
 
     // Crear notificación para el mentor
-    const user = mentor.userId as { firstName?: string; _id: mongoose.Types.ObjectId }
+    const user = mentor.userId as {
+      firstName?: string
+      _id: mongoose.Types.ObjectId
+    }
     await Notification.create({
       userId: user._id,
       type: 'mentor_revoked',

@@ -143,7 +143,7 @@ const BookingConfirmModal = ({
               <textarea
                 id="topic"
                 value={topic}
-                onChange={(e) => setTopic(e.target.value)}
+                onChange={e => setTopic(e.target.value)}
                 placeholder="Ej: Necesito ayuda con derivadas e integrales para mi examen parcial..."
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all"
                 rows={3}
@@ -162,12 +162,13 @@ const BookingConfirmModal = ({
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
               >
                 <MessageSquare className="w-4 h-4" />
-                Mensaje adicional <span className="text-gray-400">(opcional)</span>
+                Mensaje adicional{' '}
+                <span className="text-gray-400">(opcional)</span>
               </label>
               <textarea
                 id="message"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={e => setMessage(e.target.value)}
                 placeholder="Cualquier informacion adicional que quieras compartir con el mentor..."
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all"
                 rows={2}
@@ -185,15 +186,21 @@ const BookingConfirmModal = ({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Duracion</span>
-                <span className="font-medium">{formatDuration(slot.duration)}</span>
+                <span className="font-medium">
+                  {formatDuration(slot.duration)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tarifa por hora</span>
-                <span className="font-medium">{formatPrice(mentor.hourlyRate)}</span>
+                <span className="font-medium">
+                  {formatPrice(mentor.hourlyRate)}
+                </span>
               </div>
               <hr className="border-purple-200" />
               <div className="flex justify-between text-base">
-                <span className="font-semibold text-gray-900">Total a pagar</span>
+                <span className="font-semibold text-gray-900">
+                  Total a pagar
+                </span>
                 <span className="font-bold text-purple-600 text-lg">
                   {formatPrice(totalAmount)}
                 </span>

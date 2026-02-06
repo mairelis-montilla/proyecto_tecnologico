@@ -22,7 +22,10 @@ export default function ForgotPassword() {
   // Cooldown para reenvío
   useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      )
       return () => clearTimeout(timer)
     }
   }, [resendCooldown])
@@ -47,9 +50,7 @@ export default function ForgotPassword() {
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
       const axiosError = err as { response?: { data?: { message?: string } } }
-      setError(
-        axiosError?.response?.data?.message || 'Error al enviar código'
-      )
+      setError(axiosError?.response?.data?.message || 'Error al enviar código')
     } finally {
       setIsLoading(false)
     }
@@ -213,7 +214,8 @@ export default function ForgotPassword() {
                   <span className="text-purpura font-medium">{email}</span>
                 </>
               )}
-              {step === 'password' && 'Crea una nueva contraseña para tu cuenta'}
+              {step === 'password' &&
+                'Crea una nueva contraseña para tu cuenta'}
             </p>
           </div>
         </div>

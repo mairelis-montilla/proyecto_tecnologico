@@ -99,7 +99,8 @@ export const registerStudent = async (
 
     res.status(201).json({
       status: 'success',
-      message: 'Estudiante registrado exitosamente. Se ha enviado un código de verificación a tu correo.',
+      message:
+        'Estudiante registrado exitosamente. Se ha enviado un código de verificación a tu correo.',
       data: {
         user: {
           id: user._id,
@@ -200,7 +201,8 @@ export const registerMentor = async (
 
     res.status(201).json({
       status: 'success',
-      message: 'Mentor registrado exitosamente. Se ha enviado un código de verificación a tu correo.',
+      message:
+        'Mentor registrado exitosamente. Se ha enviado un código de verificación a tu correo.',
       data: {
         user: {
           id: user._id,
@@ -495,7 +497,8 @@ export const resendVerificationCode = async (
       // No revelar si el email existe o no por seguridad
       res.status(200).json({
         status: 'success',
-        message: 'Si el correo está registrado, recibirás un código de verificación.',
+        message:
+          'Si el correo está registrado, recibirás un código de verificación.',
       })
       return
     }
@@ -570,7 +573,8 @@ export const forgotPassword = async (
     if (!user) {
       res.status(200).json({
         status: 'success',
-        message: 'Si el correo está registrado, recibirás un código para restablecer tu contraseña.',
+        message:
+          'Si el correo está registrado, recibirás un código para restablecer tu contraseña.',
       })
       return
     }
@@ -601,7 +605,8 @@ export const forgotPassword = async (
 
     res.status(200).json({
       status: 'success',
-      message: 'Si el correo está registrado, recibirás un código para restablecer tu contraseña.',
+      message:
+        'Si el correo está registrado, recibirás un código para restablecer tu contraseña.',
     })
   } catch (error) {
     next(error)

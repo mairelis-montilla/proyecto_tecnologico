@@ -76,7 +76,7 @@ const Mentors = () => {
         // Only send search term if it has 3 or more characters to avoid 400 error
         q: debouncedSearch.length >= 3 ? debouncedSearch : undefined,
         // Category filter removed to allow multi-category via specialties
-        // category: selectedCategory || undefined, 
+        // category: selectedCategory || undefined,
         specialties:
           selectedSpecialties.length > 0
             ? selectedSpecialties.join(',')
@@ -185,16 +185,24 @@ const Mentors = () => {
           Categorías
         </h3>
         <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-2">
-          {categories.map((cat) => (
-            <div key={cat.category} className="border-b border-gray-50 last:border-0">
+          {categories.map(cat => (
+            <div
+              key={cat.category}
+              className="border-b border-gray-50 last:border-0"
+            >
               <div
                 className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${expandedCategory === cat.category ? 'bg-purple-50 text-purple-700' : 'hover:bg-gray-50 text-gray-700'}`}
                 onClick={() => {
                   // Toggle expansion only
-                  setExpandedCategory(expandedCategory === cat.category ? null : cat.category)
+                  setExpandedCategory(
+                    expandedCategory === cat.category ? null : cat.category
+                  )
                 }}
               >
-                <span className="text-sm font-medium">{cat.category} <span className="text-xs opacity-70">({cat.count})</span></span>
+                <span className="text-sm font-medium">
+                  {cat.category}{' '}
+                  <span className="text-xs opacity-70">({cat.count})</span>
+                </span>
                 {expandedCategory === cat.category ? (
                   <ChevronDown className="w-4 h-4" />
                 ) : (
@@ -205,7 +213,7 @@ const Mentors = () => {
               {/* Sub-opciones (Especialidades) - Estilo Dropdown/Collapsible */}
               {expandedCategory === cat.category && (
                 <div className="pl-4 pr-2 py-2 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                  {cat.specialties.map((spec) => (
+                  {cat.specialties.map(spec => (
                     <label
                       key={spec._id}
                       className="flex items-center cursor-pointer hover:bg-white p-1.5 rounded-md transition-colors"
@@ -213,13 +221,16 @@ const Mentors = () => {
                       <input
                         type="checkbox"
                         checked={selectedSpecialties.includes(spec._id)}
-                        onChange={(e) => {
+                        onChange={e => {
                           // Add/Remove specialty irrespective of category logic
                           if (e.target.checked) {
-                            setSelectedSpecialties([...selectedSpecialties, spec._id])
+                            setSelectedSpecialties([
+                              ...selectedSpecialties,
+                              spec._id,
+                            ])
                           } else {
                             setSelectedSpecialties(
-                              selectedSpecialties.filter((s) => s !== spec._id)
+                              selectedSpecialties.filter(s => s !== spec._id)
                             )
                           }
                           setCurrentPage(1)
@@ -281,7 +292,7 @@ const Mentors = () => {
             max={200}
             step={10}
             value={priceRange}
-            onChange={(newValue) => {
+            onChange={newValue => {
               setPriceRange(newValue)
               setCurrentPage(1) // Reset page on change
             }}
@@ -559,10 +570,11 @@ const Mentors = () => {
                             <button
                               key={pageNum}
                               onClick={() => setCurrentPage(pageNum)}
-                              className={`w-10 h-10 rounded-lg font-medium ${currentPage === pageNum
-                                ? 'bg-purple-600 text-white'
-                                : 'border border-gray-300 hover:bg-gray-50'
-                                }`}
+                              className={`w-10 h-10 rounded-lg font-medium ${
+                                currentPage === pageNum
+                                  ? 'bg-purple-600 text-white'
+                                  : 'border border-gray-300 hover:bg-gray-50'
+                              }`}
                             >
                               {pageNum}
                             </button>

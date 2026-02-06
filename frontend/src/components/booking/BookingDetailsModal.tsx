@@ -190,7 +190,9 @@ const BookingDetailsModal = ({
             </h4>
             <div className="bg-red-50 p-4 rounded-xl border border-red-100">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-red-600">Fecha de cancelacion</span>
+                <span className="text-sm text-red-600">
+                  Fecha de cancelacion
+                </span>
                 <span className="font-medium text-red-800">
                   {moment(booking.cancellation.cancelledAt).format(
                     'D [de] MMMM [a las] HH:mm'
@@ -222,7 +224,9 @@ const BookingDetailsModal = ({
         {/* Created date */}
         <div className="text-xs text-gray-400 text-center">
           Reserva creada el{' '}
-          {moment(booking.createdAt).format('D [de] MMMM [de] YYYY [a las] HH:mm')}
+          {moment(booking.createdAt).format(
+            'D [de] MMMM [de] YYYY [a las] HH:mm'
+          )}
         </div>
       </ModalBody>
 

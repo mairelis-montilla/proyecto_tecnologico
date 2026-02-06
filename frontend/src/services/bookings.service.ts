@@ -23,7 +23,9 @@ export const bookingsService = {
   /**
    * Subir comprobante de pago (US3)
    */
-  async uploadPaymentProof(data: PaymentProofRequest): Promise<BookingResponse> {
+  async uploadPaymentProof(
+    data: PaymentProofRequest
+  ): Promise<BookingResponse> {
     const formData = new FormData()
     formData.append('paymentMethod', data.paymentMethod)
     formData.append('amountPaid', data.amountPaid.toString())

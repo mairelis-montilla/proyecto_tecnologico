@@ -69,10 +69,7 @@ emailVerificationSchema.statics.createVerification = async function (
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutos
 
   // Invalidar códigos anteriores del mismo tipo para este usuario
-  await this.updateMany(
-    { userId, type, isUsed: false },
-    { isUsed: true }
-  )
+  await this.updateMany({ userId, type, isUsed: false }, { isUsed: true })
 
   return this.create({
     userId,
@@ -88,10 +85,11 @@ emailVerificationSchema.methods.isValid = function (): boolean {
 }
 
 // Método para incrementar intentos
-emailVerificationSchema.methods.incrementAttempts = async function (): Promise<void> {
-  this.attempts += 1
-  await this.save()
-}
+emailVerificationSchema.methods.incrementAttempts =
+  async function (): Promise<void> {
+    this.attempts += 1
+    await this.save()
+  }
 
 // Método para marcar como usado
 emailVerificationSchema.methods.markAsUsed = async function (): Promise<void> {

@@ -54,7 +54,7 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
   }
 
   const nextWeek = () => {
-    setCurrentDate((prev) => prev.clone().add(1, 'week'))
+    setCurrentDate(prev => prev.clone().add(1, 'week'))
   }
 
   const prevWeek = () => {
@@ -68,7 +68,7 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
   const startOfWeek = currentDate.clone().startOf('week')
   const endOfWeek = currentDate.clone().endOf('week')
 
-  const weekSlots = slots.filter((slot) => {
+  const weekSlots = slots.filter(slot => {
     const slotTime = moment(slot.startIso)
     return slotTime.isBetween(startOfWeek, endOfWeek, undefined, '[]')
   })
@@ -80,7 +80,7 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
     const dateStr = date.format('YYYY-MM-DD')
 
     const daySlots = weekSlots
-      .filter((slot) => {
+      .filter(slot => {
         return moment(slot.startIso).format('YYYY-MM-DD') === dateStr
       })
       .sort((a, b) => moment(a.startIso).diff(moment(b.startIso)))
@@ -173,9 +173,11 @@ const Calendar = ({ mentorId, onSelectSlot }: CalendarProps) => {
 
                 <div className="space-y-2">
                   {day.slots.length > 0 ? (
-                    day.slots.map((slot) => {
+                    day.slots.map(slot => {
                       const isActive = selectedSlotIso === slot.startIso
-                      const slotLocalStart = moment(slot.startIso).format('HH:mm')
+                      const slotLocalStart = moment(slot.startIso).format(
+                        'HH:mm'
+                      )
 
                       return (
                         <button

@@ -36,10 +36,14 @@ interface SessionsTabsProps {
   }
 }
 
-const SessionsTabs = ({ activeTab, onTabChange, counts }: SessionsTabsProps) => {
+const SessionsTabs = ({
+  activeTab,
+  onTabChange,
+  counts,
+}: SessionsTabsProps) => {
   return (
     <div className="flex flex-wrap gap-2">
-      {tabs.map((tab) => {
+      {tabs.map(tab => {
         const isActive = activeTab === tab.id
         const count = counts?.[tab.id]
 

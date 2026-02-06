@@ -20,11 +20,12 @@ interface PaymentUploadModalProps {
   onPaymentUploaded: () => void
 }
 
-const paymentMethods: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'yape', label: 'Yape', icon: '💜' },
-  { value: 'plin', label: 'Plin', icon: '💚' },
-  { value: 'transferencia', label: 'Transferencia Bancaria', icon: '🏦' },
-]
+const paymentMethods: { value: PaymentMethod; label: string; icon: string }[] =
+  [
+    { value: 'yape', label: 'Yape', icon: '💜' },
+    { value: 'plin', label: 'Plin', icon: '💚' },
+    { value: 'transferencia', label: 'Transferencia Bancaria', icon: '🏦' },
+  ]
 
 const PaymentUploadModal = ({
   isOpen,
@@ -109,8 +110,8 @@ const PaymentUploadModal = ({
             Comprobante Enviado
           </h2>
           <p className="text-gray-600 mb-6">
-            Tu comprobante de pago ha sido enviado exitosamente. Un administrador
-            validara tu pago pronto.
+            Tu comprobante de pago ha sido enviado exitosamente. Un
+            administrador validara tu pago pronto.
           </p>
           <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
             <p className="text-sm text-amber-800">
@@ -134,7 +135,12 @@ const PaymentUploadModal = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Subir Comprobante de Pago" size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Subir Comprobante de Pago"
+      size="lg"
+    >
       <form onSubmit={handleSubmit}>
         <ModalBody>
           {/* Resumen del pago */}
@@ -162,7 +168,7 @@ const PaymentUploadModal = ({
               Metodo de pago <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
-              {paymentMethods.map((method) => (
+              {paymentMethods.map(method => (
                 <button
                   key={method.value}
                   type="button"
@@ -200,7 +206,7 @@ const PaymentUploadModal = ({
               step="0.01"
               min="0"
               value={amountPaid}
-              onChange={(e) => setAmountPaid(e.target.value)}
+              onChange={e => setAmountPaid(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               placeholder="0.00"
               required

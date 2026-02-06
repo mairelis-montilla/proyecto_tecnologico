@@ -26,7 +26,10 @@ export default function VerifyEmail() {
   // Cooldown para reenvío
   useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      )
       return () => clearTimeout(timer)
     }
   }, [resendCooldown])
@@ -104,7 +107,8 @@ export default function VerifyEmail() {
       const axiosError = err as {
         response?: { data?: { message?: string; attemptsRemaining?: number } }
       }
-      const message = axiosError?.response?.data?.message || 'Error al verificar'
+      const message =
+        axiosError?.response?.data?.message || 'Error al verificar'
       const attempts = axiosError?.response?.data?.attemptsRemaining
       setError(
         attempts !== undefined

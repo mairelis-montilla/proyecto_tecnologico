@@ -7,6 +7,7 @@ import reviewsRouter from './reviews.routes.js'
 import adminRouter from './admin.routes.js'
 import studentsRouter from './students.routes.js'
 import uploadRouter from './upload.routes.js'
+import bookingsRouter from './bookings.routes.js'
 
 const router = Router()
 
@@ -19,5 +20,6 @@ router.use('/reviews', reviewsRouter)
 router.use('/admin', adminRouter)
 router.use('/students', studentsRouter)
 router.use('/upload', uploadRouter)
+router.use('/bookings', bookingsRouter)
 
 export default router

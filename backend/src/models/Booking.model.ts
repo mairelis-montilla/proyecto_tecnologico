@@ -1,26 +1,97 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
+export type BookingStatus =
+  | 'pending_payment'
+  | 'payment_uploaded'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'refunded'
+
+export type PaymentMethod = 'yape' | 'plin' | 'transferencia'
+
+export interface IPaymentProof {
+  imageUrl: string
+  method: PaymentMethod
+  amountPaid: number
+  uploadedAt: Date
+}
+
+export interface ICancellation {
+  reason?: string
+  cancelledAt: Date
+  cancelledBy: 'student' | 'mentor' | 'admin'
+  refundPercentage: number
+}
+
 export interface IBooking extends Document {
   studentId: Types.ObjectId
   mentorId: Types.ObjectId
-  specialty: Types.ObjectId
-  scheduledDate: Date
-  startTime: string
-  endTime: string
+  scheduledAt: Date
   duration: number
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
-  meetingLink?: string
-  notes?: string
-  cancellationReason?: string
+  topic: string
+  message?: string
+  status: BookingStatus
+  totalAmount: number
+  paymentProof?: IPaymentProof
+  cancellation?: ICancellation
   createdAt: Date
   updatedAt: Date
 }
+
+const paymentProofSchema = new Schema<IPaymentProof>(
+  {
+    imageUrl: {
+      type: String,
+      required: true,
+    },
+    method: {
+      type: String,
+      enum: ['yape', 'plin', 'transferencia'],
+      required: true,
+    },
+    amountPaid: {
+      type: Number,
+      required: true,
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+)
+
+const cancellationSchema = new Schema<ICancellation>(
+  {
+    reason: {
+      type: String,
+      maxlength: 500,
+    },
+    cancelledAt: {
+      type: Date,
+      required: true,
+    },
+    cancelledBy: {
+      type: String,
+      enum: ['student', 'mentor', 'admin'],
+      required: true,
+    },
+    refundPercentage: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+  },
+  { _id: false }
+)
 
 const bookingSchema = new Schema<IBooking>(
   {
     studentId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Student',
       required: [true, 'Student ID is required'],
     },
     mentorId: {
@@ -28,56 +99,44 @@ const bookingSchema = new Schema<IBooking>(
       ref: 'Mentor',
       required: [true, 'Mentor ID is required'],
     },
-    specialty: {
-      type: Schema.Types.ObjectId,
-      ref: 'Specialty',
-      required: [true, 'Specialty is required'],
-    },
-    scheduledDate: {
+    scheduledAt: {
       type: Date,
       required: [true, 'Scheduled date is required'],
-    },
-    startTime: {
-      type: String,
-      required: [true, 'Start time is required'],
-      match: [
-        /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        'Invalid time format (HH:MM)',
-      ],
-    },
-    endTime: {
-      type: String,
-      required: [true, 'End time is required'],
-      match: [
-        /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        'Invalid time format (HH:MM)',
-      ],
     },
     duration: {
       type: Number,
       required: [true, 'Duration is required'],
       default: 60,
-      min: 15,
+      enum: [45, 60],
+    },
+    topic: {
+      type: String,
+      required: [true, 'Topic is required'],
+      maxlength: [200, 'Topic must not exceed 200 characters'],
+    },
+    message: {
+      type: String,
+      maxlength: [500, 'Message must not exceed 500 characters'],
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'completed', 'cancelled'],
-      default: 'pending',
+      enum: [
+        'pending_payment',
+        'payment_uploaded',
+        'confirmed',
+        'completed',
+        'cancelled',
+        'refunded',
+      ],
+      default: 'pending_payment',
     },
-    meetingLink: {
-      type: String,
-      default: null,
+    totalAmount: {
+      type: Number,
+      required: [true, 'Total amount is required'],
+      min: 0,
     },
-    notes: {
-      type: String,
-      default: null,
-      maxlength: [500, 'Notes must not exceed 500 characters'],
-    },
-    cancellationReason: {
-      type: String,
-      default: null,
-      maxlength: [500, 'Cancellation reason must not exceed 500 characters'],
-    },
+    paymentProof: paymentProofSchema,
+    cancellation: cancellationSchema,
   },
   {
     timestamps: true,
@@ -87,13 +146,16 @@ const bookingSchema = new Schema<IBooking>(
 // Índices
 bookingSchema.index({ studentId: 1, status: 1 })
 bookingSchema.index({ mentorId: 1, status: 1 })
-bookingSchema.index({ scheduledDate: 1 })
+bookingSchema.index({ scheduledAt: 1 })
 bookingSchema.index({ status: 1 })
 
-// Prevenir duplicados en la misma fecha/hora
+// Prevenir duplicados en la misma fecha/hora para el mentor
 bookingSchema.index(
-  { mentorId: 1, scheduledDate: 1, startTime: 1 },
-  { unique: true, partialFilterExpression: { status: { $ne: 'cancelled' } } }
+  { mentorId: 1, scheduledAt: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $nin: ['cancelled', 'refunded'] } },
+  }
 )
 
 export const Booking = model<IBooking>('Booking', bookingSchema)

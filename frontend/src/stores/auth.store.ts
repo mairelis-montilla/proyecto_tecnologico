@@ -20,9 +20,15 @@ interface AuthState {
   pendingVerificationEmail: string | null
 
   // Acciones
-  login: (credentials: LoginCredentials) => Promise<{ requiresVerification: boolean; email: string }>
-  registerStudent: (data: RegisterStudentData) => Promise<{ requiresVerification: boolean; email: string }>
-  registerMentor: (data: RegisterMentorData) => Promise<{ requiresVerification: boolean; email: string }>
+  login: (
+    credentials: LoginCredentials
+  ) => Promise<{ requiresVerification: boolean; email: string }>
+  registerStudent: (
+    data: RegisterStudentData
+  ) => Promise<{ requiresVerification: boolean; email: string }>
+  registerMentor: (
+    data: RegisterMentorData
+  ) => Promise<{ requiresVerification: boolean; email: string }>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -62,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return {
         requiresVerification: requiresVerification || false,
-        email: user.email
+        email: user.email,
       }
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } } }
@@ -94,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return {
         requiresVerification: requiresVerification || false,
-        email: user.email
+        email: user.email,
       }
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } } }
@@ -126,7 +132,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return {
         requiresVerification: requiresVerification || false,
-        email: user.email
+        email: user.email,
       }
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } } }

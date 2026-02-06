@@ -39,17 +39,19 @@ async function updateMentorAvailability() {
     const mongoUri = process.env.MONGODB_URI
 
     if (!mongoUri) {
-      throw new Error('MONGODB_URI no está definida en las variables de entorno')
+      throw new Error(
+        'MONGODB_URI no está definida en las variables de entorno'
+      )
     }
 
     await mongoose.connect(mongoUri)
     console.log('Conectado a MongoDB')
 
     // Obtener todos los mentores activos y aprobados
-    const mentors = await Mentor.find({ isActive: true, isApproved: true }).populate(
-      'userId',
-      'firstName lastName email'
-    )
+    const mentors = await Mentor.find({
+      isActive: true,
+      isApproved: true,
+    }).populate('userId', 'firstName lastName email')
 
     console.log(`\nEncontrados ${mentors.length} mentores activos`)
 
@@ -107,7 +109,9 @@ async function updateMentorAvailability() {
 
     console.log(`\n✅ Resumen:`)
     console.log(`  - Mentores actualizados: ${updated}`)
-    console.log(`  - Slots cubren los próximos 20+ días (patrón semanal recurrente)`)
+    console.log(
+      `  - Slots cubren los próximos 20+ días (patrón semanal recurrente)`
+    )
     console.log(`\n📅 Días de la semana:`)
     console.log(`  0 = Domingo, 1 = Lunes, 2 = Martes, 3 = Miércoles`)
     console.log(`  4 = Jueves, 5 = Viernes, 6 = Sábado`)

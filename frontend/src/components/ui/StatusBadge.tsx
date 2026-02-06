@@ -7,7 +7,11 @@ interface StatusBadgeProps {
   className?: string
 }
 
-const StatusBadge = ({ status, size = 'md', className = '' }: StatusBadgeProps) => {
+const StatusBadge = ({
+  status,
+  size = 'md',
+  className = '',
+}: StatusBadgeProps) => {
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-xs',
     md: 'px-3 py-1 text-sm',
