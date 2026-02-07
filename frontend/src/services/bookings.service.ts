@@ -1,11 +1,13 @@
 import { api } from './api'
 import type {
-  Booking,
   BookingResponse,
   BookingsListResponse,
   CreateBookingRequest,
   PaymentProofRequest,
   CancelBookingRequest,
+  CancelBookingResponse,
+  RejectBookingRequest,
+  PendingCountResponse,
   RefundPolicy,
   RefundPolicyResponse,
   BookingsFilter,
@@ -64,8 +66,8 @@ export const bookingsService = {
   /**
    * Cancelar una reserva (US5)
    */
-  async cancelBooking(data: CancelBookingRequest): Promise<BookingResponse> {
-    const response = await api.post<BookingResponse>(
+  async cancelBooking(data: CancelBookingRequest): Promise<CancelBookingResponse> {
+    const response = await api.post<CancelBookingResponse>(
       `/bookings/${data.bookingId}/cancel`,
       { reason: data.reason }
     )
@@ -78,6 +80,42 @@ export const bookingsService = {
   async getRefundPolicy(bookingId: string): Promise<RefundPolicyResponse> {
     const response = await api.get<RefundPolicyResponse>(
       `/bookings/${bookingId}/refund-policy`
+    )
+    return response.data
+  },
+
+  // ========== Mentor endpoints ==========
+
+  /**
+   * Aprobar una solicitud de sesion (mentor)
+   * PUT /api/bookings/:id/approve
+   */
+  async approveBooking(bookingId: string): Promise<BookingResponse> {
+    const response = await api.put<BookingResponse>(
+      `/bookings/${bookingId}/approve`
+    )
+    return response.data
+  },
+
+  /**
+   * Rechazar una solicitud de sesion (mentor)
+   * PUT /api/bookings/:id/reject
+   */
+  async rejectBooking(data: RejectBookingRequest): Promise<BookingResponse> {
+    const response = await api.put<BookingResponse>(
+      `/bookings/${data.bookingId}/reject`,
+      { reason: data.reason }
+    )
+    return response.data
+  },
+
+  /**
+   * Obtener conteo de solicitudes pendientes (badge del mentor)
+   * GET /api/bookings/pending-count
+   */
+  async getMentorPendingCount(): Promise<PendingCountResponse> {
+    const response = await api.get<PendingCountResponse>(
+      '/bookings/pending-count'
     )
     return response.data
   },

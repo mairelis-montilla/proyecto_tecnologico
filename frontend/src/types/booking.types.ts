@@ -2,10 +2,11 @@
 export type BookingStatus =
   | 'pending_payment' // Reserva creada, esperando comprobante
   | 'payment_uploaded' // Comprobante subido, esperando validacion
-  | 'confirmed' // Pago validado por admin
+  | 'confirmed' // Aprobada por mentor
   | 'completed' // Sesion realizada
   | 'cancelled' // Cancelada
   | 'refunded' // Reembolsada
+  | 'rejected' // Rechazada por mentor
 
 // Metodos de pago disponibles
 export type PaymentMethod = 'yape' | 'plin' | 'transferencia'
@@ -57,8 +58,14 @@ export interface PaymentProof {
 export interface CancellationInfo {
   reason?: string
   cancelledAt: string
-  cancelledBy: 'student' | 'mentor' | 'admin'
+  cancelledBy: 'student' | 'mentor' | 'admin' | 'system'
   refundPercentage: number
+}
+
+// Informacion de rechazo
+export interface RejectionInfo {
+  reason: string
+  rejectedAt: string
 }
 
 // Entidad de reserva/sesion
@@ -72,8 +79,11 @@ export interface Booking {
   message?: string
   status: BookingStatus
   totalAmount: number
+  paymentDeadline?: string // ISO datetime - limite para subir comprobante
+  isWithin24Hours?: boolean // calculado por el backend
   paymentProof?: PaymentProof
   cancellation?: CancellationInfo
+  rejection?: RejectionInfo
   createdAt: string
   updatedAt: string
 }
@@ -116,6 +126,17 @@ export interface BookingResponse {
   }
 }
 
+// Response de cancelacion con info de reembolso
+export interface CancelBookingResponse {
+  status: string
+  data: {
+    booking: Booking
+    refundAmount: number
+    refundPercentage: number
+    hoursBeforeSession: number
+  }
+}
+
 // Response de lista de reservas
 export interface BookingsListResponse {
   status: string
@@ -139,9 +160,23 @@ export interface RefundPolicyResponse {
   }
 }
 
+// Request para rechazar reserva (mentor)
+export interface RejectBookingRequest {
+  bookingId: string
+  reason: string
+}
+
+// Response del conteo de pendientes (mentor)
+export interface PendingCountResponse {
+  status: string
+  data: {
+    pendingCount: number
+  }
+}
+
 // Filtros para obtener reservas
 export interface BookingsFilter {
-  status?: 'upcoming' | 'past' | 'cancelled'
+  status?: 'upcoming' | 'past' | 'cancelled' | 'pending_review' | 'confirmed' | 'completed'
   page?: number
   limit?: number
 }

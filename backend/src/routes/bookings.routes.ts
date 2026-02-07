@@ -9,6 +9,9 @@ import {
   uploadPaymentProof,
   cancelBooking,
   getRefundPolicy,
+  approveBooking,
+  rejectBooking,
+  getMentorPendingCount,
 } from '../controllers/bookings.controller.js'
 
 const router = Router()
@@ -35,7 +38,7 @@ const createBookingValidator = [
 const getMyBookingsValidator = [
   query('status')
     .optional()
-    .isIn(['upcoming', 'past', 'cancelled'])
+    .isIn(['upcoming', 'past', 'cancelled', 'pending_review', 'confirmed', 'completed'])
     .withMessage('Estado inválido'),
   query('page')
     .optional()
@@ -65,6 +68,15 @@ const cancelBookingValidator = [
     .withMessage('La razón no debe exceder 500 caracteres'),
 ]
 
+const rejectBookingValidator = [
+  param('id').isMongoId().withMessage('ID de reserva inválido'),
+  body('reason')
+    .notEmpty()
+    .withMessage('La razón del rechazo es obligatoria')
+    .isLength({ max: 500 })
+    .withMessage('La razón no debe exceder 500 caracteres'),
+]
+
 // Rutas
 
 // POST /api/bookings - Crear una reserva
@@ -72,6 +84,25 @@ router.post('/', authenticateToken, createBookingValidator, createBooking)
 
 // GET /api/bookings/my - Obtener mis reservas
 router.get('/my', authenticateToken, getMyBookingsValidator, getMyBookings)
+
+// GET /api/bookings/pending-count - Conteo de solicitudes pendientes (mentor)
+router.get('/pending-count', authenticateToken, getMentorPendingCount)
+
+// PUT /api/bookings/:id/approve - Aprobar solicitud (mentor)
+router.put(
+  '/:id/approve',
+  authenticateToken,
+  param('id').isMongoId().withMessage('ID de reserva inválido'),
+  approveBooking
+)
+
+// PUT /api/bookings/:id/reject - Rechazar solicitud (mentor)
+router.put(
+  '/:id/reject',
+  authenticateToken,
+  rejectBookingValidator,
+  rejectBooking
+)
 
 // GET /api/bookings/:id - Obtener detalle de una reserva
 router.get(

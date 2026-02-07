@@ -370,14 +370,34 @@ export const previewAvailability = async (
       },
     }).lean()
 
-    // Obtener reservas existentes
+    // Auto-cancelar bookings pending_payment con deadline expirado
+    await Booking.updateMany(
+      {
+        mentorId,
+        status: 'pending_payment',
+        paymentDeadline: { $lt: new Date() },
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          cancellation: {
+            reason: 'Tiempo de pago expirado',
+            cancelledAt: new Date(),
+            cancelledBy: 'system',
+            refundPercentage: 0,
+          },
+        },
+      }
+    )
+
+    // Obtener reservas existentes (excluir canceladas, reembolsadas y rechazadas)
     const bookings = await Booking.find({
       mentorId,
-      scheduledDate: {
+      scheduledAt: {
         $gte: startDate.toDate(),
         $lte: endDate.toDate(),
       },
-      status: { $nin: ['cancelled', 'rejected'] },
+      status: { $nin: ['cancelled', 'refunded', 'rejected'] },
     }).lean()
 
     const concreteSlots: Array<{

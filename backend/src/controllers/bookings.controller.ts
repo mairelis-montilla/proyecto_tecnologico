@@ -97,11 +97,32 @@ export const createBooking = async (
       return
     }
 
-    // Verificar que no haya otra reserva en ese horario
+    // Auto-cancelar bookings pending_payment con deadline expirado en este slot
+    await Booking.updateMany(
+      {
+        mentorId,
+        scheduledAt: scheduledAt.toDate(),
+        status: 'pending_payment',
+        paymentDeadline: { $lt: new Date() },
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          cancellation: {
+            reason: 'Tiempo de pago expirado',
+            cancelledAt: new Date(),
+            cancelledBy: 'system',
+            refundPercentage: 0,
+          },
+        },
+      }
+    )
+
+    // Verificar que no haya otra reserva activa en ese horario
     const existingBooking = await Booking.findOne({
       mentorId,
       scheduledAt: scheduledAt.toDate(),
-      status: { $nin: ['cancelled', 'refunded'] },
+      status: { $nin: ['cancelled', 'refunded', 'rejected'] },
     })
 
     if (existingBooking) {
@@ -119,7 +140,7 @@ export const createBooking = async (
       ? (mentor.hourlyRate * duration) / 60
       : 0
 
-    // Crear la reserva
+    // Crear la reserva con deadline de pago de 10 minutos
     const booking = await Booking.create({
       studentId: student._id,
       mentorId: mentor._id,
@@ -129,6 +150,7 @@ export const createBooking = async (
       message,
       status: 'pending_payment',
       totalAmount,
+      paymentDeadline: moment().add(10, 'minutes').toDate(),
     })
 
     // Crear notificación para el mentor
@@ -232,15 +254,43 @@ export const getMyBookings = async (
     // Filtrar por estado
     if (status === 'upcoming') {
       filter.scheduledAt = { $gte: new Date() }
-      filter.status = { $nin: ['cancelled', 'refunded', 'completed'] }
+      filter.status = { $nin: ['cancelled', 'refunded', 'rejected', 'completed'] }
     } else if (status === 'past') {
       filter.$or = [
         { scheduledAt: { $lt: new Date() } },
         { status: 'completed' },
       ]
     } else if (status === 'cancelled') {
-      filter.status = { $in: ['cancelled', 'refunded'] }
+      filter.status = { $in: ['cancelled', 'refunded', 'rejected'] }
+    } else if (status === 'pending_review') {
+      // Mentor: solicitudes con pago subido esperando aprobacion
+      filter.status = 'payment_uploaded'
+    } else if (status === 'confirmed') {
+      filter.status = 'confirmed'
+      filter.scheduledAt = { $gte: new Date() }
+    } else if (status === 'completed') {
+      filter.status = 'completed'
     }
+
+    // Auto-cancelar bookings pending_payment con deadline expirado del usuario
+    const expiredFilter: Record<string, unknown> =
+      userRole === 'student'
+        ? { studentId: profileId }
+        : { mentorId: profileId }
+    expiredFilter.status = 'pending_payment'
+    expiredFilter.paymentDeadline = { $lt: new Date() }
+
+    await Booking.updateMany(expiredFilter, {
+      $set: {
+        status: 'cancelled',
+        cancellation: {
+          reason: 'Tiempo de pago expirado',
+          cancelledAt: new Date(),
+          cancelledBy: 'system',
+          refundPercentage: 0,
+        },
+      },
+    })
 
     const bookings = await Booking.find(filter)
       .populate({
@@ -266,10 +316,19 @@ export const getMyBookings = async (
 
     const total = await Booking.countDocuments(filter)
 
+    // Agregar indicador de sesiones proximas (dentro de 24h)
+    const now = moment()
+    const bookingsWithFlags = bookings.map(booking => ({
+      ...booking,
+      isWithin24Hours:
+        moment(booking.scheduledAt).diff(now, 'hours') <= 24 &&
+        moment(booking.scheduledAt).isAfter(now),
+    }))
+
     res.status(200).json({
       status: 'success',
       data: {
-        bookings,
+        bookings: bookingsWithFlags,
         pagination: {
           currentPage: pageNum,
           totalPages: Math.ceil(total / limitNum),
@@ -536,7 +595,7 @@ export const cancelBooking = async (
       return
     }
 
-    if (['cancelled', 'refunded', 'completed'].includes(booking.status)) {
+    if (['cancelled', 'refunded', 'completed', 'rejected'].includes(booking.status)) {
       res
         .status(400)
         .json({
@@ -617,12 +676,296 @@ export const cancelBooking = async (
         },
       })
 
+    const refundAmount = (booking.totalAmount * refundPercentage) / 100
+
     res.status(200).json({
       status: 'success',
-      data: { booking: populatedBooking },
+      data: {
+        booking: populatedBooking,
+        refundAmount,
+        refundPercentage,
+        hoursBeforeSession: Math.max(0, hoursBeforeSession),
+      },
     })
   } catch (error) {
     console.error('Error cancelling booking:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Aprobar una solicitud de sesión (mentor)
+ * PUT /api/bookings/:id/approve
+ */
+export const approveBooking = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id
+    const { id } = req.params
+
+    if (!userId) {
+      res
+        .status(401)
+        .json({ status: 'error', message: 'Usuario no autenticado' })
+      return
+    }
+
+    const mentor = await Mentor.findOne({ userId })
+    if (!mentor) {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          message: 'Solo los mentores pueden aprobar solicitudes',
+        })
+      return
+    }
+
+    const booking = await Booking.findById(id)
+    if (!booking) {
+      res
+        .status(404)
+        .json({ status: 'error', message: 'Reserva no encontrada' })
+      return
+    }
+
+    if (booking.mentorId.toString() !== mentor._id.toString()) {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          message: 'No tienes permisos para aprobar esta solicitud',
+        })
+      return
+    }
+
+    if (booking.status !== 'payment_uploaded') {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'Solo se pueden aprobar solicitudes con pago verificado',
+        })
+      return
+    }
+
+    // Aprobar la reserva
+    booking.status = 'confirmed'
+    await booking.save()
+
+    // Notificar al estudiante
+    const student = await Student.findById(booking.studentId)
+    if (student) {
+      await Notification.create({
+        userId: student.userId,
+        type: 'booking_confirmed',
+        title: 'Sesión confirmada',
+        message: `Tu sesión sobre "${booking.topic}" ha sido confirmada por el mentor`,
+        relatedId: booking._id,
+        relatedModel: 'Booking',
+      })
+    }
+
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate({
+        path: 'mentorId',
+        select: 'userId hourlyRate title',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName avatar',
+        },
+      })
+      .populate({
+        path: 'studentId',
+        select: 'userId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName avatar',
+        },
+      })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Solicitud aprobada exitosamente',
+      data: { booking: populatedBooking },
+    })
+  } catch (error) {
+    console.error('Error approving booking:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Rechazar una solicitud de sesión (mentor)
+ * PUT /api/bookings/:id/reject
+ */
+export const rejectBooking = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id
+    const { id } = req.params
+    const { reason } = req.body
+
+    if (!userId) {
+      res
+        .status(401)
+        .json({ status: 'error', message: 'Usuario no autenticado' })
+      return
+    }
+
+    if (!reason || reason.trim().length === 0) {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'La razón del rechazo es obligatoria',
+        })
+      return
+    }
+
+    const mentor = await Mentor.findOne({ userId })
+    if (!mentor) {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          message: 'Solo los mentores pueden rechazar solicitudes',
+        })
+      return
+    }
+
+    const booking = await Booking.findById(id)
+    if (!booking) {
+      res
+        .status(404)
+        .json({ status: 'error', message: 'Reserva no encontrada' })
+      return
+    }
+
+    if (booking.mentorId.toString() !== mentor._id.toString()) {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          message: 'No tienes permisos para rechazar esta solicitud',
+        })
+      return
+    }
+
+    if (booking.status !== 'payment_uploaded') {
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'Solo se pueden rechazar solicitudes con pago verificado',
+        })
+      return
+    }
+
+    // Rechazar la reserva con reembolso completo
+    booking.status = 'rejected'
+    booking.rejection = {
+      reason: reason.trim(),
+      rejectedAt: new Date(),
+    }
+    await booking.save()
+
+    // Notificar al estudiante con la razón
+    const student = await Student.findById(booking.studentId)
+    if (student) {
+      await Notification.create({
+        userId: student.userId,
+        type: 'booking_rejected',
+        title: 'Sesión rechazada',
+        message: `Tu sesión sobre "${booking.topic}" fue rechazada. Razón: ${reason.trim()}`,
+        relatedId: booking._id,
+        relatedModel: 'Booking',
+      })
+    }
+
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate({
+        path: 'mentorId',
+        select: 'userId hourlyRate title',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName avatar',
+        },
+      })
+      .populate({
+        path: 'studentId',
+        select: 'userId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName avatar',
+        },
+      })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Solicitud rechazada exitosamente',
+      data: {
+        booking: populatedBooking,
+        refundAmount: booking.totalAmount,
+        refundPercentage: 100,
+      },
+    })
+  } catch (error) {
+    console.error('Error rejecting booking:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Obtener conteo de solicitudes pendientes (badge para mentor)
+ * GET /api/bookings/pending-count
+ */
+export const getMentorPendingCount = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user?._id
+
+    if (!userId) {
+      res
+        .status(401)
+        .json({ status: 'error', message: 'Usuario no autenticado' })
+      return
+    }
+
+    const mentor = await Mentor.findOne({ userId })
+    if (!mentor) {
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          message: 'Solo los mentores pueden consultar solicitudes pendientes',
+        })
+      return
+    }
+
+    const count = await Booking.countDocuments({
+      mentorId: mentor._id,
+      status: 'payment_uploaded',
+    })
+
+    res.status(200).json({
+      status: 'success',
+      data: { pendingCount: count },
+    })
+  } catch (error) {
+    console.error('Error getting pending count:', error)
     res
       .status(500)
       .json({ status: 'error', message: 'Error interno del servidor' })

@@ -7,6 +7,7 @@ export type BookingStatus =
   | 'completed'
   | 'cancelled'
   | 'refunded'
+  | 'rejected'
 
 export type PaymentMethod = 'yape' | 'plin' | 'transferencia'
 
@@ -20,8 +21,13 @@ export interface IPaymentProof {
 export interface ICancellation {
   reason?: string
   cancelledAt: Date
-  cancelledBy: 'student' | 'mentor' | 'admin'
+  cancelledBy: 'student' | 'mentor' | 'admin' | 'system'
   refundPercentage: number
+}
+
+export interface IRejection {
+  reason: string
+  rejectedAt: Date
 }
 
 export interface IBooking extends Document {
@@ -33,8 +39,10 @@ export interface IBooking extends Document {
   message?: string
   status: BookingStatus
   totalAmount: number
+  paymentDeadline?: Date
   paymentProof?: IPaymentProof
   cancellation?: ICancellation
+  rejection?: IRejection
   createdAt: Date
   updatedAt: Date
 }
@@ -74,7 +82,7 @@ const cancellationSchema = new Schema<ICancellation>(
     },
     cancelledBy: {
       type: String,
-      enum: ['student', 'mentor', 'admin'],
+      enum: ['student', 'mentor', 'admin', 'system'],
       required: true,
     },
     refundPercentage: {
@@ -82,6 +90,21 @@ const cancellationSchema = new Schema<ICancellation>(
       required: true,
       min: 0,
       max: 100,
+    },
+  },
+  { _id: false }
+)
+
+const rejectionSchema = new Schema<IRejection>(
+  {
+    reason: {
+      type: String,
+      required: true,
+      maxlength: 500,
+    },
+    rejectedAt: {
+      type: Date,
+      required: true,
     },
   },
   { _id: false }
@@ -127,6 +150,7 @@ const bookingSchema = new Schema<IBooking>(
         'completed',
         'cancelled',
         'refunded',
+        'rejected',
       ],
       default: 'pending_payment',
     },
@@ -135,8 +159,12 @@ const bookingSchema = new Schema<IBooking>(
       required: [true, 'Total amount is required'],
       min: 0,
     },
+    paymentDeadline: {
+      type: Date,
+    },
     paymentProof: paymentProofSchema,
     cancellation: cancellationSchema,
+    rejection: rejectionSchema,
   },
   {
     timestamps: true,
@@ -154,7 +182,7 @@ bookingSchema.index(
   { mentorId: 1, scheduledAt: 1 },
   {
     unique: true,
-    partialFilterExpression: { status: { $nin: ['cancelled', 'refunded'] } },
+    partialFilterExpression: { status: { $nin: ['cancelled', 'refunded', 'rejected'] } },
   }
 )
 
