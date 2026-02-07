@@ -1,4 +1,5 @@
-import { Calendar, Clock, Timer, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, Timer, AlertCircle, Hourglass } from 'lucide-react'
+import moment from 'moment-timezone'
 import { getAvatarUrl } from '../../utils/avatar'
 import {
   formatSessionDate,
@@ -26,7 +27,19 @@ const SessionCard = ({
   onRateClick,
 }: SessionCardProps) => {
   const mentorName = `${booking.mentorId.userId.firstName} ${booking.mentorId.userId.lastName}`
-  const isUpcoming = isWithin24Hours(booking.scheduledAt)
+  const isUpcoming = booking.isWithin24Hours ?? isWithin24Hours(booking.scheduledAt)
+
+  // Calcular tiempo restante para pagar
+  const getPaymentDeadlineInfo = () => {
+    if (!booking.paymentDeadline || booking.status !== 'pending_payment') return null
+    const deadline = moment(booking.paymentDeadline)
+    const now = moment()
+    const minutesLeft = deadline.diff(now, 'minutes')
+    if (minutesLeft <= 0) return { expired: true, text: 'Tiempo expirado' }
+    return { expired: false, text: `${minutesLeft} min para pagar` }
+  }
+
+  const deadlineInfo = getPaymentDeadlineInfo()
 
   // Determine which actions to show based on status
   const getActions = (status: BookingStatus) => {
@@ -123,6 +136,18 @@ const SessionCard = ({
         <div className="flex items-center gap-2 text-purple-600 text-sm font-medium mb-4 pb-4 border-b border-purple-100">
           <AlertCircle className="w-4 h-4" />
           Sesion en las proximas 24 horas
+        </div>
+      )}
+
+      {/* Payment deadline indicator */}
+      {deadlineInfo && (
+        <div className={`flex items-center gap-2 text-sm font-medium mb-4 pb-4 border-b ${
+          deadlineInfo.expired
+            ? 'text-red-600 border-red-100'
+            : 'text-amber-600 border-amber-100'
+        }`}>
+          <Hourglass className="w-4 h-4" />
+          {deadlineInfo.text}
         </div>
       )}
 

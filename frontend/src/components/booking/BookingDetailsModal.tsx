@@ -111,6 +111,19 @@ const BookingDetailsModal = ({
           </div>
         </div>
 
+        {/* Payment deadline */}
+        {booking.paymentDeadline && booking.status === 'pending_payment' && (
+          <div className="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="flex items-center gap-2 text-amber-800">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                Limite de pago:{' '}
+                {moment(booking.paymentDeadline).format('D [de] MMMM [a las] HH:mm')}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Topic */}
         <div className="mb-6">
           <h4 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
@@ -202,7 +215,9 @@ const BookingDetailsModal = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-red-600">Cancelado por</span>
                 <span className="font-medium text-red-800 capitalize">
-                  {booking.cancellation.cancelledBy}
+                  {booking.cancellation.cancelledBy === 'system'
+                    ? 'Sistema (tiempo de pago expirado)'
+                    : booking.cancellation.cancelledBy}
                 </span>
               </div>
               <div className="flex items-center justify-between">

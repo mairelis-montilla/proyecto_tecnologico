@@ -12,6 +12,7 @@ export const getStatusLabel = (status: BookingStatus): string => {
     completed: 'Completada',
     cancelled: 'Cancelada',
     refunded: 'Reembolsada',
+    rejected: 'Rechazada',
   }
   return labels[status]
 }
@@ -27,6 +28,7 @@ export const getStatusColor = (status: BookingStatus): string => {
     completed: 'bg-gray-100 text-gray-800 border-gray-200',
     cancelled: 'bg-red-100 text-red-800 border-red-200',
     refunded: 'bg-purple-100 text-purple-800 border-purple-200',
+    rejected: 'bg-orange-100 text-orange-800 border-orange-200',
   }
   return colors[status]
 }
