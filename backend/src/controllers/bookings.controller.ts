@@ -1,11 +1,13 @@
 import { Response } from 'express'
 import moment from 'moment-timezone'
 import { Booking, PaymentMethod } from '../models/Booking.model.js'
+import { Payment } from '../models/Payment.model.js'
 import { Mentor } from '../models/Mentor.model.js'
 import { Student } from '../models/Student.model.js'
 import { Availability } from '../models/Availability.model.js'
 import { Notification } from '../models/Notification.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
+import { uploadImage } from '../services/cloudinary.service.js'
 
 /**
  * Crear una nueva reserva
@@ -156,7 +158,7 @@ export const createBooking = async (
     // Crear notificación para el mentor
     await Notification.create({
       userId: mentor.userId,
-      type: 'session_request',
+      type: 'booking_request',
       title: 'Nueva solicitud de sesión',
       message: `Tienes una nueva solicitud de sesión sobre "${topic}"`,
       relatedId: booking._id,
@@ -486,24 +488,59 @@ export const uploadPaymentProof = async (
       return
     }
 
+    // Subir imagen a Cloudinary
+    let imageUrl = ''
+    try {
+      const uploadResult = await uploadImage(file.buffer, 'payment-proofs')
+      imageUrl = uploadResult.url
+    } catch (uploadError) {
+      console.error('Error uploading to cloudinary:', uploadError)
+      res.status(500).json({
+        status: 'error',
+        message: 'Error al subir el comprobante. Por favor intenta de nuevo.',
+      })
+      return
+    }
+
+    const parsedAmount = parseFloat(amountPaid)
+
     // Actualizar la reserva
     booking.paymentProof = {
-      imageUrl: (file as Express.Multer.File & { path?: string }).path || '',
+      imageUrl,
       method: paymentMethod as PaymentMethod,
-      amountPaid: parseFloat(amountPaid),
+      amountPaid: parsedAmount,
       uploadedAt: new Date(),
     }
     booking.status = 'payment_uploaded'
     await booking.save()
 
-    // Notificar al admin (o al mentor)
+    // Crear registro de Payment
+    const paymentMethodMap: Record<string, string> = {
+      yape: 'yape',
+      plin: 'plin',
+      transferencia: 'transfer',
+    }
+    await Payment.create({
+      bookingId: booking._id,
+      studentId: student.userId,
+      mentorId: booking.mentorId,
+      amount: parsedAmount,
+      paymentMethod: paymentMethodMap[paymentMethod] || 'transfer',
+      status: 'pending_validation',
+      proofImage: imageUrl,
+      proofUploadedAt: new Date(),
+      platformFee: Math.round(parsedAmount * 0.1 * 100) / 100,
+      mentorEarnings: Math.round(parsedAmount * 0.9 * 100) / 100,
+    })
+
+    // Notificar al mentor
     const mentor = await Mentor.findById(booking.mentorId)
     if (mentor) {
       await Notification.create({
         userId: mentor.userId,
-        type: 'payment_received',
+        type: 'payment_pending',
         title: 'Comprobante de pago recibido',
-        message: 'Se ha subido un comprobante de pago para una sesión',
+        message: `Se ha subido un comprobante de pago para la sesión sobre "${booking.topic}"`,
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
@@ -641,7 +678,7 @@ export const cancelBooking = async (
     if (cancelledBy === 'student' && mentor) {
       await Notification.create({
         userId: mentor.userId,
-        type: 'session_cancelled',
+        type: 'booking_cancelled',
         title: 'Sesión cancelada',
         message: 'Un estudiante ha cancelado una sesión',
         relatedId: booking._id,
@@ -650,7 +687,7 @@ export const cancelBooking = async (
     } else if (cancelledBy === 'mentor' && student) {
       await Notification.create({
         userId: student.userId,
-        type: 'session_cancelled',
+        type: 'booking_cancelled',
         title: 'Sesión cancelada',
         message: 'El mentor ha cancelado tu sesión',
         relatedId: booking._id,

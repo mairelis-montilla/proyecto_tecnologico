@@ -15,6 +15,12 @@ import {
   revokeMentor,
 } from '../controllers/admin-mentors.controller.js'
 import {
+  getPendingPayments,
+  getAllPayments,
+  approvePayment,
+  rejectPayment,
+} from '../controllers/admin-payments.controller.js'
+import {
   authenticateToken,
   authorizeRoles,
 } from '../middlewares/auth.middleware.js'
@@ -176,5 +182,55 @@ router.patch('/mentors/:id/reject', rejectMentorValidator, rejectMentor)
 
 // PATCH /api/admin/mentors/:id/revoke - Revocar aprobación de mentor
 router.patch('/mentors/:id/revoke', revokeMentorValidator, revokeMentor)
+
+// ==================== PAYMENTS ====================
+
+// Validadores para pagos
+const getPaymentsValidator = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('La página debe ser un número entero mayor a 0'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('El límite debe ser un número entre 1 y 50'),
+  query('status')
+    .optional()
+    .isIn([
+      'pending_proof',
+      'pending_validation',
+      'validated',
+      'rejected',
+      'refunded',
+    ])
+    .withMessage('Estado de pago inválido'),
+]
+
+const paymentIdValidator = [
+  param('id').isMongoId().withMessage('ID de pago inválido'),
+]
+
+const rejectPaymentValidator = [
+  param('id').isMongoId().withMessage('ID de pago inválido'),
+  body('reason')
+    .notEmpty()
+    .withMessage('El motivo del rechazo es obligatorio')
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('El motivo no puede exceder 500 caracteres'),
+]
+
+// GET /api/admin/payments/pending - Pagos pendientes de validación
+router.get('/payments/pending', getPaymentsValidator, getPendingPayments)
+
+// GET /api/admin/payments - Todos los pagos (historial)
+router.get('/payments', getPaymentsValidator, getAllPayments)
+
+// PATCH /api/admin/payments/:id/approve - Aprobar pago
+router.patch('/payments/:id/approve', paymentIdValidator, approvePayment)
+
+// PATCH /api/admin/payments/:id/reject - Rechazar pago
+router.patch('/payments/:id/reject', rejectPaymentValidator, rejectPayment)
 
 export default router
