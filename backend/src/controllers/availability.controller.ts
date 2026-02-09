@@ -66,12 +66,10 @@ export const addAvailability = async (
     }
 
     if (![45, 60].includes(duration)) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'La duración debe ser 45 o 60 minutos',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'La duración debe ser 45 o 60 minutos',
+      })
       return
     }
 
@@ -91,12 +89,10 @@ export const addAvailability = async (
 
       // No permitir fechas pasadas
       if (slotDate.isBefore(moment(), 'day')) {
-        res
-          .status(400)
-          .json({
-            status: 'error',
-            message: 'No se pueden agregar slots en fechas pasadas',
-          })
+        res.status(400).json({
+          status: 'error',
+          message: 'No se pueden agregar slots en fechas pasadas',
+        })
         return
       }
 
@@ -484,11 +480,9 @@ export const setAvailability = async (
     }
 
     if (mentor.userId.toString() !== userId.toString()) {
-      res
-        .status(403)
-        .json({
-          message: "Not authorized to update this mentor's availability",
-        })
+      res.status(403).json({
+        message: "Not authorized to update this mentor's availability",
+      })
       return
     }
 

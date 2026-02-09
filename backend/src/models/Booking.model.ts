@@ -40,6 +40,7 @@ export interface IBooking extends Document {
   status: BookingStatus
   totalAmount: number
   paymentDeadline?: Date
+  meetLink?: string
   paymentProof?: IPaymentProof
   cancellation?: ICancellation
   rejection?: IRejection
@@ -162,6 +163,10 @@ const bookingSchema = new Schema<IBooking>(
     paymentDeadline: {
       type: Date,
     },
+    meetLink: {
+      type: String,
+      default: null,
+    },
     paymentProof: paymentProofSchema,
     cancellation: cancellationSchema,
     rejection: rejectionSchema,
@@ -182,7 +187,9 @@ bookingSchema.index(
   { mentorId: 1, scheduledAt: 1 },
   {
     unique: true,
-    partialFilterExpression: { status: { $nin: ['cancelled', 'refunded', 'rejected'] } },
+    partialFilterExpression: {
+      status: { $nin: ['cancelled', 'refunded', 'rejected'] },
+    },
   }
 )
 

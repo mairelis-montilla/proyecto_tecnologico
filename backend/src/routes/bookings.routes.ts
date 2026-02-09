@@ -38,7 +38,14 @@ const createBookingValidator = [
 const getMyBookingsValidator = [
   query('status')
     .optional()
-    .isIn(['upcoming', 'past', 'cancelled', 'pending_review', 'confirmed', 'completed'])
+    .isIn([
+      'upcoming',
+      'past',
+      'cancelled',
+      'pending_review',
+      'confirmed',
+      'completed',
+    ])
     .withMessage('Estado inválido'),
   query('page')
     .optional()
@@ -93,6 +100,11 @@ router.put(
   '/:id/approve',
   authenticateToken,
   param('id').isMongoId().withMessage('ID de reserva inválido'),
+  body('meetLink')
+    .notEmpty()
+    .withMessage('El link de Google Meet es obligatorio')
+    .isURL()
+    .withMessage('Debe ser un URL válido'),
   approveBooking
 )
 

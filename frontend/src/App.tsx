@@ -16,6 +16,7 @@ import PublicMentorProfile from '@/pages/PublicMentorProfile'
 import PublicStudentProfile from '@/pages/PublicStudentProfile'
 import Sessions from '@/pages/Sessions'
 import AdminMentorApproval from './pages/AdminAproveMentors'
+import AdminPaymentValidation from './pages/AdminPaymentValidation'
 import MentorAvailability from './pages/MentorAvailability'
 
 function App() {
@@ -189,6 +190,14 @@ function App() {
                   title="Aprobar Mentores"
                   description="Revisa y aprueba las solicitudes de nuevos mentores."
                 />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/payments"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminPaymentValidation />
               </ProtectedRoute>
             }
           />

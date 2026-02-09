@@ -11,12 +11,7 @@
  *   PATCH  /api/admin/payments/:id/reject   → body { reason: string }
  */
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   CheckCircle,
   XCircle,
@@ -35,9 +30,7 @@ import {
   ExternalLink,
   Eye,
 } from 'lucide-react'
-import {
-  paymentAdminService,
-} from '../services/admin.service'
+import { paymentAdminService } from '../services/admin.service'
 import type { AdminPayment, Pagination } from '../types/payment.types'
 
 type TabKey = 'pending' | 'all'
@@ -80,7 +73,9 @@ function formatDate(iso: string): string {
 }
 
 function formatCurrency(amount: number, currency = 'PEN'): string {
-  return currency === 'PEN' ? `S/. ${amount.toFixed(2)}` : `$ ${amount.toFixed(2)}`
+  return currency === 'PEN'
+    ? `S/. ${amount.toFixed(2)}`
+    : `$ ${amount.toFixed(2)}`
 }
 
 function getStudentName(payment: AdminPayment): string {
@@ -375,7 +370,9 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             {formatCurrency(payment.amount, payment.currency)}
           </h2>
           <p className="text-sm mt-1 text-gray-500">
-            Método: {paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod}
+            Método:{' '}
+            {paymentMethodLabels[payment.paymentMethod] ||
+              payment.paymentMethod}
           </p>
         </div>
         <PaymentStatusBadge status={payment.status} />
@@ -441,7 +438,8 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             {formatDate(booking.scheduledAt)}
           </p>
           <p className="text-sm mt-1 text-gray-700">
-            <span className="font-medium">Duración:</span> {booking.duration} min
+            <span className="font-medium">Duración:</span> {booking.duration}{' '}
+            min
           </p>
           <p className="text-sm mt-1 text-gray-700">
             <span className="font-medium">Monto sesión:</span>{' '}
@@ -487,9 +485,14 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
               <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200">
                 <FileText size={24} className="text-purple-600" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Archivo PDF</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    Archivo PDF
+                  </p>
                   <p className="text-xs text-gray-500">
-                    Subido {payment.proofUploadedAt ? formatDate(payment.proofUploadedAt) : ''}
+                    Subido{' '}
+                    {payment.proofUploadedAt
+                      ? formatDate(payment.proofUploadedAt)
+                      : ''}
                   </p>
                 </div>
                 <button
@@ -729,7 +732,11 @@ const AdminPaymentValidation: React.FC = () => {
           {(['pending', 'all'] as TabKey[]).map(key => {
             const label = key === 'pending' ? 'Pendientes' : 'Todos'
             const count =
-              key === tab ? filtered.length : key === 'pending' ? pagination.totalItems : '—'
+              key === tab
+                ? filtered.length
+                : key === 'pending'
+                  ? pagination.totalItems
+                  : '—'
             const active = key === tab
             return (
               <button
@@ -834,7 +841,8 @@ const AdminPaymentValidation: React.FC = () => {
                         </p>
                         <div className="flex items-center gap-2 mt-1.5">
                           <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
-                            {paymentMethodLabels[p.paymentMethod] || p.paymentMethod}
+                            {paymentMethodLabels[p.paymentMethod] ||
+                              p.paymentMethod}
                           </span>
                           {p.bookingId?.topic && (
                             <span className="text-xs text-gray-500 truncate">

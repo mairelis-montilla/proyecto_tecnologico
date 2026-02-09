@@ -30,12 +30,10 @@ export const createBooking = async (
     // Verificar que es un estudiante
     const student = await Student.findOne({ userId })
     if (!student) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los estudiantes pueden crear reservas',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los estudiantes pueden crear reservas',
+      })
       return
     }
 
@@ -52,12 +50,10 @@ export const createBooking = async (
     // Verificar que el mentor existe y está aprobado
     const mentor = await Mentor.findById(mentorId)
     if (!mentor || !mentor.isApproved || !mentor.isActive) {
-      res
-        .status(404)
-        .json({
-          status: 'error',
-          message: 'Mentor no encontrado o no disponible',
-        })
+      res.status(404).json({
+        status: 'error',
+        message: 'Mentor no encontrado o no disponible',
+      })
       return
     }
 
@@ -90,12 +86,10 @@ export const createBooking = async (
     })
 
     if (!availableSlot) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'El slot seleccionado no está disponible',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'El slot seleccionado no está disponible',
+      })
       return
     }
 
@@ -128,19 +122,15 @@ export const createBooking = async (
     })
 
     if (existingBooking) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Ya existe una reserva en ese horario',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Ya existe una reserva en ese horario',
+      })
       return
     }
 
-    // Calcular el monto total
-    const totalAmount = mentor.hourlyRate
-      ? (mentor.hourlyRate * duration) / 60
-      : 0
+    // El monto total es la tarifa del mentor por sesion (no proporcional)
+    const totalAmount = mentor.hourlyRate || 0
 
     // Crear la reserva con deadline de pago de 10 minutos
     const booking = await Booking.create({
@@ -256,7 +246,9 @@ export const getMyBookings = async (
     // Filtrar por estado
     if (status === 'upcoming') {
       filter.scheduledAt = { $gte: new Date() }
-      filter.status = { $nin: ['cancelled', 'refunded', 'rejected', 'completed'] }
+      filter.status = {
+        $nin: ['cancelled', 'refunded', 'rejected', 'completed'],
+      }
     } else if (status === 'past') {
       filter.$or = [
         { scheduledAt: { $lt: new Date() } },
@@ -443,12 +435,10 @@ export const uploadPaymentProof = async (
 
     const student = await Student.findOne({ userId })
     if (!student) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los estudiantes pueden subir comprobantes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los estudiantes pueden subir comprobantes',
+      })
       return
     }
 
@@ -468,12 +458,10 @@ export const uploadPaymentProof = async (
     }
 
     if (booking.status !== 'pending_payment') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Esta reserva no está pendiente de pago',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Esta reserva no está pendiente de pago',
+      })
       return
     }
 
@@ -623,22 +611,22 @@ export const cancelBooking = async (
     }
 
     if (!hasAccess) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permisos para cancelar esta reserva',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permisos para cancelar esta reserva',
+      })
       return
     }
 
-    if (['cancelled', 'refunded', 'completed', 'rejected'].includes(booking.status)) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Esta reserva no puede ser cancelada',
-        })
+    if (
+      ['cancelled', 'refunded', 'completed', 'rejected'].includes(
+        booking.status
+      )
+    ) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Esta reserva no puede ser cancelada',
+      })
       return
     }
 
@@ -753,12 +741,10 @@ export const approveBooking = async (
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los mentores pueden aprobar solicitudes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden aprobar solicitudes',
+      })
       return
     }
 
@@ -771,37 +757,46 @@ export const approveBooking = async (
     }
 
     if (booking.mentorId.toString() !== mentor._id.toString()) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permisos para aprobar esta solicitud',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permisos para aprobar esta solicitud',
+      })
       return
     }
 
     if (booking.status !== 'payment_uploaded') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Solo se pueden aprobar solicitudes con pago verificado',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Solo se pueden aprobar solicitudes con pago verificado',
+      })
       return
     }
 
-    // Aprobar la reserva
+    // Obtener el link de meet (obligatorio)
+    const { meetLink } = req.body
+
+    if (!meetLink || meetLink.trim().length === 0) {
+      res.status(400).json({
+        status: 'error',
+        message:
+          'El link de Google Meet es obligatorio para confirmar la sesión',
+      })
+      return
+    }
+
+    // Aprobar la reserva con link de meet
     booking.status = 'confirmed'
+    booking.meetLink = meetLink.trim()
     await booking.save()
 
-    // Notificar al estudiante
+    // Notificar al estudiante con el link
     const student = await Student.findById(booking.studentId)
     if (student) {
       await Notification.create({
         userId: student.userId,
         type: 'booking_confirmed',
         title: 'Sesión confirmada',
-        message: `Tu sesión sobre "${booking.topic}" ha sido confirmada por el mentor`,
+        message: `Tu sesión sobre "${booking.topic}" ha sido confirmada. Link de reunión: ${meetLink.trim()}`,
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
@@ -859,23 +854,19 @@ export const rejectBooking = async (
     }
 
     if (!reason || reason.trim().length === 0) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'La razón del rechazo es obligatoria',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'La razón del rechazo es obligatoria',
+      })
       return
     }
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los mentores pueden rechazar solicitudes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden rechazar solicitudes',
+      })
       return
     }
 
@@ -888,22 +879,18 @@ export const rejectBooking = async (
     }
 
     if (booking.mentorId.toString() !== mentor._id.toString()) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permisos para rechazar esta solicitud',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permisos para rechazar esta solicitud',
+      })
       return
     }
 
     if (booking.status !== 'payment_uploaded') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Solo se pueden rechazar solicitudes con pago verificado',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Solo se pueden rechazar solicitudes con pago verificado',
+      })
       return
     }
 
@@ -983,12 +970,10 @@ export const getMentorPendingCount = async (
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los mentores pueden consultar solicitudes pendientes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden consultar solicitudes pendientes',
+      })
       return
     }
 

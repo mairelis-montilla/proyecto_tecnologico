@@ -26,7 +26,8 @@ export const getPendingPayments = async (
     const payments = await Payment.find(filter)
       .populate({
         path: 'bookingId',
-        select: 'scheduledAt duration topic status totalAmount studentId mentorId',
+        select:
+          'scheduledAt duration topic status totalAmount studentId mentorId',
         populate: [
           {
             path: 'studentId',
@@ -98,7 +99,8 @@ export const getAllPayments = async (
     const payments = await Payment.find(filter)
       .populate({
         path: 'bookingId',
-        select: 'scheduledAt duration topic status totalAmount studentId mentorId',
+        select:
+          'scheduledAt duration topic status totalAmount studentId mentorId',
         populate: [
           {
             path: 'studentId',
@@ -165,19 +167,15 @@ export const approvePayment = async (
 
     const payment = await Payment.findById(id)
     if (!payment) {
-      res
-        .status(404)
-        .json({ status: 'error', message: 'Pago no encontrado' })
+      res.status(404).json({ status: 'error', message: 'Pago no encontrado' })
       return
     }
 
     if (payment.status !== 'pending_validation') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Este pago no está pendiente de validación',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Este pago no está pendiente de validación',
+      })
       return
     }
 
@@ -243,30 +241,24 @@ export const rejectPayment = async (
     }
 
     if (!reason || reason.trim().length === 0) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'El motivo del rechazo es obligatorio',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'El motivo del rechazo es obligatorio',
+      })
       return
     }
 
     const payment = await Payment.findById(id)
     if (!payment) {
-      res
-        .status(404)
-        .json({ status: 'error', message: 'Pago no encontrado' })
+      res.status(404).json({ status: 'error', message: 'Pago no encontrado' })
       return
     }
 
     if (payment.status !== 'pending_validation') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Este pago no está pendiente de validación',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Este pago no está pendiente de validación',
+      })
       return
     }
 

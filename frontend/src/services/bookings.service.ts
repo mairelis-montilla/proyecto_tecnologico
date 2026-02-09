@@ -66,7 +66,9 @@ export const bookingsService = {
   /**
    * Cancelar una reserva (US5)
    */
-  async cancelBooking(data: CancelBookingRequest): Promise<CancelBookingResponse> {
+  async cancelBooking(
+    data: CancelBookingRequest
+  ): Promise<CancelBookingResponse> {
     const response = await api.post<CancelBookingResponse>(
       `/bookings/${data.bookingId}/cancel`,
       { reason: data.reason }
@@ -90,9 +92,13 @@ export const bookingsService = {
    * Aprobar una solicitud de sesion (mentor)
    * PUT /api/bookings/:id/approve
    */
-  async approveBooking(bookingId: string): Promise<BookingResponse> {
+  async approveBooking(
+    bookingId: string,
+    meetLink: string
+  ): Promise<BookingResponse> {
     const response = await api.put<BookingResponse>(
-      `/bookings/${bookingId}/approve`
+      `/bookings/${bookingId}/approve`,
+      { meetLink }
     )
     return response.data
   },
