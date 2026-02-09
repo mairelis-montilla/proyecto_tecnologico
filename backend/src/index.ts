@@ -1,12 +1,9 @@
+import 'dotenv/config' // Cargar variables de entorno ANTES de cualquier otro import
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import { connectDB } from './config/database.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 import apiRouter from './routes/index.js'
-
-// Cargar variables de entorno
-dotenv.config()
 
 // Conectar a MongoDB
 connectDB()

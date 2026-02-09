@@ -6,6 +6,9 @@ import {
   AlertCircle,
   CheckCircle,
   ArrowLeft,
+  Copy,
+  Check,
+  Info,
 } from 'lucide-react'
 import Modal, { ModalBody, ModalFooter } from '../ui/Modal'
 import FileUpload from '../ui/FileUpload'
@@ -26,6 +29,82 @@ const paymentMethods: { value: PaymentMethod; label: string; icon: string }[] =
     { value: 'plin', label: 'Plin', icon: '💚' },
     { value: 'transferencia', label: 'Transferencia Bancaria', icon: '🏦' },
   ]
+
+// Datos de pago por metodo (reemplazar con datos reales)
+const paymentInfo: Record<
+  PaymentMethod,
+  { fields: { label: string; value: string }[] }
+> = {
+  yape: {
+    fields: [
+      { label: 'Numero Yape', value: '999 888 777' },
+      { label: 'Titular', value: 'MentorMatch S.A.C.' },
+    ],
+  },
+  plin: {
+    fields: [
+      { label: 'Numero Plin', value: '999 888 777' },
+      { label: 'Titular', value: 'MentorMatch S.A.C.' },
+    ],
+  },
+  transferencia: {
+    fields: [
+      { label: 'Banco', value: 'BCP' },
+      { label: 'N° Cuenta', value: '123-4567890-0-12' },
+      { label: 'CCI (Interbancario)', value: '00212345678901234567' },
+      { label: 'Titular', value: 'MentorMatch S.A.C.' },
+    ],
+  },
+}
+
+// Componente para campo copiable
+const CopyField = ({ label, value }: { label: string; value: string }) => {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value.replace(/\s/g, ''))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement('textarea')
+      textArea.value = value.replace(/\s/g, '')
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <div>
+        <span className="text-xs text-gray-500">{label}</span>
+        <p className="text-sm font-semibold text-gray-900">{value}</p>
+      </div>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all bg-purple-50 text-purple-700 hover:bg-purple-100"
+      >
+        {copied ? (
+          <>
+            <Check className="w-3 h-3" />
+            Copiado
+          </>
+        ) : (
+          <>
+            <Copy className="w-3 h-3" />
+            Copiar
+          </>
+        )}
+      </button>
+    </div>
+  )
+}
 
 const PaymentUploadModal = ({
   isOpen,
@@ -153,15 +232,6 @@ const PaymentUploadModal = ({
             </div>
           </div>
 
-          {/* Subir comprobante */}
-          <div className="mb-6">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-              <CreditCard className="w-4 h-4" />
-              Comprobante de pago <span className="text-red-500">*</span>
-            </label>
-            <FileUpload onFileSelect={setFile} />
-          </div>
-
           {/* Metodo de pago */}
           <div className="mb-6">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
@@ -189,6 +259,36 @@ const PaymentUploadModal = ({
                 </button>
               ))}
             </div>
+
+            {/* Info de datos de pago segun metodo seleccionado */}
+            {paymentMethod && (
+              <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Info className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-semibold text-purple-700">
+                    Datos para realizar el pago
+                  </span>
+                </div>
+                <div className="space-y-1 divide-y divide-purple-100">
+                  {paymentInfo[paymentMethod].fields.map(field => (
+                    <CopyField
+                      key={field.label}
+                      label={field.label}
+                      value={field.value}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Subir comprobante */}
+          <div className="mb-6">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+              <CreditCard className="w-4 h-4" />
+              Comprobante de pago <span className="text-red-500">*</span>
+            </label>
+            <FileUpload onFileSelect={setFile} />
           </div>
 
           {/* Monto pagado */}

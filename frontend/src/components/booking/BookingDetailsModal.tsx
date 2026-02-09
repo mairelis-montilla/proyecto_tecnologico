@@ -118,7 +118,9 @@ const BookingDetailsModal = ({
               <Clock className="w-4 h-4" />
               <span className="text-sm font-medium">
                 Limite de pago:{' '}
-                {moment(booking.paymentDeadline).format('D [de] MMMM [a las] HH:mm')}
+                {moment(booking.paymentDeadline).format(
+                  'D [de] MMMM [a las] HH:mm'
+                )}
               </span>
             </div>
           </div>

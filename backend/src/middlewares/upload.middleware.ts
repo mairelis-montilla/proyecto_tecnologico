@@ -7,6 +7,7 @@ const ALLOWED_MIME_TYPES = [
   'image/png',
   'image/gif',
   'image/webp',
+  'application/pdf',
 ]
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -24,7 +25,7 @@ const fileFilter = (
   } else {
     cb(
       new Error(
-        'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WEBP)'
+        'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WEBP) y PDF'
       )
     )
   }

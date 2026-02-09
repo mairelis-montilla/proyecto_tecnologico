@@ -1,11 +1,13 @@
 import { Response } from 'express'
 import moment from 'moment-timezone'
 import { Booking, PaymentMethod } from '../models/Booking.model.js'
+import { Payment } from '../models/Payment.model.js'
 import { Mentor } from '../models/Mentor.model.js'
 import { Student } from '../models/Student.model.js'
 import { Availability } from '../models/Availability.model.js'
 import { Notification } from '../models/Notification.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
+import { uploadImage } from '../services/cloudinary.service.js'
 
 /**
  * Crear una nueva reserva
@@ -28,12 +30,10 @@ export const createBooking = async (
     // Verificar que es un estudiante
     const student = await Student.findOne({ userId })
     if (!student) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los estudiantes pueden crear reservas',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los estudiantes pueden crear reservas',
+      })
       return
     }
 
@@ -50,12 +50,10 @@ export const createBooking = async (
     // Verificar que el mentor existe y está aprobado
     const mentor = await Mentor.findById(mentorId)
     if (!mentor || !mentor.isApproved || !mentor.isActive) {
-      res
-        .status(404)
-        .json({
-          status: 'error',
-          message: 'Mentor no encontrado o no disponible',
-        })
+      res.status(404).json({
+        status: 'error',
+        message: 'Mentor no encontrado o no disponible',
+      })
       return
     }
 
@@ -88,12 +86,10 @@ export const createBooking = async (
     })
 
     if (!availableSlot) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'El slot seleccionado no está disponible',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'El slot seleccionado no está disponible',
+      })
       return
     }
 
@@ -126,19 +122,15 @@ export const createBooking = async (
     })
 
     if (existingBooking) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Ya existe una reserva en ese horario',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Ya existe una reserva en ese horario',
+      })
       return
     }
 
-    // Calcular el monto total
-    const totalAmount = mentor.hourlyRate
-      ? (mentor.hourlyRate * duration) / 60
-      : 0
+    // El monto total es la tarifa del mentor por sesion (no proporcional)
+    const totalAmount = mentor.hourlyRate || 0
 
     // Crear la reserva con deadline de pago de 10 minutos
     const booking = await Booking.create({
@@ -156,7 +148,7 @@ export const createBooking = async (
     // Crear notificación para el mentor
     await Notification.create({
       userId: mentor.userId,
-      type: 'session_request',
+      type: 'booking_request',
       title: 'Nueva solicitud de sesión',
       message: `Tienes una nueva solicitud de sesión sobre "${topic}"`,
       relatedId: booking._id,
@@ -254,7 +246,9 @@ export const getMyBookings = async (
     // Filtrar por estado
     if (status === 'upcoming') {
       filter.scheduledAt = { $gte: new Date() }
-      filter.status = { $nin: ['cancelled', 'refunded', 'rejected', 'completed'] }
+      filter.status = {
+        $nin: ['cancelled', 'refunded', 'rejected', 'completed'],
+      }
     } else if (status === 'past') {
       filter.$or = [
         { scheduledAt: { $lt: new Date() } },
@@ -441,12 +435,10 @@ export const uploadPaymentProof = async (
 
     const student = await Student.findOne({ userId })
     if (!student) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los estudiantes pueden subir comprobantes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los estudiantes pueden subir comprobantes',
+      })
       return
     }
 
@@ -466,12 +458,10 @@ export const uploadPaymentProof = async (
     }
 
     if (booking.status !== 'pending_payment') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Esta reserva no está pendiente de pago',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Esta reserva no está pendiente de pago',
+      })
       return
     }
 
@@ -486,24 +476,59 @@ export const uploadPaymentProof = async (
       return
     }
 
+    // Subir imagen a Cloudinary
+    let imageUrl = ''
+    try {
+      const uploadResult = await uploadImage(file.buffer, 'payment-proofs')
+      imageUrl = uploadResult.url
+    } catch (uploadError) {
+      console.error('Error uploading to cloudinary:', uploadError)
+      res.status(500).json({
+        status: 'error',
+        message: 'Error al subir el comprobante. Por favor intenta de nuevo.',
+      })
+      return
+    }
+
+    const parsedAmount = parseFloat(amountPaid)
+
     // Actualizar la reserva
     booking.paymentProof = {
-      imageUrl: (file as Express.Multer.File & { path?: string }).path || '',
+      imageUrl,
       method: paymentMethod as PaymentMethod,
-      amountPaid: parseFloat(amountPaid),
+      amountPaid: parsedAmount,
       uploadedAt: new Date(),
     }
     booking.status = 'payment_uploaded'
     await booking.save()
 
-    // Notificar al admin (o al mentor)
+    // Crear registro de Payment
+    const paymentMethodMap: Record<string, string> = {
+      yape: 'yape',
+      plin: 'plin',
+      transferencia: 'transfer',
+    }
+    await Payment.create({
+      bookingId: booking._id,
+      studentId: student.userId,
+      mentorId: booking.mentorId,
+      amount: parsedAmount,
+      paymentMethod: paymentMethodMap[paymentMethod] || 'transfer',
+      status: 'pending_validation',
+      proofImage: imageUrl,
+      proofUploadedAt: new Date(),
+      platformFee: Math.round(parsedAmount * 0.1 * 100) / 100,
+      mentorEarnings: Math.round(parsedAmount * 0.9 * 100) / 100,
+    })
+
+    // Notificar al mentor
     const mentor = await Mentor.findById(booking.mentorId)
     if (mentor) {
       await Notification.create({
         userId: mentor.userId,
-        type: 'payment_received',
+        type: 'payment_pending',
         title: 'Comprobante de pago recibido',
-        message: 'Se ha subido un comprobante de pago para una sesión',
+        message: `Se ha subido un comprobante de pago para la sesión sobre "${booking.topic}"`,
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
@@ -586,22 +611,22 @@ export const cancelBooking = async (
     }
 
     if (!hasAccess) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permisos para cancelar esta reserva',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permisos para cancelar esta reserva',
+      })
       return
     }
 
-    if (['cancelled', 'refunded', 'completed', 'rejected'].includes(booking.status)) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Esta reserva no puede ser cancelada',
-        })
+    if (
+      ['cancelled', 'refunded', 'completed', 'rejected'].includes(
+        booking.status
+      )
+    ) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Esta reserva no puede ser cancelada',
+      })
       return
     }
 
@@ -641,7 +666,7 @@ export const cancelBooking = async (
     if (cancelledBy === 'student' && mentor) {
       await Notification.create({
         userId: mentor.userId,
-        type: 'session_cancelled',
+        type: 'booking_cancelled',
         title: 'Sesión cancelada',
         message: 'Un estudiante ha cancelado una sesión',
         relatedId: booking._id,
@@ -650,7 +675,7 @@ export const cancelBooking = async (
     } else if (cancelledBy === 'mentor' && student) {
       await Notification.create({
         userId: student.userId,
-        type: 'session_cancelled',
+        type: 'booking_cancelled',
         title: 'Sesión cancelada',
         message: 'El mentor ha cancelado tu sesión',
         relatedId: booking._id,
@@ -716,12 +741,10 @@ export const approveBooking = async (
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los mentores pueden aprobar solicitudes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden aprobar solicitudes',
+      })
       return
     }
 
@@ -734,37 +757,46 @@ export const approveBooking = async (
     }
 
     if (booking.mentorId.toString() !== mentor._id.toString()) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permisos para aprobar esta solicitud',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permisos para aprobar esta solicitud',
+      })
       return
     }
 
     if (booking.status !== 'payment_uploaded') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Solo se pueden aprobar solicitudes con pago verificado',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Solo se pueden aprobar solicitudes con pago verificado',
+      })
       return
     }
 
-    // Aprobar la reserva
+    // Obtener el link de meet (obligatorio)
+    const { meetLink } = req.body
+
+    if (!meetLink || meetLink.trim().length === 0) {
+      res.status(400).json({
+        status: 'error',
+        message:
+          'El link de Google Meet es obligatorio para confirmar la sesión',
+      })
+      return
+    }
+
+    // Aprobar la reserva con link de meet
     booking.status = 'confirmed'
+    booking.meetLink = meetLink.trim()
     await booking.save()
 
-    // Notificar al estudiante
+    // Notificar al estudiante con el link
     const student = await Student.findById(booking.studentId)
     if (student) {
       await Notification.create({
         userId: student.userId,
         type: 'booking_confirmed',
         title: 'Sesión confirmada',
-        message: `Tu sesión sobre "${booking.topic}" ha sido confirmada por el mentor`,
+        message: `Tu sesión sobre "${booking.topic}" ha sido confirmada. Link de reunión: ${meetLink.trim()}`,
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
@@ -822,23 +854,19 @@ export const rejectBooking = async (
     }
 
     if (!reason || reason.trim().length === 0) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'La razón del rechazo es obligatoria',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'La razón del rechazo es obligatoria',
+      })
       return
     }
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los mentores pueden rechazar solicitudes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden rechazar solicitudes',
+      })
       return
     }
 
@@ -851,22 +879,18 @@ export const rejectBooking = async (
     }
 
     if (booking.mentorId.toString() !== mentor._id.toString()) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permisos para rechazar esta solicitud',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permisos para rechazar esta solicitud',
+      })
       return
     }
 
     if (booking.status !== 'payment_uploaded') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Solo se pueden rechazar solicitudes con pago verificado',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Solo se pueden rechazar solicitudes con pago verificado',
+      })
       return
     }
 
@@ -946,12 +970,10 @@ export const getMentorPendingCount = async (
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'Solo los mentores pueden consultar solicitudes pendientes',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'Solo los mentores pueden consultar solicitudes pendientes',
+      })
       return
     }
 

@@ -81,6 +81,7 @@ export interface Booking {
   totalAmount: number
   paymentDeadline?: string // ISO datetime - limite para subir comprobante
   isWithin24Hours?: boolean // calculado por el backend
+  meetLink?: string // Link de Google Meet (se agrega al confirmar)
   paymentProof?: PaymentProof
   cancellation?: CancellationInfo
   rejection?: RejectionInfo
@@ -176,7 +177,13 @@ export interface PendingCountResponse {
 
 // Filtros para obtener reservas
 export interface BookingsFilter {
-  status?: 'upcoming' | 'past' | 'cancelled' | 'pending_review' | 'confirmed' | 'completed'
+  status?:
+    | 'upcoming'
+    | 'past'
+    | 'cancelled'
+    | 'pending_review'
+    | 'confirmed'
+    | 'completed'
   page?: number
   limit?: number
 }

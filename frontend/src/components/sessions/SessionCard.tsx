@@ -27,11 +27,13 @@ const SessionCard = ({
   onRateClick,
 }: SessionCardProps) => {
   const mentorName = `${booking.mentorId.userId.firstName} ${booking.mentorId.userId.lastName}`
-  const isUpcoming = booking.isWithin24Hours ?? isWithin24Hours(booking.scheduledAt)
+  const isUpcoming =
+    booking.isWithin24Hours ?? isWithin24Hours(booking.scheduledAt)
 
   // Calcular tiempo restante para pagar
   const getPaymentDeadlineInfo = () => {
-    if (!booking.paymentDeadline || booking.status !== 'pending_payment') return null
+    if (!booking.paymentDeadline || booking.status !== 'pending_payment')
+      return null
     const deadline = moment(booking.paymentDeadline)
     const now = moment()
     const minutesLeft = deadline.diff(now, 'minutes')
@@ -141,11 +143,13 @@ const SessionCard = ({
 
       {/* Payment deadline indicator */}
       {deadlineInfo && (
-        <div className={`flex items-center gap-2 text-sm font-medium mb-4 pb-4 border-b ${
-          deadlineInfo.expired
-            ? 'text-red-600 border-red-100'
-            : 'text-amber-600 border-amber-100'
-        }`}>
+        <div
+          className={`flex items-center gap-2 text-sm font-medium mb-4 pb-4 border-b ${
+            deadlineInfo.expired
+              ? 'text-red-600 border-red-100'
+              : 'text-amber-600 border-amber-100'
+          }`}
+        >
           <Hourglass className="w-4 h-4" />
           {deadlineInfo.text}
         </div>

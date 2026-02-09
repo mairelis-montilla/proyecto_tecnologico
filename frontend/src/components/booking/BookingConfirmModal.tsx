@@ -37,7 +37,7 @@ const BookingConfirmModal = ({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const totalAmount = mentor.hourlyRate * (slot.duration / 60)
+  const totalAmount = mentor.hourlyRate
   const fullName = `${mentor.userId.firstName} ${mentor.userId.lastName}`
 
   const handleSubmit = async (e: React.FormEvent) => {

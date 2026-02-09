@@ -16,7 +16,9 @@ import PublicMentorProfile from '@/pages/PublicMentorProfile'
 import PublicStudentProfile from '@/pages/PublicStudentProfile'
 import Sessions from '@/pages/Sessions'
 import AdminMentorApproval from './pages/AdminAproveMentors'
+import AdminPaymentValidation from './pages/AdminPaymentValidation'
 import MentorAvailability from './pages/MentorAvailability'
+import MentorDashboard from './pages/MentorDashboard'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -105,10 +107,7 @@ function App() {
             path="/requests"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon
-                  title="Solicitudes"
-                  description="Aquí podrás ver y gestionar las solicitudes de sesiones de los estudiantes."
-                />
+                <MentorDashboard />
               </ProtectedRoute>
             }
           />
@@ -189,6 +188,14 @@ function App() {
                   title="Aprobar Mentores"
                   description="Revisa y aprueba las solicitudes de nuevos mentores."
                 />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/payments"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminPaymentValidation />
               </ProtectedRoute>
             }
           />
