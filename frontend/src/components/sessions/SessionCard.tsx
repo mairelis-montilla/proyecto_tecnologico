@@ -1,4 +1,5 @@
 import { Calendar, Clock, Timer, AlertCircle, Hourglass } from 'lucide-react'
+import { useAuthStore } from '../../stores/auth.store'
 import moment from 'moment-timezone'
 import { getAvatarUrl } from '../../utils/avatar'
 import {
@@ -17,6 +18,8 @@ interface SessionCardProps {
   onCancelClick?: (booking: Booking) => void
   onDetailsClick?: (booking: Booking) => void
   onRateClick?: (booking: Booking) => void
+  onApproveClick?: (booking: Booking) => void
+  onRejectClick?: (booking: Booking) => void
 }
 
 const SessionCard = ({
@@ -25,8 +28,16 @@ const SessionCard = ({
   onCancelClick,
   onDetailsClick,
   onRateClick,
+  onApproveClick,
+  onRejectClick,
 }: SessionCardProps) => {
-  const mentorName = `${booking.mentorId.userId.firstName} ${booking.mentorId.userId.lastName}`
+  const { user } = useAuthStore()
+  const isMentor = user?.id === booking.mentorId.userId._id || user?.role === 'mentor'
+
+  const otherParty = isMentor ? booking.studentId.userId : booking.mentorId.userId
+  const otherPartyName = `${otherParty.firstName} ${otherParty.lastName}`
+  const otherPartyRole = isMentor ? 'Estudiante' : booking.mentorId.title || 'Mentor'
+
   const isUpcoming =
     booking.isWithin24Hours ?? isWithin24Hours(booking.scheduledAt)
 
@@ -65,9 +76,38 @@ const SessionCard = ({
             key="waiting"
             className="px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-lg text-sm"
           >
-            Esperando validacion
+            Esperando validacion del admin
           </span>
         )
+        break
+      case 'payment_validated':
+        if (isMentor && onApproveClick && onRejectClick) {
+          actions.push(
+            <button
+              key="approve"
+              onClick={() => onApproveClick(booking)}
+              className="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors text-sm"
+            >
+              Aprobar
+            </button>,
+            <button
+              key="reject"
+              onClick={() => onRejectClick(booking)}
+              className="px-4 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors text-sm"
+            >
+              Rechazar
+            </button>
+          )
+        } else {
+          actions.push(
+            <span
+              key="waiting"
+              className="px-4 py-2 bg-amber-50 text-amber-700 font-medium rounded-lg text-sm"
+            >
+              Pago validado - Esperando aprobacion del mentor
+            </span>
+          )
+        }
         break
       case 'confirmed':
         actions.push(
@@ -126,10 +166,9 @@ const SessionCard = ({
     <div
       className={`
         bg-white rounded-2xl border p-5 transition-all
-        ${
-          isUpcoming && booking.status === 'confirmed'
-            ? 'border-purple-300 ring-2 ring-purple-100'
-            : 'border-gray-100 hover:border-gray-200'
+        ${isUpcoming && booking.status === 'confirmed'
+          ? 'border-purple-300 ring-2 ring-purple-100'
+          : 'border-gray-100 hover:border-gray-200'
         }
       `}
     >
@@ -144,11 +183,10 @@ const SessionCard = ({
       {/* Payment deadline indicator */}
       {deadlineInfo && (
         <div
-          className={`flex items-center gap-2 text-sm font-medium mb-4 pb-4 border-b ${
-            deadlineInfo.expired
-              ? 'text-red-600 border-red-100'
-              : 'text-amber-600 border-amber-100'
-          }`}
+          className={`flex items-center gap-2 text-sm font-medium mb-4 pb-4 border-b ${deadlineInfo.expired
+            ? 'text-red-600 border-red-100'
+            : 'text-amber-600 border-amber-100'
+            }`}
         >
           <Hourglass className="w-4 h-4" />
           {deadlineInfo.text}
@@ -156,17 +194,17 @@ const SessionCard = ({
       )}
 
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Mentor info */}
+        {/* User info (Mentor or Student) */}
         <div className="flex items-center gap-4 flex-1 min-w-0">
           <img
-            src={getAvatarUrl(booking.mentorId.userId.avatar)}
-            alt={mentorName}
+            src={getAvatarUrl(otherParty.avatar)}
+            alt={otherPartyName}
             className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 flex-shrink-0"
           />
           <div className="min-w-0">
-            <h3 className="font-bold text-gray-900 truncate">{mentorName}</h3>
+            <h3 className="font-bold text-gray-900 truncate">{otherPartyName}</h3>
             <p className="text-sm text-purple-600 truncate">
-              {booking.mentorId.title || 'Mentor'}
+              {otherPartyRole}
             </p>
             <p className="text-sm text-gray-500 truncate mt-1">
               Tema: {booking.topic}

@@ -3,6 +3,7 @@ import { Schema, model, Document, Types } from 'mongoose'
 export type BookingStatus =
   | 'pending_payment'
   | 'payment_uploaded'
+  | 'payment_validated'
   | 'confirmed'
   | 'completed'
   | 'cancelled'
@@ -44,6 +45,10 @@ export interface IBooking extends Document {
   paymentProof?: IPaymentProof
   cancellation?: ICancellation
   rejection?: IRejection
+  remindersSent: {
+    twentyFourHour: boolean
+    oneHour: boolean
+  }
   createdAt: Date
   updatedAt: Date
 }
@@ -147,6 +152,7 @@ const bookingSchema = new Schema<IBooking>(
       enum: [
         'pending_payment',
         'payment_uploaded',
+        'payment_validated',
         'confirmed',
         'completed',
         'cancelled',
@@ -170,6 +176,10 @@ const bookingSchema = new Schema<IBooking>(
     paymentProof: paymentProofSchema,
     cancellation: cancellationSchema,
     rejection: rejectionSchema,
+    remindersSent: {
+      twentyFourHour: { type: Boolean, default: false },
+      oneHour: { type: Boolean, default: false },
+    },
   },
   {
     timestamps: true,

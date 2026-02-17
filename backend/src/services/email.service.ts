@@ -193,13 +193,198 @@ const emailTemplates = {
     `,
     text: `Hola ${firstName},\n\nHemos revisado tu solicitud para ser mentor y necesitamos que realices algunos ajustes.${reason ? `\n\nMotivo: ${reason}` : ''}\n\nTe invitamos a revisar tu perfil y volver a enviarlo.\n\n${APP_NAME}`,
   }),
+  bookingRequest: (mentorName: string, studentName: string, topic: string) => ({
+    subject: `${APP_NAME} - Nueva solicitud de sesión`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info { background: #e2e3e5; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>${APP_NAME}</h1></div>
+          <div class="content">
+            <h2>Hola ${mentorName},</h2>
+            <p>Tienes una nueva solicitud de sesión de <strong>${studentName}</strong>.</p>
+            <div class="info">
+              <strong>Tema:</strong> ${topic}<br>
+            </div>
+            <p>Por favor, revisa la plataforma para aceptar o rechazar la solicitud.</p>
+          </div>
+          <div class="footer"><p>© ${new Date().getFullYear()} ${APP_NAME}</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `Hola ${mentorName}, tienes una nueva solicitud de sesión de ${studentName} sobre "${topic}". Revisa la plataforma.`
+  }),
+
+  paymentPending: (mentorName: string, studentName: string, topic: string) => ({
+    subject: `${APP_NAME} - Comprobante de pago recibido`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info { background: #e2e3e5; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>Pago Recibido</h1></div>
+          <div class="content">
+            <h2>Hola ${mentorName},</h2>
+            <p>El estudiante <strong>${studentName}</strong> ha subido un comprobante de pago para la sesión.</p>
+            <div class="info">
+              <strong>Tema:</strong> ${topic}<br>
+            </div>
+            <p>Por favor, revisa el comprobante y confirma la sesión.</p>
+          </div>
+          <div class="footer"><p>© ${new Date().getFullYear()} ${APP_NAME}</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `Hola ${mentorName}, ${studentName} ha subido el comprobante de pago para la sesión sobre "${topic}". Revisa la plataforma.`
+  }),
+
+  bookingConfirmed: (studentName: string, mentorName: string, topic: string, date: string, time: string, meetLink: string) => ({
+    subject: `${APP_NAME} - ¡Tu sesión ha sido confirmada!`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .details { background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #28a745; margin: 20px 0; }
+          .btn { display: inline-block; background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+          .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>¡Sesión Confirmada!</h1></div>
+          <div class="content">
+            <h2>Hola ${studentName},</h2>
+            <p>Tu mentor <strong>${mentorName}</strong> ha confirmado la sesión.</p>
+            <div class="details">
+              <p><strong>Tema:</strong> ${topic}</p>
+              <p><strong>Fecha:</strong> ${date}</p>
+              <p><strong>Hora:</strong> ${time}</p>
+              <p><strong>Link de reunión:</strong> <a href="${meetLink}">${meetLink}</a></p>
+            </div>
+            <a href="${meetLink}" class="btn">Unirse a la llamada</a>
+          </div>
+          <div class="footer"><p>© ${new Date().getFullYear()} ${APP_NAME}</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `Hola ${studentName}, tu sesión con ${mentorName} sobre "${topic}" ha sido confirmada para el ${date} a las ${time}. Link: ${meetLink}`
+  }),
+
+  bookingCancelled: (name: string, reason: string, cancelledBy: string) => ({
+    subject: `${APP_NAME} - Sesión cancelada`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>Sesión Cancelada</h1></div>
+          <div class="content">
+            <h2>Hola ${name},</h2>
+            <p>Lamentamos informarte que la sesión ha sido cancelada por <strong>${cancelledBy}</strong>.</p>
+            <p><strong>Motivo:</strong> ${reason}</p>
+            <p>Si corresponde un reembolso, este será procesado en breve.</p>
+          </div>
+          <div class="footer"><p>© ${new Date().getFullYear()} ${APP_NAME}</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `Hola ${name}, la sesión ha sido cancelada por ${cancelledBy}. Motivo: ${reason}.`
+  }),
+
+  sessionReminder: (name: string, topic: string, timeString: string, meetLink: string | undefined, timeLeft: string) => ({
+    subject: `${APP_NAME} - Recordatorio de sesión: ${topic}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%); color: black; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .btn { display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+          .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>Recordatorio de Sesión</h1></div>
+          <div class="content">
+            <h2>Hola ${name},</h2>
+            <p>Te recordamos que tu sesión sobre <strong>"${topic}"</strong> comenzará en <strong>${timeLeft}</strong>.</p>
+            <p><strong>Hora:</strong> ${timeString}</p>
+            ${meetLink ? `<p><strong>Link:</strong> <a href="${meetLink}">${meetLink}</a></p><a href="${meetLink}" class="btn">Unirse ahora</a>` : '<p>El link de la reunión estará disponible en la plataforma.</p>'}
+          </div>
+          <div class="footer"><p>© ${new Date().getFullYear()} ${APP_NAME}</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `Hola ${name}, recordatorio: tu sesión sobre "${topic}" comienza en ${timeLeft}. Hora: ${timeString}.`
+  }),
 }
 
 // Función para enviar email
 export const sendEmail = async (
   to: string,
   template: keyof typeof emailTemplates,
-  data: { code?: string; firstName: string; reason?: string }
+  data: {
+    code?: string
+    firstName: string
+    reason?: string
+    mentorName?: string
+    studentName?: string
+    topic?: string
+    date?: string
+    time?: string
+    meetLink?: string
+    cancelledBy?: string
+    timeLeft?: string
+  }
 ): Promise<boolean> => {
   try {
     let emailContent
@@ -218,6 +403,46 @@ export const sendEmail = async (
         emailContent = emailTemplates.mentorRejected(
           data.firstName,
           data.reason
+        )
+        break
+      case 'paymentPending':
+        emailContent = emailTemplates.paymentPending(
+          data.mentorName!,
+          data.studentName!,
+          data.topic!
+        )
+        break
+      case 'bookingRequest':
+        emailContent = emailTemplates.bookingRequest(
+          data.mentorName!,
+          data.studentName!,
+          data.topic!
+        )
+        break
+      case 'bookingConfirmed':
+        emailContent = emailTemplates.bookingConfirmed(
+          data.studentName!,
+          data.mentorName!,
+          data.topic!,
+          data.date!,
+          data.time!,
+          data.meetLink!
+        )
+        break
+      case 'bookingCancelled':
+        emailContent = emailTemplates.bookingCancelled(
+          data.firstName,
+          data.reason!,
+          data.cancelledBy!
+        )
+        break
+      case 'sessionReminder':
+        emailContent = emailTemplates.sessionReminder(
+          data.firstName,
+          data.topic!,
+          data.time!,
+          data.meetLink,
+          data.timeLeft!
         )
         break
       default:
@@ -282,4 +507,82 @@ export const sendMentorRejectedEmail = async (
   reason?: string
 ): Promise<boolean> => {
   return sendEmail(email, 'mentorRejected', { firstName, reason })
+}
+
+export const sendBookingRequestEmail = async (
+  email: string,
+  mentorName: string,
+  studentName: string,
+  topic: string
+): Promise<boolean> => {
+  return sendEmail(email, 'bookingRequest', {
+    firstName: mentorName, // Reuse firstName for convenience or ignore
+    mentorName,
+    studentName,
+    topic,
+  })
+}
+
+export const sendPaymentPendingEmail = async (
+  email: string,
+  mentorName: string,
+  studentName: string,
+  topic: string
+): Promise<boolean> => {
+  return sendEmail(email, 'paymentPending', {
+    firstName: mentorName,
+    mentorName,
+    studentName,
+    topic,
+  })
+}
+
+export const sendBookingConfirmedEmail = async (
+  email: string,
+  studentName: string,
+  mentorName: string,
+  topic: string,
+  date: string,
+  time: string,
+  meetLink: string
+): Promise<boolean> => {
+  return sendEmail(email, 'bookingConfirmed', {
+    firstName: studentName,
+    studentName,
+    mentorName,
+    topic,
+    date,
+    time,
+    meetLink,
+  })
+}
+
+export const sendBookingCancelledEmail = async (
+  email: string,
+  name: string,
+  reason: string,
+  cancelledBy: string
+): Promise<boolean> => {
+  return sendEmail(email, 'bookingCancelled', {
+    firstName: name,
+    reason,
+    cancelledBy,
+  })
+}
+
+export const sendSessionReminderEmail = async (
+  email: string,
+  name: string,
+  topic: string,
+  timeString: string,
+  meetLink: string | undefined,
+  timeLeft: string
+): Promise<boolean> => {
+  return sendEmail(email, 'sessionReminder', {
+    firstName: name,
+    topic,
+    time: timeString,
+    meetLink,
+    timeLeft,
+  })
 }

@@ -8,6 +8,7 @@ export const getStatusLabel = (status: BookingStatus): string => {
   const labels: Record<BookingStatus, string> = {
     pending_payment: 'Pendiente de pago',
     payment_uploaded: 'Pago en revision',
+    payment_validated: 'Pago validado',
     confirmed: 'Confirmada',
     completed: 'Completada',
     cancelled: 'Cancelada',
@@ -24,6 +25,7 @@ export const getStatusColor = (status: BookingStatus): string => {
   const colors: Record<BookingStatus, string> = {
     pending_payment: 'bg-amber-100 text-amber-800 border-amber-200',
     payment_uploaded: 'bg-blue-100 text-blue-800 border-blue-200',
+    payment_validated: 'bg-indigo-100 text-indigo-800 border-indigo-200',
     confirmed: 'bg-green-100 text-green-800 border-green-200',
     completed: 'bg-gray-100 text-gray-800 border-gray-200',
     cancelled: 'bg-red-100 text-red-800 border-red-200',

@@ -17,6 +17,7 @@ import PublicStudentProfile from '@/pages/PublicStudentProfile'
 import Sessions from '@/pages/Sessions'
 import AdminMentorApproval from './pages/AdminAproveMentors'
 import AdminPaymentValidation from './pages/AdminPaymentValidation'
+import AdminSpecialties from './pages/AdminSpecialties'
 import MentorAvailability from './pages/MentorAvailability'
 import MentorDashboard from './pages/MentorDashboard'
 
@@ -196,6 +197,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminPaymentValidation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/specialties"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminSpecialties />
               </ProtectedRoute>
             }
           />

@@ -9,6 +9,13 @@ import { Notification } from '../models/Notification.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 import { uploadImage } from '../services/cloudinary.service.js'
 
+import {
+  sendBookingRequestEmail,
+  sendBookingConfirmedEmail,
+  sendBookingCancelledEmail,
+  sendPaymentPendingEmail,
+} from '../services/email.service.js'
+
 /**
  * Crear una nueva reserva
  * POST /api/bookings
@@ -28,7 +35,7 @@ export const createBooking = async (
     }
 
     // Verificar que es un estudiante
-    const student = await Student.findOne({ userId })
+    const student = await Student.findOne({ userId }).populate('userId')
     if (!student) {
       res.status(403).json({
         status: 'error',
@@ -48,7 +55,7 @@ export const createBooking = async (
     }
 
     // Verificar que el mentor existe y está aprobado
-    const mentor = await Mentor.findById(mentorId)
+    const mentor = await Mentor.findById(mentorId).populate('userId')
     if (!mentor || !mentor.isApproved || !mentor.isActive) {
       res.status(404).json({
         status: 'error',
@@ -155,6 +162,15 @@ export const createBooking = async (
       relatedModel: 'Booking',
     })
 
+    // Enviar email al mentor
+    const mentorUser = mentor.userId as any
+    await sendBookingRequestEmail(
+      mentorUser.email,
+      mentorUser.firstName,
+      (student.userId as any).firstName, 
+      topic
+    )
+
     // Poblar datos para la respuesta
     const populatedBooking = await Booking.findById(booking._id)
       .populate({
@@ -257,8 +273,8 @@ export const getMyBookings = async (
     } else if (status === 'cancelled') {
       filter.status = { $in: ['cancelled', 'refunded', 'rejected'] }
     } else if (status === 'pending_review') {
-      // Mentor: solicitudes con pago subido esperando aprobacion
-      filter.status = 'payment_uploaded'
+      // Mentor: solicitudes con pago validado por admin, esperando aprobacion del mentor
+      filter.status = 'payment_validated'
     } else if (status === 'confirmed') {
       filter.status = 'confirmed'
       filter.scheduledAt = { $gte: new Date() }
@@ -522,7 +538,7 @@ export const uploadPaymentProof = async (
     })
 
     // Notificar al mentor
-    const mentor = await Mentor.findById(booking.mentorId)
+    const mentor = await Mentor.findById(booking.mentorId).populate('userId')
     if (mentor) {
       await Notification.create({
         userId: mentor.userId,
@@ -532,6 +548,16 @@ export const uploadPaymentProof = async (
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
+
+      // Enviar email
+      const mentorUser = mentor.userId as any
+      
+      await sendPaymentPendingEmail(
+        mentorUser.email,
+        mentorUser.firstName,
+        req.user?.firstName || 'Estudiante',
+        booking.topic
+      )
     }
 
     const populatedBooking = await Booking.findById(booking._id)
@@ -672,6 +698,16 @@ export const cancelBooking = async (
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
+      
+      // Email al mentor
+      const mentorUser = mentor.userId as any
+      await sendBookingCancelledEmail(
+        mentorUser.email,
+        mentorUser.firstName,
+        reason || 'Sin motivo especificado',
+        'Estudiante'
+      )
+
     } else if (cancelledBy === 'mentor' && student) {
       await Notification.create({
         userId: student.userId,
@@ -681,6 +717,15 @@ export const cancelBooking = async (
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
+
+      // Email al estudiante
+      const studentUser = student.userId as any
+      await sendBookingCancelledEmail(
+        studentUser.email,
+        studentUser.firstName,
+        reason || 'Sin motivo especificado',
+        'Mentor'
+      )
     }
 
     const populatedBooking = await Booking.findById(booking._id)
@@ -739,7 +784,7 @@ export const approveBooking = async (
       return
     }
 
-    const mentor = await Mentor.findOne({ userId })
+    const mentor = await Mentor.findOne({ userId }).populate('userId')
     if (!mentor) {
       res.status(403).json({
         status: 'error',
@@ -764,10 +809,10 @@ export const approveBooking = async (
       return
     }
 
-    if (booking.status !== 'payment_uploaded') {
+    if (booking.status !== 'payment_validated') {
       res.status(400).json({
         status: 'error',
-        message: 'Solo se pueden aprobar solicitudes con pago verificado',
+        message: 'Solo se pueden aprobar solicitudes con pago validado por el administrador',
       })
       return
     }
@@ -790,16 +835,33 @@ export const approveBooking = async (
     await booking.save()
 
     // Notificar al estudiante con el link
-    const student = await Student.findById(booking.studentId)
+    const student = await Student.findById(booking.studentId).populate('userId')
     if (student) {
       await Notification.create({
         userId: student.userId,
         type: 'booking_confirmed',
-        title: 'Sesión confirmada',
-        message: `Tu sesión sobre "${booking.topic}" ha sido confirmada. Link de reunión: ${meetLink.trim()}`,
+        title: 'Sesion confirmada',
+        message: `Tu sesion sobre "${booking.topic}" ha sido aprobada por el mentor`,
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
+
+      // Enviar email con link
+      const studentUser = student.userId as any
+      const mentorUser = mentor.userId as any
+      
+      const dateStr = moment(booking.scheduledAt).tz('America/Lima').format('DD/MM/YYYY')
+      const timeStr = moment(booking.scheduledAt).tz('America/Lima').format('h:mm A')
+
+      await sendBookingConfirmedEmail(
+        studentUser.email,
+        studentUser.firstName,
+        mentorUser.firstName,
+        booking.topic,
+        dateStr,
+        timeStr,
+        meetLink.trim()
+      )
     }
 
     const populatedBooking = await Booking.findById(booking._id)
@@ -886,10 +948,10 @@ export const rejectBooking = async (
       return
     }
 
-    if (booking.status !== 'payment_uploaded') {
+    if (booking.status !== 'payment_validated') {
       res.status(400).json({
         status: 'error',
-        message: 'Solo se pueden rechazar solicitudes con pago verificado',
+        message: 'Solo se pueden rechazar solicitudes con pago validado',
       })
       return
     }
@@ -979,7 +1041,7 @@ export const getMentorPendingCount = async (
 
     const count = await Booking.countDocuments({
       mentorId: mentor._id,
-      status: 'payment_uploaded',
+      status: 'payment_validated',
     })
 
     res.status(200).json({

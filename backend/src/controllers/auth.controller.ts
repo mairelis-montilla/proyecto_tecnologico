@@ -267,6 +267,16 @@ export const login = async (
       return
     }
 
+    // Verificar si el usuario está bloqueado
+    if (user.isBlocked) {
+      res.status(403).json({
+        status: 'error',
+        message: 'Tu cuenta ha sido bloqueada. Motivo: ' + (user.blockReason || 'Contacte al administrador.'),
+        code: 'USER_BLOCKED',
+      })
+      return
+    }
+
     // Comparar contraseñas
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {

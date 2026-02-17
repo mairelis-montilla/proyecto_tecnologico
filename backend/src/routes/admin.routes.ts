@@ -19,7 +19,17 @@ import {
   getAllPayments,
   approvePayment,
   rejectPayment,
+  getPaymentsSummary,
+  exportPayments,
 } from '../controllers/admin-payments.controller.js'
+import {
+  getUsers,
+  getUserById,
+  updateUser,
+  blockUser,
+  unblockUser,
+  getBlockHistory,
+} from '../controllers/admin-users.controller.js'
 import {
   authenticateToken,
   authorizeRoles,
@@ -183,6 +193,105 @@ router.patch('/mentors/:id/reject', rejectMentorValidator, rejectMentor)
 // PATCH /api/admin/mentors/:id/revoke - Revocar aprobación de mentor
 router.patch('/mentors/:id/revoke', revokeMentorValidator, revokeMentor)
 
+// ==================== USERS ====================
+
+// Validadores para usuarios
+const getUsersValidator = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('La página debe ser un número entero mayor a 0'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('El límite debe ser un número entre 1 y 50'),
+  query('role')
+    .optional()
+    .isIn(['student', 'mentor', 'admin'])
+    .withMessage('Rol inválido'),
+  query('status')
+    .optional()
+    .isIn(['active', 'blocked', 'inactive'])
+    .withMessage('Estado inválido'),
+  query('search')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('La búsqueda debe tener entre 2 y 100 caracteres'),
+  query('sortBy')
+    .optional()
+    .isIn(['createdAt', 'firstName', 'lastName', 'email', 'role'])
+    .withMessage('Campo de ordenamiento inválido'),
+  query('sortOrder')
+    .optional()
+    .isIn(['asc', 'desc'])
+    .withMessage('Orden inválido'),
+]
+
+const userIdValidator = [
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+]
+
+const updateUserValidator = [
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  body('firstName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('El nombre debe tener entre 2 y 50 caracteres'),
+  body('lastName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('El apellido debe tener entre 2 y 50 caracteres'),
+  body('role')
+    .optional()
+    .isIn(['student', 'mentor', 'admin'])
+    .withMessage('Rol inválido'),
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('isActive debe ser un booleano'),
+]
+
+const blockUserValidator = [
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  body('reason')
+    .notEmpty()
+    .withMessage('El motivo del bloqueo es obligatorio')
+    .trim()
+    .isLength({ min: 5, max: 500 })
+    .withMessage('El motivo debe tener entre 5 y 500 caracteres'),
+]
+
+const unblockUserValidator = [
+  param('id').isMongoId().withMessage('ID de usuario inválido'),
+  body('reason')
+    .notEmpty()
+    .withMessage('El motivo del desbloqueo es obligatorio')
+    .trim()
+    .isLength({ min: 5, max: 500 })
+    .withMessage('El motivo debe tener entre 5 y 500 caracteres'),
+]
+
+// GET /api/admin/users - Listar usuarios con filtros
+router.get('/users', getUsersValidator, getUsers)
+
+// GET /api/admin/users/:id - Obtener detalle de un usuario
+router.get('/users/:id', userIdValidator, getUserById)
+
+// PATCH /api/admin/users/:id - Actualizar datos de un usuario
+router.patch('/users/:id', updateUserValidator, updateUser)
+
+// PATCH /api/admin/users/:id/block - Bloquear usuario
+router.patch('/users/:id/block', blockUserValidator, blockUser)
+
+// PATCH /api/admin/users/:id/unblock - Desbloquear usuario
+router.patch('/users/:id/unblock', unblockUserValidator, unblockUser)
+
+// GET /api/admin/users/:id/block-history - Historial de bloqueos
+router.get('/users/:id/block-history', userIdValidator, getBlockHistory)
+
 // ==================== PAYMENTS ====================
 
 // Validadores para pagos
@@ -205,6 +314,23 @@ const getPaymentsValidator = [
       'refunded',
     ])
     .withMessage('Estado de pago inválido'),
+  query('dateFrom')
+    .optional()
+    .isISO8601()
+    .withMessage('Fecha inicio debe ser ISO8601'),
+  query('dateTo')
+    .optional()
+    .isISO8601()
+    .withMessage('Fecha fin debe ser ISO8601'),
+  query('search')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('La búsqueda debe tener entre 2 y 100 caracteres'),
+  query('paymentMethod')
+    .optional()
+    .isIn(['yape', 'plin', 'transfer', 'cash'])
+    .withMessage('Método de pago inválido'),
 ]
 
 const paymentIdValidator = [
@@ -223,6 +349,12 @@ const rejectPaymentValidator = [
 
 // GET /api/admin/payments/pending - Pagos pendientes de validación
 router.get('/payments/pending', getPaymentsValidator, getPendingPayments)
+
+// GET /api/admin/payments/summary - Resumen financiero
+router.get('/payments/summary', getPaymentsSummary)
+
+// GET /api/admin/payments/export - Exportar pagos a CSV
+router.get('/payments/export', getPaymentsValidator, exportPayments)
 
 // GET /api/admin/payments - Todos los pagos (historial)
 router.get('/payments', getPaymentsValidator, getAllPayments)

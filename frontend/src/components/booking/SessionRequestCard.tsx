@@ -10,6 +10,7 @@ interface SessionRequestCardProps {
     onApprove?: (bookingId: string) => void
     onReject?: (bookingId: string) => void
     onViewDetails?: (booking: Booking) => void
+    onCancel?: () => void
 }
 
 const SessionRequestCard = ({
@@ -17,9 +18,13 @@ const SessionRequestCard = ({
     onApprove,
     onReject,
     onViewDetails,
+    onCancel,
 }: SessionRequestCardProps) => {
-    const studentName = `${booking.studentId.userId.firstName} ${booking.studentId.userId.lastName}`
-    const isPending = booking.status === 'payment_uploaded'
+    const student = booking.studentId as any
+    const user = student?.userId
+    const studentName = user ? `${user.firstName} ${user.lastName}` : 'Estudiante Desconocido'
+
+    // Check if it is within 24 hours
     const isWithin24Hours = booking.isWithin24Hours
 
     return (
@@ -28,7 +33,7 @@ const SessionRequestCard = ({
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <img
-                        src={getAvatarUrl(booking.studentId.userId.avatar)}
+                        src={getAvatarUrl(user?.avatar)}
                         alt={studentName}
                         className="w-12 h-12 rounded-full object-cover border-2 border-purple-100"
                     />
@@ -125,22 +130,32 @@ const SessionRequestCard = ({
                     Ver Detalles
                 </button>
 
-                {/* Botones aprobar/rechazar solo si está pendiente */}
-                {isPending && (
+                {/* Botones aprobar/rechazar solo si se pasan las funciones */}
+                {onApprove && onReject && (
                     <>
                         <button
-                            onClick={() => onReject?.(booking._id)}
+                            onClick={() => onReject(booking._id)}
                             className="flex-1 px-4 py-2.5 text-red-600 font-medium rounded-lg border border-red-300 hover:bg-red-50 transition-colors"
                         >
                             Rechazar
                         </button>
                         <button
-                            onClick={() => onApprove?.(booking._id)}
+                            onClick={() => onApprove(booking._id)}
                             className="flex-1 px-4 py-2.5 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 transition-all shadow-sm"
                         >
                             Aprobar
                         </button>
                     </>
+                )}
+
+                {/* Botón cancelar si se pasa la función */}
+                {onCancel && (
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 px-4 py-2.5 text-red-600 font-medium rounded-lg border border-red-300 hover:bg-red-50 transition-colors"
+                    >
+                        Cancelar
+                    </button>
                 )}
             </div>
         </div>

@@ -4,9 +4,13 @@ import cors from 'cors'
 import { connectDB } from './config/database.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 import apiRouter from './routes/index.js'
+import { initCronJobs } from './services/cron.service.js'
 
 // Conectar a MongoDB
 connectDB()
+
+// Iniciar Cron Jobs
+initCronJobs()
 
 const app = express()
 const PORT = process.env.PORT || 4000

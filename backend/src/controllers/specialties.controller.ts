@@ -368,14 +368,9 @@ export const deleteSpecialty = async (
     })
 
     if (mentorCount > 0) {
-      // Soft delete - solo desactivar
-      specialty.isActive = false
-      await specialty.save()
-
-      res.status(200).json({
-        status: 'success',
-        message: `Especialidad desactivada. ${mentorCount} mentor(es) la tienen asignada.`,
-        data: { specialty },
+      res.status(400).json({
+        status: 'error',
+        message: `No se puede eliminar la especialidad porque tiene ${mentorCount} mentor(es) asociado(s). Desactívela en su lugar.`,
       })
       return
     }

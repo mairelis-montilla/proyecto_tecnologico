@@ -1,6 +1,6 @@
-import { Calendar, History, XCircle } from 'lucide-react'
+import { Calendar, History, XCircle, Clock } from 'lucide-react'
 
-export type SessionTab = 'upcoming' | 'past' | 'cancelled'
+export type SessionTab = 'pending' | 'upcoming' | 'past' | 'cancelled'
 
 interface TabConfig {
   id: SessionTab
@@ -9,6 +9,11 @@ interface TabConfig {
 }
 
 const tabs: TabConfig[] = [
+  {
+    id: 'pending',
+    label: 'Pendientes',
+    icon: <Clock className="w-4 h-4" />,
+  },
   {
     id: 'upcoming',
     label: 'Proximas',
@@ -30,6 +35,7 @@ interface SessionsTabsProps {
   activeTab: SessionTab
   onTabChange: (tab: SessionTab) => void
   counts?: {
+    pending: number
     upcoming: number
     past: number
     cancelled: number
@@ -53,10 +59,9 @@ const SessionsTabs = ({
             onClick={() => onTabChange(tab.id)}
             className={`
               flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all
-              ${
-                isActive
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              ${isActive
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }
             `}
           >

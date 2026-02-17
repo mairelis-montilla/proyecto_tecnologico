@@ -1,7 +1,8 @@
 // Estados de reserva/sesion
 export type BookingStatus =
   | 'pending_payment' // Reserva creada, esperando comprobante
-  | 'payment_uploaded' // Comprobante subido, esperando validacion
+  | 'payment_uploaded' // Comprobante subido, esperando validacion del admin
+  | 'payment_validated' // Pago validado por admin, esperando aprobacion del mentor
   | 'confirmed' // Aprobada por mentor
   | 'completed' // Sesion realizada
   | 'cancelled' // Cancelada

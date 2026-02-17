@@ -236,7 +236,7 @@ const SessionRequestsList = () => {
                                     ¿Confirmar aprobacion?
                                 </h3>
                                 <p className="text-gray-600 mb-4 text-center">
-                                    Aprobaras la sesion con <strong>{selectedBooking.studentId.userId.firstName}</strong> sobre "{selectedBooking.topic}"
+                                    Aprobaras la sesion con <strong>{(selectedBooking.studentId as any)?.userId?.firstName || 'Estudiante'}</strong> sobre "{selectedBooking.topic}"
                                 </p>
 
                                 <div className="mb-4">

@@ -7,6 +7,7 @@ import {
   MessageSquare,
   CreditCard,
   Image,
+  Video,
 } from 'lucide-react'
 import moment from 'moment-timezone'
 import Modal, { ModalBody, ModalFooter } from '../ui/Modal'
@@ -136,6 +137,30 @@ const BookingDetailsModal = ({
             {booking.topic}
           </p>
         </div>
+
+        {/* Meet Link */}
+        {booking.meetLink && (
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
+              <Video className="w-4 h-4 text-purple-600" />
+              Link de la Sesion
+            </h4>
+            <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+              <a
+                href={booking.meetLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-green-700 hover:text-green-800 font-medium break-all"
+              >
+                <Video className="w-5 h-5 flex-shrink-0" />
+                {booking.meetLink}
+              </a>
+              <p className="text-xs text-green-600 mt-2">
+                Haz clic en el link para unirte a la sesion de Google Meet
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Message */}
         {booking.message && (

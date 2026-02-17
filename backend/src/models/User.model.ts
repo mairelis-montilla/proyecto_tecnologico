@@ -9,6 +9,9 @@ export interface IUser extends Document {
   avatar?: string
   isActive: boolean
   isEmailVerified: boolean
+  isBlocked: boolean
+  blockReason?: string
+  blockedAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -56,6 +59,19 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockReason: {
+      type: String,
+      default: null,
+      maxlength: [500, 'Block reason must not exceed 500 characters'],
+    },
+    blockedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -64,6 +80,7 @@ const userSchema = new Schema<IUser>(
 
 // Índices (email ya tiene índice por unique: true)
 userSchema.index({ role: 1 })
+userSchema.index({ isBlocked: 1 })
 
 // Virtual para nombre completo
 userSchema.virtual('fullName').get(function () {

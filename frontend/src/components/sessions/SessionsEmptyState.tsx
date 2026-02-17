@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { Calendar, History, XCircle, Search } from 'lucide-react'
+import { Calendar, History, XCircle, Search, Clock } from 'lucide-react'
 import type { SessionTab } from './SessionsTabs'
+import { useAuthStore } from '../../stores/auth.store'
 
 interface SessionsEmptyStateProps {
   tab: SessionTab
@@ -15,6 +16,12 @@ const emptyStateConfig: Record<
     showCta: boolean
   }
 > = {
+  pending: {
+    icon: <Clock className="w-12 h-12 text-gray-400" />,
+    title: 'No tienes solicitudes pendientes',
+    description: 'Cuando envies solicitudes a mentores, apareceran aqui.',
+    showCta: true,
+  },
   upcoming: {
     icon: <Calendar className="w-12 h-12 text-gray-400" />,
     title: 'No tienes sesiones programadas',
@@ -39,6 +46,7 @@ const emptyStateConfig: Record<
 
 const SessionsEmptyState = ({ tab }: SessionsEmptyStateProps) => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const config = emptyStateConfig[tab]
 
   return (
@@ -49,17 +57,19 @@ const SessionsEmptyState = ({ tab }: SessionsEmptyStateProps) => {
       <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
         {config.title}
       </h3>
-      <p className="text-gray-500 text-center max-w-md mb-6">
-        {config.description}
-      </p>
-      {config.showCta && (
-        <button
-          onClick={() => navigate('/mentors')}
-          className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-200"
+      {user?.role === 'student' && (
+        <p className="text-gray-500 text-center max-w-md mb-6">
+          {config.description}
+        </p>
+      )}
+      {config.showCta && user?.role === 'student' && (
+        <a
+          href="/mentors"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purpura hover:bg-indigo focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
         >
-          <Search className="w-5 h-5" />
+          <Search className="w-5 h-5 mr-2" />
           Buscar Mentores
-        </button>
+        </a>
       )}
     </div>
   )
