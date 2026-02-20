@@ -20,6 +20,7 @@ import AdminPaymentValidation from './pages/AdminPaymentValidation'
 import AdminSpecialties from './pages/AdminSpecialties'
 import MentorAvailability from './pages/MentorAvailability'
 import MentorDashboard from './pages/MentorDashboard'
+import AdminUserManagement from './pages/AdminUserManagement'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -174,7 +175,7 @@ function App() {
             path="/admin/users"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <ComingSoon
+                <AdminUserManagement
                   title="Gestionar Usuarios"
                   description="Administra los usuarios de la plataforma."
                 />

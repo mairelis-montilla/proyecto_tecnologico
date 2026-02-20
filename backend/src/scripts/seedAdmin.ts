@@ -42,7 +42,7 @@ async function seedAdmin() {
     console.log('Usuario admin creado exitosamente!')
     console.log('=====================================')
     console.log(`Email: ${ADMIN_EMAIL}`)
-    console.log(`Password: ${ADMIN_PASSWORD}`)
+    console.log(`Passwor d: ${ADMIN_PASSWORD}`)
     console.log(`Role: admin`)
     console.log(`ID: ${admin._id}`)
     console.log('=====================================')
