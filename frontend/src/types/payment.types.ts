@@ -74,6 +74,8 @@ export interface Pagination {
   currentPage: number
   totalPages: number
   totalItems: number
+  hasPrevPage: boolean
+  hasNextPage: boolean
 }
 
 // Response de lista de pagos
