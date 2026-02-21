@@ -30,6 +30,14 @@ import {
   unblockUser,
   getBlockHistory,
 } from '../controllers/admin-users.controller.js'
+import { getDashboardStats } from '../controllers/admin-dashboard.controller.js'
+import {
+  getReportUsers,
+  getReportSessions,
+  getReportRevenue,
+  getReportTopMentors,
+  exportReport,
+} from '../controllers/admin-reports.controller.js'
 import {
   authenticateToken,
   authorizeRoles,
@@ -40,6 +48,53 @@ const router = Router()
 // Middleware: todas las rutas de admin requieren autenticación y rol admin
 router.use(authenticateToken)
 router.use(authorizeRoles('admin'))
+
+// ==================== DASHBOARD ====================
+
+// GET /api/admin/dashboard/stats - Estadísticas del dashboard
+router.get('/dashboard/stats', getDashboardStats)
+
+// ==================== REPORTS ====================
+
+const reportsValidator = [
+  query('period')
+    .optional()
+    .isIn(['today', 'week', 'month', 'custom'])
+    .withMessage('Período inválido'),
+  query('dateFrom')
+    .optional()
+    .isISO8601()
+    .withMessage('Fecha inicio debe ser ISO8601'),
+  query('dateTo')
+    .optional()
+    .isISO8601()
+    .withMessage('Fecha fin debe ser ISO8601'),
+]
+
+// GET /api/admin/reports/users - Reporte de usuarios registrados
+router.get('/reports/users', reportsValidator, getReportUsers)
+
+// GET /api/admin/reports/sessions - Reporte de sesiones
+router.get('/reports/sessions', reportsValidator, getReportSessions)
+
+// GET /api/admin/reports/revenue - Reporte de ingresos
+router.get('/reports/revenue', reportsValidator, getReportRevenue)
+
+// GET /api/admin/reports/top-mentors - Mentores más activos
+router.get('/reports/top-mentors', reportsValidator, getReportTopMentors)
+
+// GET /api/admin/reports/export - Exportar reporte a CSV
+router.get(
+  '/reports/export',
+  [
+    ...reportsValidator,
+    query('type')
+      .optional()
+      .isIn(['revenue', 'sessions', 'users', 'top-mentors'])
+      .withMessage('Tipo de reporte inválido'),
+  ],
+  exportReport
+)
 
 // ==================== SPECIALTIES ====================
 

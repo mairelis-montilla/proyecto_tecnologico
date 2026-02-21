@@ -321,9 +321,50 @@ export const getAvailability = async (
       .sort({ date: 1, startTime: 1 })
       .lean()
 
+    // Cruzar con reservas activas para saber cuáles slots están ocupados
+    const scheduledTimes = availability
+      .filter((s) => s.date)
+      .map((s) => {
+        const [hours, minutes] = s.startTime.split(':').map(Number)
+        return moment(s.date).hour(hours).minute(minutes).second(0).toDate()
+      })
+
+    const activeBookings =
+      scheduledTimes.length > 0
+        ? await Booking.find({
+            mentorId,
+            scheduledAt: { $in: scheduledTimes },
+            status: { $nin: ['cancelled', 'refunded'] },
+          })
+            .select('scheduledAt status _id')
+            .lean()
+        : []
+
+    const slotsWithBookingInfo = availability.map((slot) => {
+      if (!slot.date) return { ...slot, hasActiveBooking: false }
+      const [hours, minutes] = slot.startTime.split(':').map(Number)
+      const scheduledAt = moment(slot.date)
+        .hour(hours)
+        .minute(minutes)
+        .second(0)
+        .toDate()
+      const booking = activeBookings.find(
+        (b) =>
+          Math.abs(
+            new Date(b.scheduledAt).getTime() - scheduledAt.getTime()
+          ) < 60000
+      )
+      return {
+        ...slot,
+        hasActiveBooking: !!booking,
+        bookingId: booking?._id ?? null,
+        bookingStatus: booking?.status ?? null,
+      }
+    })
+
     res.status(200).json({
       status: 'success',
-      data: availability,
+      data: slotsWithBookingInfo,
     })
   } catch (error) {
     console.error('Error fetching availability:', error)
