@@ -105,7 +105,7 @@ router.get(
       .isIn(['asc', 'desc'])
       .withMessage('Orden debe ser asc o desc'),
   ],
-  (req: any, res: any, next: any) => {
+  (req: any, _res: any, next: any) => {
     req.params.mentorId = req.params.id
     next()
   },
