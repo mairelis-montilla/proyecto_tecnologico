@@ -5,7 +5,7 @@ export interface IReview extends Document {
   studentId: Types.ObjectId
   mentorId: Types.ObjectId
   rating: number
-  comment: string
+  comment?: string  // opcional
   createdAt: Date
   updatedAt: Date
 }
@@ -16,7 +16,7 @@ const reviewSchema = new Schema<IReview>(
       type: Schema.Types.ObjectId,
       ref: 'Booking',
       required: [true, 'Booking ID is required'],
-      unique: true,
+      unique: true, // Una sola calificación por sesión
     },
     studentId: {
       type: Schema.Types.ObjectId,
@@ -31,14 +31,15 @@ const reviewSchema = new Schema<IReview>(
     rating: {
       type: Number,
       required: [true, 'Rating is required'],
-      min: 1,
-      max: 5,
+      min: [1, 'Rating must be at least 1'],
+      max: [5, 'Rating must not exceed 5'],
     },
     comment: {
       type: String,
-      required: [true, 'Comment is required'],
+      required: false,   // opcional
       trim: true,
-      maxlength: [1000, 'Comment must not exceed 1000 characters'],
+      maxlength: [500, 'Comment must not exceed 500 characters'],
+      default: '',
     },
   },
   {
