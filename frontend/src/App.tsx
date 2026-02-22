@@ -21,6 +21,7 @@ import AdminSpecialties from './pages/AdminSpecialties'
 import MentorAvailability from './pages/MentorAvailability'
 import MentorDashboard from './pages/MentorDashboard'
 import AdminUserManagement from './pages/AdminUserManagement'
+import MentorReviewsPage from '@/pages/MentorReviewsPage'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -113,14 +114,12 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/reviews"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon
-                  title="Mis Reseñas"
-                  description="Ve las calificaciones y comentarios que los estudiantes han dejado sobre tus sesiones."
-                />
+                <MentorReviewsPage />
               </ProtectedRoute>
             }
           />

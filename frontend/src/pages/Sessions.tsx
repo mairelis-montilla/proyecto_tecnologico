@@ -14,6 +14,9 @@ import {
 import Modal, { ModalBody, ModalFooter } from '../components/ui/Modal'
 import { bookingsService } from '../services/bookings.service'
 import type { Booking } from '../types/booking.types'
+import { useAuthStore } from '@/stores/auth.store'
+import { ReviewForm } from './ReviewForm'
+
 
 const Sessions = () => {
   const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
@@ -26,6 +29,7 @@ const Sessions = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   // Counts for tabs
   const [counts, setCounts] = useState({
@@ -124,8 +128,8 @@ const Sessions = () => {
   }
 
   const handleRateClick = (booking: Booking) => {
-    // TODO: Implement rating modal
-    console.log('Rate booking:', booking._id)
+    setSelectedBooking(booking)
+    setShowReviewModal(true)
   }
 
   const handleApproveClick = (booking: Booking) => {
@@ -438,6 +442,25 @@ const Sessions = () => {
               </button>
             </ModalFooter>
           </Modal>
+
+          {/* Modal Calificar Sesion */}
+          <Modal
+            isOpen={showReviewModal}
+            onClose={handleModalClose}
+            title="Calificar sesión"
+            size="md"
+          >
+            <ModalBody>
+              <ReviewForm
+                mentorId={selectedBooking.mentorId._id}
+                sessionId={selectedBooking._id}
+                mentorName={`${selectedBooking.mentorId.userId.firstName} ${selectedBooking.mentorId.userId.lastName}`}
+                onSuccess={handleModalClose}
+                onCancel={handleModalClose}
+              />
+            </ModalBody>
+          </Modal>
+
         </>
       )}
     </div>

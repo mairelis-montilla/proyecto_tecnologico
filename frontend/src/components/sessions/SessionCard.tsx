@@ -109,24 +109,24 @@ const SessionCard = ({
           )
         }
         break
-      case 'confirmed':
-        actions.push(
-          <button
-            key="details"
-            onClick={() => onDetailsClick?.(booking)}
-            className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-sm"
-          >
-            Ver Detalles
-          </button>,
-          <button
-            key="cancel"
-            onClick={() => onCancelClick?.(booking)}
-            className="px-4 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors text-sm"
-          >
-            Cancelar
-          </button>
-        )
-        break
+      // case 'confirmed':
+      //   actions.push(
+      //     <button
+      //       key="details"
+      //       onClick={() => onDetailsClick?.(booking)}
+      //       className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-sm"
+      //     >
+      //       Ver Detalles
+      //     </button>,
+      //     <button
+      //       key="cancel"
+      //       onClick={() => onCancelClick?.(booking)}
+      //       className="px-4 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors text-sm"
+      //     >
+      //       Cancelar
+      //     </button>
+      //   )
+      //   break
       case 'completed':
         actions.push(
           <button
@@ -157,6 +157,18 @@ const SessionCard = ({
           </button>
         )
         break
+      case 'confirmed':
+        if (!isMentor) {
+          actions.push(
+            <button
+              key="rate"
+              onClick={() => onRateClick?.(booking)}
+              className="px-4 py-2 bg-amber-50 text-amber-700 font-medium rounded-lg hover:bg-amber-100 transition-colors text-sm"
+            >
+              Calificar
+            </button>
+          )
+        }
     }
 
     return actions
