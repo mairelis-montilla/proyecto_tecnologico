@@ -18,7 +18,7 @@
  *   GET /api/admin/reports/export
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Users,
   Calendar,
@@ -27,8 +27,6 @@ import {
   Download,
   Loader2,
   AlertCircle,
-  TrendingUp,
-  BarChart2,
   UserCheck,
 } from 'lucide-react'
 import {

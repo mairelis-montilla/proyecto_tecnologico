@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   Calendar,
   Clock,
-  User,
   DollarSign,
   FileText,
   MessageSquare,

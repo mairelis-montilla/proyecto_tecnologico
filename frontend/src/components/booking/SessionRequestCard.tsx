@@ -1,7 +1,6 @@
-import { Calendar, Clock, User, FileText, MessageSquare, DollarSign } from 'lucide-react'
-import moment from 'moment-timezone'
+import { Calendar, Clock, FileText, MessageSquare } from 'lucide-react'
 import { getAvatarUrl } from '../../utils/avatar'
-import { formatSessionDate, formatSessionTime, formatDuration, formatPrice } from '../../utils/bookingHelpers'
+import { formatSessionDate, formatSessionTime, formatPrice } from '../../utils/bookingHelpers'
 import StatusBadge from '../ui/StatusBadge'
 import type { Booking } from '../../types/booking.types'
 
