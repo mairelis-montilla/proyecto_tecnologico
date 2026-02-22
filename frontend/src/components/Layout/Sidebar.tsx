@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
         />
       </svg>
     ),
-    roles: ['student', 'mentor', 'admin'],
+    roles: ['student', 'mentor'],
   },
   {
     label: 'Buscar Mentores',
@@ -156,7 +156,7 @@ const navItems: NavItem[] = [
     roles: ['mentor'],
   },
   {
-    label: 'Dashboard Admin',
+    label: 'Dashboard',
     path: '/admin/dashboard',
     icon: (
       <svg

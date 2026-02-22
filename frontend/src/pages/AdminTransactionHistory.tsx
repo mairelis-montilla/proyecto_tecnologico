@@ -88,7 +88,7 @@ function getStudentName(p: AdminPayment): string {
   if (b?.studentId?.userId) {
     return `${b.studentId.userId.firstName} ${b.studentId.userId.lastName}`
   }
-  if (p.studentId && 'firstName' in p.studentId) {
+  if (p.studentId && typeof p.studentId === 'object' && 'firstName' in p.studentId) {
     return `${p.studentId.firstName} ${(p.studentId as any).lastName}`
   }
   return 'Estudiante'
