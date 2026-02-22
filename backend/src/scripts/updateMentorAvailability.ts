@@ -5,8 +5,7 @@ import { Mentor } from '../models/Mentor.model.js'
 import { Availability } from '../models/Availability.model.js'
 
 // Registrar el modelo User para que el populate funcione
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _User = User
+void User
 
 dotenv.config()
 

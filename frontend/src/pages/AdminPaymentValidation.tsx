@@ -611,6 +611,8 @@ const AdminPaymentValidation: React.FC = () => {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
+    hasPrevPage: false,
+    hasNextPage: false,
   })
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')

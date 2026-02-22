@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import * as LucideIcons from 'lucide-react'
 import { specialtiesService } from '../services/specialties.service'
 import { Specialty } from '../types/mentor.types'

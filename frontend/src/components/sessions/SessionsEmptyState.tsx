@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { Calendar, History, XCircle, Search, Clock } from 'lucide-react'
 import type { SessionTab } from './SessionsTabs'
 import { useAuthStore } from '../../stores/auth.store'
@@ -45,7 +44,6 @@ const emptyStateConfig: Record<
 }
 
 const SessionsEmptyState = ({ tab }: SessionsEmptyStateProps) => {
-  const navigate = useNavigate()
   const { user } = useAuthStore()
   const config = emptyStateConfig[tab]
 

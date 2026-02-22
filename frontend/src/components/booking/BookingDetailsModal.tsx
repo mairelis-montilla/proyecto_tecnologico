@@ -2,7 +2,6 @@ import {
   Calendar,
   Clock,
   Timer,
-  User,
   FileText,
   MessageSquare,
   CreditCard,
