@@ -2,7 +2,6 @@ import { Response } from 'express'
 import { Payment } from '../models/Payment.model.js'
 import { Booking } from '../models/Booking.model.js'
 import { User } from '../models/User.model.js'
-import { Mentor } from '../models/Mentor.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 
 // Helper para construir rango de fechas según período
