@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import * as LucideIcons from 'lucide-react'
 import { specialtiesService } from '../services/specialties.service'
 import { Specialty } from '../types/mentor.types'
@@ -182,7 +182,10 @@ export default function AdminSpecialties() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center p-12">
-            <LucideIcons.Loader2 size={32} className="animate-spin text-purpura" />
+            <LucideIcons.Loader2
+              size={32}
+              className="animate-spin text-purpura"
+            />
           </div>
         ) : specialties.length === 0 ? (
           <div className="text-center py-16 px-4">
@@ -235,10 +238,11 @@ export default function AdminSpecialties() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded text-xs font-bold ${specialty.mentorCount > 0
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-gray-100 text-gray-500'
-                          }`}
+                        className={`inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded text-xs font-bold ${
+                          specialty.mentorCount > 0
+                            ? 'bg-blue-50 text-blue-700'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
                       >
                         {specialty.mentorCount}
                       </span>
@@ -248,10 +252,11 @@ export default function AdminSpecialties() {
                         onClick={() =>
                           handleToggleStatus(specialty, specialty.isActive)
                         }
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${specialty.isActive
-                          ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200'
-                          }`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                          specialty.isActive
+                            ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200'
+                        }`}
                       >
                         {specialty.isActive ? (
                           <>

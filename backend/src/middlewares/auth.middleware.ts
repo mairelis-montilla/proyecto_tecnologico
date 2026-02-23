@@ -47,7 +47,9 @@ export const authenticateToken = async (
     if (user.isBlocked) {
       res.status(403).json({
         status: 'error',
-        message: 'Tu cuenta ha sido bloqueada. Motivo: ' + (user.blockReason || 'Contacte al administrador.'),
+        message:
+          'Tu cuenta ha sido bloqueada. Motivo: ' +
+          (user.blockReason || 'Contacte al administrador.'),
         code: 'USER_BLOCKED',
       })
       return

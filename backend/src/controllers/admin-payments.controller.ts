@@ -98,7 +98,10 @@ export const getAllPayments = async (
       paymentMethod,
     } = req.query
     const pageNum = Math.max(1, parseInt(page as string, 10) || 1)
-    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string, 10) || 20))
+    const limitNum = Math.min(
+      50,
+      Math.max(1, parseInt(limit as string, 10) || 20)
+    )
     const skip = (pageNum - 1) * limitNum
 
     const filter: Record<string, unknown> = {}
@@ -109,7 +112,10 @@ export const getAllPayments = async (
     }
 
     // Filtro por método de pago
-    if (paymentMethod && ['yape', 'plin', 'transfer', 'cash'].includes(paymentMethod as string)) {
+    if (
+      paymentMethod &&
+      ['yape', 'plin', 'transfer', 'cash'].includes(paymentMethod as string)
+    ) {
       filter.paymentMethod = paymentMethod
     }
 
@@ -140,22 +146,28 @@ export const getAllPayments = async (
         .select('_id')
         .lean()
 
-      const userIds = matchingUsers.map((u) => u._id)
+      const userIds = matchingUsers.map(u => u._id)
 
       if (userIds.length > 0) {
         // Buscar estudiantes y mentores con esos userIds
         const [matchingStudents, matchingMentors] = await Promise.all([
-          Student.find({ userId: { $in: userIds } }).select('_id').lean(),
-          Mentor.find({ userId: { $in: userIds } }).select('_id').lean(),
+          Student.find({ userId: { $in: userIds } })
+            .select('_id')
+            .lean(),
+          Mentor.find({ userId: { $in: userIds } })
+            .select('_id')
+            .lean(),
         ])
 
-        studentIds = matchingStudents.map((s) => s._id)
-        mentorIds = matchingMentors.map((m) => m._id)
+        studentIds = matchingStudents.map(s => s._id)
+        mentorIds = matchingMentors.map(m => m._id)
 
         // Buscar en bookings que tengan estos estudiantes o mentores
         const matchingBookings = await Booking.find({
           $or: [
-            ...(studentIds.length > 0 ? [{ studentId: { $in: studentIds } }] : []),
+            ...(studentIds.length > 0
+              ? [{ studentId: { $in: studentIds } }]
+              : []),
             ...(mentorIds.length > 0 ? [{ mentorId: { $in: mentorIds } }] : []),
           ],
         })
@@ -163,7 +175,7 @@ export const getAllPayments = async (
           .lean()
 
         if (matchingBookings.length > 0) {
-          filter.bookingId = { $in: matchingBookings.map((b) => b._id) }
+          filter.bookingId = { $in: matchingBookings.map(b => b._id) }
         } else {
           // No hay resultados para la búsqueda
           res.status(200).json({
@@ -299,11 +311,7 @@ export const getPaymentsSummary = async (
           },
           totalMentorEarnings: {
             $sum: {
-              $cond: [
-                { $eq: ['$status', 'validated'] },
-                '$mentorEarnings',
-                0,
-              ],
+              $cond: [{ $eq: ['$status', 'validated'] }, '$mentorEarnings', 0],
             },
           },
           countValidated: {
@@ -382,7 +390,8 @@ export const exportPayments = async (
     const payments = await Payment.find(filter)
       .populate({
         path: 'bookingId',
-        select: 'scheduledAt duration topic status totalAmount studentId mentorId',
+        select:
+          'scheduledAt duration topic status totalAmount studentId mentorId',
         populate: [
           {
             path: 'studentId',

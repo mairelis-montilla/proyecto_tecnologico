@@ -287,32 +287,6 @@ export default function Dashboard() {
                   </Link>
                 </>
               )}
-              <Link
-                to="/messages"
-                className="p-4 border-2 border-dashed border-gray-200 rounded-xl hover:border-purpura hover:bg-purpura/5 transition group"
-              >
-                <div className="text-left">
-                  <span className="text-2xl mb-2 block">💬</span>
-                  <p className="font-medium text-gray-800 group-hover:text-purpura">
-                    Mensajes
-                  </p>
-                  <p className="text-sm text-gray-500">Ver conversaciones</p>
-                </div>
-              </Link>
-              <Link
-                to="/settings"
-                className="p-4 border-2 border-dashed border-gray-200 rounded-xl hover:border-purpura hover:bg-purpura/5 transition group"
-              >
-                <div className="text-left">
-                  <span className="text-2xl mb-2 block">⚙️</span>
-                  <p className="font-medium text-gray-800 group-hover:text-purpura">
-                    Configuración
-                  </p>
-                  {/* <Link to="/editar"> */}
-                  <p className="text-sm text-gray-500">Editar mi perfil</p>
-                  {/* </Link> */}
-                </div>
-              </Link>
             </div>
           </div>
 

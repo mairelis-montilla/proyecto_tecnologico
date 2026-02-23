@@ -115,7 +115,6 @@ export interface UsersFilter {
   search?: string // busca en firstName, lastName, email
 }
 
-
 export interface UpdateUserData {
   firstName?: string
   lastName?: string

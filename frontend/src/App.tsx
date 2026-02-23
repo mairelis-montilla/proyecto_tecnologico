@@ -22,6 +22,8 @@ import MentorAvailability from './pages/MentorAvailability'
 import MentorDashboard from './pages/MentorDashboard'
 import AdminUserManagement from './pages/AdminUserManagement'
 import MentorReviewsPage from '@/pages/MentorReviewsPage'
+import StudentMyPayments from '@/pages/StudentMyPayments'
+import MentorEarnings from '@/pages/MentorEarnings'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -120,6 +122,24 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
                 <MentorReviewsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/earnings"
+            element={
+              <ProtectedRoute allowedRoles={['mentor']}>
+                <MentorEarnings />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de estudiante - pagos */}
+          <Route
+            path="/my-payments"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentMyPayments />
               </ProtectedRoute>
             }
           />

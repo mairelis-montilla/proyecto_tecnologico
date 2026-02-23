@@ -1,12 +1,18 @@
 import { create } from 'zustand'
-import { Notification, getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../services/notifications.service'
+import {
+  Notification,
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+} from '../services/notifications.service'
 
 interface NotificationState {
   notifications: Notification[]
   unreadCount: number
   isLoading: boolean
   error: string | null
-  
+
   fetchNotifications: () => Promise<void>
   markOneAsRead: (id: string) => Promise<void>
   markAllRead: () => Promise<void>
@@ -23,10 +29,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const notifications = await getNotifications()
-      set({ 
-        notifications, 
+      set({
+        notifications,
         unreadCount: notifications.filter(n => !n.isRead).length,
-        isLoading: false 
+        isLoading: false,
       })
     } catch (error) {
       set({ error: 'Error al cargar notificaciones', isLoading: false })
@@ -38,12 +44,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       // Optimistic update
       const { notifications } = get()
-      const updatedNotifications = notifications.map(n => 
+      const updatedNotifications = notifications.map(n =>
         n._id === id ? { ...n, isRead: true } : n
       )
-      set({ 
+      set({
         notifications: updatedNotifications,
-        unreadCount: updatedNotifications.filter(n => !n.isRead).length
+        unreadCount: updatedNotifications.filter(n => !n.isRead).length,
       })
 
       await markAsRead(id)
@@ -57,10 +63,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   markAllRead: async () => {
     try {
       const { notifications } = get()
-      const updatedNotifications = notifications.map(n => ({ ...n, isRead: true }))
-      set({ 
+      const updatedNotifications = notifications.map(n => ({
+        ...n,
+        isRead: true,
+      }))
+      set({
         notifications: updatedNotifications,
-        unreadCount: 0
+        unreadCount: 0,
       })
 
       await markAllAsRead()
@@ -74,9 +83,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       const { notifications } = get()
       const updatedNotifications = notifications.filter(n => n._id !== id)
-      set({ 
+      set({
         notifications: updatedNotifications,
-        unreadCount: updatedNotifications.filter(n => !n.isRead).length
+        unreadCount: updatedNotifications.filter(n => !n.isRead).length,
       })
 
       await deleteNotification(id)
@@ -84,5 +93,5 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       console.error(error)
       get().fetchNotifications()
     }
-  }
+  },
 }))

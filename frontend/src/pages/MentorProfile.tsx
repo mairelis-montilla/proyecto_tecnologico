@@ -14,6 +14,7 @@ import {
   DollarSign,
   BadgeCheck,
   Send,
+  CreditCard,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { getAvatarUrl } from '../utils/avatar'
@@ -42,6 +43,13 @@ const MentorProfile = () => {
   const [profileStatus, setProfileStatus] = useState<'draft' | 'published'>(
     'draft'
   )
+
+  // Estado de datos de pago
+  const [paymentYape, setPaymentYape] = useState('')
+  const [paymentPlin, setPaymentPlin] = useState('')
+  const [paymentBankName, setPaymentBankName] = useState('')
+  const [paymentBankAccount, setPaymentBankAccount] = useState('')
+  const [paymentBankCci, setPaymentBankCci] = useState('')
 
   // Estado de la UI
   const [isLoading, setIsLoading] = useState(true)
@@ -90,6 +98,14 @@ const MentorProfile = () => {
         if (mentorData.userId?.avatar) {
           setAvatarPreview(mentorData.userId.avatar)
         }
+
+        // Cargar datos de pago
+        const pi = mentorData.paymentInfo || {}
+        setPaymentYape(pi.yape || '')
+        setPaymentPlin(pi.plin || '')
+        setPaymentBankName(pi.bankName || '')
+        setPaymentBankAccount(pi.bankAccount || '')
+        setPaymentBankCci(pi.bankCci || '')
       }
     } catch (err: any) {
       console.error('Error cargando datos:', err)
@@ -156,6 +172,13 @@ const MentorProfile = () => {
         yearsOfExperience: yearsOfExperience || undefined,
         hourlyRate: hourlyRate || undefined,
         specialties: selectedSpecialties,
+        paymentInfo: {
+          yape: paymentYape,
+          plin: paymentPlin,
+          bankName: paymentBankName,
+          bankAccount: paymentBankAccount,
+          bankCci: paymentBankCci,
+        },
       })
 
       // Refrescar datos del usuario en el store (actualiza avatar en header, etc.)
@@ -190,6 +213,13 @@ const MentorProfile = () => {
       setSelectedSpecialties(mentorProfile.specialties || [])
       setAvatarPreview(user?.avatar ? getAvatarUrl(user.avatar) : null)
       setAvatarFile(null)
+      // Restaurar datos de pago
+      const pi = (mentorProfile as any)?.paymentInfo || {}
+      setPaymentYape(pi.yape || '')
+      setPaymentPlin(pi.plin || '')
+      setPaymentBankName(pi.bankName || '')
+      setPaymentBankAccount(pi.bankAccount || '')
+      setPaymentBankCci(pi.bankCci || '')
     }
     setError(null)
     setIsEditMode(false)
@@ -648,6 +678,128 @@ const MentorProfile = () => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Datos de Pago */}
+          <div className="border-t pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              <CreditCard className="w-4 h-4 inline-block mr-1" />
+              Datos de Pago
+            </label>
+            <p className="text-xs text-gray-500 mb-4">
+              Esta información es privada y solo la ve el administrador para
+              distribuir tus pagos.
+            </p>
+
+            <div className="space-y-4">
+              {/* Yape */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Número Yape
+                </label>
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    value={paymentYape}
+                    onChange={e => setPaymentYape(e.target.value)}
+                    placeholder="Ej: 999 888 777"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                ) : (
+                  <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm">
+                    {paymentYape || (
+                      <span className="text-gray-400">No registrado</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Plin */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Número Plin
+                </label>
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    value={paymentPlin}
+                    onChange={e => setPaymentPlin(e.target.value)}
+                    placeholder="Ej: 999 888 777"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                ) : (
+                  <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm">
+                    {paymentPlin || (
+                      <span className="text-gray-400">No registrado</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Banco */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Banco
+                  </label>
+                  {isEditMode ? (
+                    <input
+                      type="text"
+                      value={paymentBankName}
+                      onChange={e => setPaymentBankName(e.target.value)}
+                      placeholder="Ej: BCP"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                    />
+                  ) : (
+                    <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm">
+                      {paymentBankName || (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Número de cuenta
+                  </label>
+                  {isEditMode ? (
+                    <input
+                      type="text"
+                      value={paymentBankAccount}
+                      onChange={e => setPaymentBankAccount(e.target.value)}
+                      placeholder="Ej: 191-12345678-0-01"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                    />
+                  ) : (
+                    <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm">
+                      {paymentBankAccount || (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    CCI
+                  </label>
+                  {isEditMode ? (
+                    <input
+                      type="text"
+                      value={paymentBankCci}
+                      onChange={e => setPaymentBankCci(e.target.value)}
+                      placeholder="Ej: 00219100123456780112"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                    />
+                  ) : (
+                    <div className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-sm">
+                      {paymentBankCci || (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Estadísticas */}

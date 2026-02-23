@@ -135,7 +135,10 @@ export const deleteNotification = async (
       return
     }
 
-    const notification = await Notification.findOneAndDelete({ _id: id, userId })
+    const notification = await Notification.findOneAndDelete({
+      _id: id,
+      userId,
+    })
 
     if (!notification) {
       res

@@ -225,7 +225,7 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Hola ${mentorName}, tienes una nueva solicitud de sesión de ${studentName} sobre "${topic}". Revisa la plataforma.`
+    text: `Hola ${mentorName}, tienes una nueva solicitud de sesión de ${studentName} sobre "${topic}". Revisa la plataforma.`,
   }),
 
   paymentPending: (mentorName: string, studentName: string, topic: string) => ({
@@ -260,10 +260,17 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Hola ${mentorName}, ${studentName} ha subido el comprobante de pago para la sesión sobre "${topic}". Revisa la plataforma.`
+    text: `Hola ${mentorName}, ${studentName} ha subido el comprobante de pago para la sesión sobre "${topic}". Revisa la plataforma.`,
   }),
 
-  bookingConfirmed: (studentName: string, mentorName: string, topic: string, date: string, time: string, meetLink: string) => ({
+  bookingConfirmed: (
+    studentName: string,
+    mentorName: string,
+    topic: string,
+    date: string,
+    time: string,
+    meetLink: string
+  ) => ({
     subject: `${APP_NAME} - ¡Tu sesión ha sido confirmada!`,
     html: `
       <!DOCTYPE html>
@@ -299,7 +306,7 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Hola ${studentName}, tu sesión con ${mentorName} sobre "${topic}" ha sido confirmada para el ${date} a las ${time}. Link: ${meetLink}`
+    text: `Hola ${studentName}, tu sesión con ${mentorName} sobre "${topic}" ha sido confirmada para el ${date} a las ${time}. Link: ${meetLink}`,
   }),
 
   bookingCancelled: (name: string, reason: string, cancelledBy: string) => ({
@@ -331,10 +338,16 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Hola ${name}, la sesión ha sido cancelada por ${cancelledBy}. Motivo: ${reason}.`
+    text: `Hola ${name}, la sesión ha sido cancelada por ${cancelledBy}. Motivo: ${reason}.`,
   }),
 
-  sessionReminder: (name: string, topic: string, timeString: string, meetLink: string | undefined, timeLeft: string) => ({
+  sessionReminder: (
+    name: string,
+    topic: string,
+    timeString: string,
+    meetLink: string | undefined,
+    timeLeft: string
+  ) => ({
     subject: `${APP_NAME} - Recordatorio de sesión: ${topic}`,
     html: `
       <!DOCTYPE html>
@@ -364,7 +377,7 @@ const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Hola ${name}, recordatorio: tu sesión sobre "${topic}" comienza en ${timeLeft}. Hora: ${timeString}.`
+    text: `Hola ${name}, recordatorio: tu sesión sobre "${topic}" comienza en ${timeLeft}. Hora: ${timeString}.`,
   }),
 }
 

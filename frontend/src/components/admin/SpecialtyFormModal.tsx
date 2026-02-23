@@ -105,8 +105,6 @@ export const SpecialtyFormModal: React.FC<SpecialtyFormModalProps> = ({
             />
           </div>
 
-
-
           <div className="flex items-center gap-3 pt-2">
             <label className="relative inline-flex items-center cursor-pointer">
               <input

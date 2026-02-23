@@ -113,4 +113,3 @@ export const specialtiesService = {
     return response.data
   },
 }
-
