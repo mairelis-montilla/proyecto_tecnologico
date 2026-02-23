@@ -194,9 +194,7 @@ function buildWeeklyData(
     const d = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
     const weekNum = getISOWeek(d)
     const year = d.getFullYear()
-    const found = agg.find(
-      (a) => a._id.week === weekNum && a._id.year === year
-    )
+    const found = agg.find(a => a._id.week === weekNum && a._id.year === year)
     const startOfWeek = new Date(d)
     startOfWeek.setDate(d.getDate() - d.getDay() + 1)
     const label = startOfWeek.toLocaleDateString('es-PE', {
@@ -215,16 +213,24 @@ function buildMonthlyData(
 ) {
   const months = []
   const monthNames = [
-    'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-    'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+    'Ene',
+    'Feb',
+    'Mar',
+    'Abr',
+    'May',
+    'Jun',
+    'Jul',
+    'Ago',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dic',
   ]
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const month = d.getMonth() + 1
     const year = d.getFullYear()
-    const found = agg.find(
-      (a) => a._id.month === month && a._id.year === year
-    )
+    const found = agg.find(a => a._id.month === month && a._id.year === year)
     months.push({
       label: `${monthNames[month - 1]} ${year}`,
       total: found?.total ?? 0,

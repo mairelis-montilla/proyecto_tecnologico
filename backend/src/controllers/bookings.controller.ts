@@ -150,10 +150,7 @@ export const createBooking = async (
           {
             $gt: [
               {
-                $add: [
-                  '$scheduledAt',
-                  { $multiply: ['$duration', 60000] },
-                ],
+                $add: ['$scheduledAt', { $multiply: ['$duration', 60000] }],
               },
               scheduledAt.toDate(),
             ],

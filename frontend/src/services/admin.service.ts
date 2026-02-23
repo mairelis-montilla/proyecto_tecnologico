@@ -381,10 +381,10 @@ export const reportsAdminService = {
   },
 
   async getSessions(params?: ReportsFilter): Promise<ReportSessionsData> {
-    const response = await api.get<{ status: string; data: ReportSessionsData }>(
-      '/admin/reports/sessions',
-      { params }
-    )
+    const response = await api.get<{
+      status: string
+      data: ReportSessionsData
+    }>('/admin/reports/sessions', { params })
     return response.data.data
   },
 

@@ -57,8 +57,15 @@ interface BarChartProps {
   height?: number
 }
 
-function BarChart({ data, color, color2, label2, formatValue, height = 140 }: BarChartProps) {
-  const allValues = data.flatMap((d) =>
+function BarChart({
+  data,
+  color,
+  color2,
+  label2,
+  formatValue,
+  height = 140,
+}: BarChartProps) {
+  const allValues = data.flatMap(d =>
     d.value2 !== undefined ? [d.value, d.value2] : [d.value]
   )
   const max = Math.max(...allValues, 1)
@@ -77,13 +84,19 @@ function BarChart({ data, color, color2, label2, formatValue, height = 140 }: Ba
           </div>
         </div>
       )}
-      <div className="flex items-end gap-1 w-full" style={{ height: `${height}px` }}>
+      <div
+        className="flex items-end gap-1 w-full"
+        style={{ height: `${height}px` }}
+      >
         {data.map((d, i) => {
           const pct1 = (d.value / max) * 100
           const pct2 = d.value2 !== undefined ? (d.value2 / max) * 100 : 0
           return (
             <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
-              <div className="w-full flex gap-0.5 items-end" style={{ height: '100%' }}>
+              <div
+                className="w-full flex gap-0.5 items-end"
+                style={{ height: '100%' }}
+              >
                 <div
                   className={`flex-1 rounded-t-sm transition-all ${color}`}
                   style={{ height: `${Math.max(pct1, 1)}%` }}
@@ -104,7 +117,9 @@ function BarChart({ data, color, color2, label2, formatValue, height = 140 }: Ba
       <div className="flex gap-1 mt-1">
         {data.map((d, i) => (
           <div key={i} className="flex-1 text-center">
-            <span className="text-xs text-gray-400 leading-tight block">{d.label}</span>
+            <span className="text-xs text-gray-400 leading-tight block">
+              {d.label}
+            </span>
           </div>
         ))}
       </div>
@@ -121,7 +136,12 @@ interface PeriodSelectorProps {
   onChange: (period: ReportPeriod, dateFrom: string, dateTo: string) => void
 }
 
-function PeriodSelector({ period, dateFrom, dateTo, onChange }: PeriodSelectorProps) {
+function PeriodSelector({
+  period,
+  dateFrom,
+  dateTo,
+  onChange,
+}: PeriodSelectorProps) {
   const periods: { value: ReportPeriod; label: string }[] = [
     { value: 'today', label: 'Hoy' },
     { value: 'week', label: 'Semana' },
@@ -132,7 +152,7 @@ function PeriodSelector({ period, dateFrom, dateTo, onChange }: PeriodSelectorPr
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-        {periods.map((p) => (
+        {periods.map(p => (
           <button
             key={p.value}
             onClick={() => onChange(p.value, dateFrom, dateTo)}
@@ -151,14 +171,14 @@ function PeriodSelector({ period, dateFrom, dateTo, onChange }: PeriodSelectorPr
           <input
             type="date"
             value={dateFrom}
-            onChange={(e) => onChange('custom', e.target.value, dateTo)}
+            onChange={e => onChange('custom', e.target.value, dateTo)}
             className="border border-gray-200 rounded-lg text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purpura/30"
           />
           <span className="text-gray-400 text-sm">→</span>
           <input
             type="date"
             value={dateTo}
-            onChange={(e) => onChange('custom', dateFrom, e.target.value)}
+            onChange={e => onChange('custom', dateFrom, e.target.value)}
             className="border border-gray-200 rounded-lg text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purpura/30"
           />
         </div>
@@ -179,9 +199,21 @@ interface Tab {
 
 const TABS: Tab[] = [
   { key: 'users', label: 'Usuarios', icon: <Users className="w-4 h-4" /> },
-  { key: 'sessions', label: 'Sesiones', icon: <Calendar className="w-4 h-4" /> },
-  { key: 'revenue', label: 'Ingresos', icon: <DollarSign className="w-4 h-4" /> },
-  { key: 'top-mentors', label: 'Top Mentores', icon: <Star className="w-4 h-4" /> },
+  {
+    key: 'sessions',
+    label: 'Sesiones',
+    icon: <Calendar className="w-4 h-4" />,
+  },
+  {
+    key: 'revenue',
+    label: 'Ingresos',
+    icon: <DollarSign className="w-4 h-4" />,
+  },
+  {
+    key: 'top-mentors',
+    label: 'Top Mentores',
+    icon: <Star className="w-4 h-4" />,
+  },
 ]
 
 // ─── Reporte de usuarios ──────────────────────────────────────────────────────
@@ -227,19 +259,27 @@ function UsersReport({ filter }: { filter: ReportsFilter }) {
       {/* Resumen */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-purpura/10 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-purpura">{data.totalInPeriod}</p>
+          <p className="text-2xl font-bold text-purpura">
+            {data.totalInPeriod}
+          </p>
           <p className="text-xs text-gray-500 mt-1">Total en período</p>
         </div>
         <div className="bg-blue-50 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-blue-600">{data.byRole.student}</p>
+          <p className="text-2xl font-bold text-blue-600">
+            {data.byRole.student}
+          </p>
           <p className="text-xs text-gray-500 mt-1">Estudiantes</p>
         </div>
         <div className="bg-green-50 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">{data.byRole.mentor}</p>
+          <p className="text-2xl font-bold text-green-600">
+            {data.byRole.mentor}
+          </p>
           <p className="text-xs text-gray-500 mt-1">Mentores</p>
         </div>
         <div className="bg-gray-100 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-gray-700">{data.byRole.admin}</p>
+          <p className="text-2xl font-bold text-gray-700">
+            {data.byRole.admin}
+          </p>
           <p className="text-xs text-gray-500 mt-1">Admins</p>
         </div>
       </div>
@@ -251,7 +291,7 @@ function UsersReport({ filter }: { filter: ReportsFilter }) {
         </p>
         {data.chartData.length > 0 ? (
           <BarChart
-            data={data.chartData.map((d) => ({ label: d.label, value: d.count }))}
+            data={data.chartData.map(d => ({ label: d.label, value: d.count }))}
             color="bg-purpura"
             height={140}
           />
@@ -318,7 +358,9 @@ function SessionsReport({ filter }: { filter: ReportsFilter }) {
         </div>
         <div className="bg-green-50 rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-green-600">{completed}</p>
-          <p className="text-xs text-gray-500 mt-1">Completadas / Confirmadas</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Completadas / Confirmadas
+          </p>
         </div>
         <div className="bg-red-50 rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-red-500">{cancelled}</p>
@@ -353,7 +395,7 @@ function SessionsReport({ filter }: { filter: ReportsFilter }) {
         </p>
         {data.chartData.length > 0 ? (
           <BarChart
-            data={data.chartData.map((d) => ({
+            data={data.chartData.map(d => ({
               label: d.label,
               value: d.completed,
               value2: d.cancelled,
@@ -427,7 +469,9 @@ function RevenueReport({ filter }: { filter: ReportsFilter }) {
           <p className="text-xl font-bold text-purple-700">
             {formatCurrency(summary.totalPlatformFees)}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Comisión plataforma (10%)</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Comisión plataforma (10%)
+          </p>
         </div>
         <div className="bg-blue-50 rounded-xl p-4 text-center">
           <p className="text-xl font-bold text-blue-700">
@@ -444,12 +488,12 @@ function RevenueReport({ filter }: { filter: ReportsFilter }) {
         </p>
         {data.chartData.length > 0 ? (
           <BarChart
-            data={data.chartData.map((d) => ({
+            data={data.chartData.map(d => ({
               label: d.label,
               value: d.total,
             }))}
             color="bg-emerald-400"
-            formatValue={(v) => `S/.${v.toFixed(0)}`}
+            formatValue={v => `S/.${v.toFixed(0)}`}
             height={140}
           />
         ) : (
@@ -509,7 +553,7 @@ function TopMentorsReport({ filter }: { filter: ReportsFilter }) {
     )
   }
 
-  const maxSessions = Math.max(...data.topMentors.map((m) => m.sessionsCount), 1)
+  const maxSessions = Math.max(...data.topMentors.map(m => m.sessionsCount), 1)
 
   return (
     <div className="space-y-3">
@@ -524,10 +568,10 @@ function TopMentorsReport({ filter }: { filter: ReportsFilter }) {
               index === 0
                 ? 'bg-yellow-400 text-yellow-900'
                 : index === 1
-                ? 'bg-gray-300 text-gray-800'
-                : index === 2
-                ? 'bg-amber-600 text-white'
-                : 'bg-gray-200 text-gray-600'
+                  ? 'bg-gray-300 text-gray-800'
+                  : index === 2
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-gray-200 text-gray-600'
             }`}
           >
             {index + 1}
@@ -556,7 +600,9 @@ function TopMentorsReport({ filter }: { filter: ReportsFilter }) {
             <div className="mt-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full rounded-full bg-purpura transition-all"
-                style={{ width: `${(mentor.sessionsCount / maxSessions) * 100}%` }}
+                style={{
+                  width: `${(mentor.sessionsCount / maxSessions) * 100}%`,
+                }}
               />
             </div>
           </div>
@@ -663,7 +709,7 @@ export default function AdminReports() {
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Tab headers */}
         <div className="flex border-b border-gray-100">
-          {TABS.map((tab) => (
+          {TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}

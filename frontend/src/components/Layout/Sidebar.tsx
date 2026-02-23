@@ -156,13 +156,8 @@ const navItems: NavItem[] = [
     roles: ['mentor'],
   },
   {
-<<<<<<< HEAD
     label: 'Mis Ingresos',
     path: '/earnings',
-=======
-    label: 'Dashboard',
-    path: '/admin/dashboard',
->>>>>>> da2e30ef05e4cc7f6f9f829edc3fed6a80cc05de
     icon: (
       <svg
         className="w-5 h-5"
@@ -174,19 +169,31 @@ const navItems: NavItem[] = [
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-<<<<<<< HEAD
           d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
         />
       </svg>
     ),
     roles: ['mentor'],
-=======
+  },
+  {
+    label: 'Dashboard',
+    path: '/admin/dashboard',
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
           d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
         />
       </svg>
     ),
     roles: ['admin'],
->>>>>>> da2e30ef05e4cc7f6f9f829edc3fed6a80cc05de
   },
   {
     label: 'Gestionar Usuarios',
