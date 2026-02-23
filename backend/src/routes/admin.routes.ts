@@ -1,5 +1,6 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { body, param, query } from 'express-validator'
+import { sendEmail } from '../services/email.service.js'
 import {
   getAllSpecialties,
   createSpecialty,
@@ -48,6 +49,51 @@ const router = Router()
 // Middleware: todas las rutas de admin requieren autenticación y rol admin
 router.use(authenticateToken)
 router.use(authorizeRoles('admin'))
+
+// ==================== TEST EMAIL ====================
+
+// POST /api/admin/test-email - Verificar configuración SMTP enviando un correo de prueba
+router.post(
+  '/test-email',
+  [body('to').isEmail().withMessage('Se requiere un email válido en "to"')],
+  async (req: Request, res: Response) => {
+    const smtpUser = process.env.SMTP_USER
+    const smtpPass = process.env.SMTP_PASS
+    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com'
+
+    if (!smtpUser || !smtpPass) {
+      res.status(500).json({
+        status: 'error',
+        message: 'SMTP no configurado en variables de entorno',
+        smtp: {
+          SMTP_HOST: smtpHost,
+          SMTP_USER: smtpUser ? '✅ configurado' : '❌ falta',
+          SMTP_PASS: smtpPass ? '✅ configurado' : '❌ falta',
+          SMTP_FROM: process.env.SMTP_FROM ? '✅ configurado' : '❌ falta',
+        },
+      })
+      return
+    }
+
+    const { to } = req.body
+    const sent = await sendEmail(to, 'verification', {
+      firstName: 'Admin',
+      code: '123456',
+    })
+
+    res.status(sent ? 200 : 500).json({
+      status: sent ? 'success' : 'error',
+      message: sent
+        ? `✅ Correo de prueba enviado a ${to}`
+        : `❌ Fallo al enviar el correo. Revisa los logs del servidor.`,
+      smtp: {
+        SMTP_HOST: smtpHost,
+        SMTP_USER: smtpUser,
+        SMTP_FROM: process.env.SMTP_FROM || smtpUser,
+      },
+    })
+  }
+)
 
 // ==================== DASHBOARD ====================
 

@@ -80,8 +80,11 @@ export const createBooking = async (
     }
 
     // Verificar que el slot esté disponible
-    const slotDate = scheduledAt.format('YYYY-MM-DD')
-    const startTime = scheduledAt.format('HH:mm')
+    // Los startTime en Availability están guardados en hora Perú (America/Lima),
+    // por lo que se debe convertir el ISO UTC a Perú antes de extraer fecha y hora.
+    const scheduledAtLima = moment(slotStartIso).tz('America/Lima')
+    const slotDate = scheduledAtLima.format('YYYY-MM-DD')
+    const startTime = scheduledAtLima.format('HH:mm')
 
     const availableSlot = await Availability.findOne({
       mentorId,

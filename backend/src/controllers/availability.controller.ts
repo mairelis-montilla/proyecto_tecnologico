@@ -78,8 +78,10 @@ export const addAvailability = async (
     for (const slot of slots) {
       const { date, startTime, recurrence = 'none', recurrenceEndDate } = slot
 
-      // Validar fecha
-      const slotDate = moment(date, 'YYYY-MM-DD', true)
+      // Validar fecha (en zona horaria Lima para que "hoy" sea correcto en Perú)
+      const slotDate = moment
+        .tz(date, 'YYYY-MM-DD', 'America/Lima')
+        .startOf('day')
       if (!slotDate.isValid()) {
         res
           .status(400)
@@ -87,8 +89,8 @@ export const addAvailability = async (
         return
       }
 
-      // No permitir fechas pasadas
-      if (slotDate.isBefore(moment(), 'day')) {
+      // No permitir fechas pasadas (comparar contra "hoy" en Lima, no en UTC)
+      if (slotDate.isBefore(moment().tz('America/Lima'), 'day')) {
         res.status(400).json({
           status: 'error',
           message: 'No se pueden agregar slots en fechas pasadas',
@@ -108,10 +110,13 @@ export const addAvailability = async (
       const endMin = startMin + duration
       const endTime = minutesToTime(endMin)
 
-      // Verificar superposición con slots existentes
+      // Verificar superposición con slots existentes (rango del día para cubrir distintos formatos UTC)
       const existingSlot = await Availability.findOne({
         mentorId,
-        date: slotDate.toDate(),
+        date: {
+          $gte: moment.utc(date, 'YYYY-MM-DD').startOf('day').toDate(),
+          $lte: moment.utc(date, 'YYYY-MM-DD').endOf('day').toDate(),
+        },
         isActive: true,
         $or: [
           {
@@ -176,10 +181,17 @@ export const addAvailability = async (
 
           if (nextDate.isAfter(endRecurrence)) break
 
-          // Verificar que no exista ya
+          // Verificar que no exista ya (rango del día para cubrir distintos formatos UTC)
+          const nextDateStr = nextDate.format('YYYY-MM-DD')
           const exists = await Availability.findOne({
             mentorId,
-            date: nextDate.toDate(),
+            date: {
+              $gte: moment
+                .utc(nextDateStr, 'YYYY-MM-DD')
+                .startOf('day')
+                .toDate(),
+              $lte: moment.utc(nextDateStr, 'YYYY-MM-DD').endOf('day').toDate(),
+            },
             startTime,
             isActive: true,
           })
@@ -251,10 +263,14 @@ export const deleteAvailability = async (
     }
 
     // Verificar si hay una reserva para este slot
+    // slot.startTime está en hora Lima → construir timestamp UTC correcto con moment.tz
     if (slot.date) {
-      const slotDate = moment(slot.date)
-      const [hours, minutes] = slot.startTime.split(':').map(Number)
-      const scheduledAt = slotDate.clone().hour(hours).minute(minutes).second(0)
+      const slotDateStr = moment.utc(slot.date).format('YYYY-MM-DD')
+      const scheduledAt = moment.tz(
+        `${slotDateStr} ${slot.startTime}`,
+        'YYYY-MM-DD HH:mm',
+        'America/Lima'
+      )
 
       const booking = await Booking.findOne({
         mentorId,
@@ -313,8 +329,9 @@ export const getAvailability = async (
           .toDate(),
       }
     } else {
-      // Por defecto, mostrar desde hoy en adelante
-      filter.date = { $gte: moment().startOf('day').toDate() }
+      // Por defecto, mostrar desde hoy en adelante ("hoy" en hora Lima, no UTC)
+      const todayLima = moment().tz('America/Lima').format('YYYY-MM-DD')
+      filter.date = { $gte: moment.utc(todayLima, 'YYYY-MM-DD').toDate() }
     }
 
     const availability = await Availability.find(filter)
@@ -322,11 +339,14 @@ export const getAvailability = async (
       .lean()
 
     // Cruzar con reservas activas para saber cuáles slots están ocupados
+    // startTime está en hora Lima → construir timestamp UTC correcto con moment.tz
     const scheduledTimes = availability
       .filter(s => s.date)
       .map(s => {
-        const [hours, minutes] = s.startTime.split(':').map(Number)
-        return moment(s.date).hour(hours).minute(minutes).second(0).toDate()
+        const datePart = moment.utc(s.date!).format('YYYY-MM-DD')
+        return moment
+          .tz(`${datePart} ${s.startTime}`, 'YYYY-MM-DD HH:mm', 'America/Lima')
+          .toDate()
       })
 
     const activeBookings =
@@ -342,11 +362,9 @@ export const getAvailability = async (
 
     const slotsWithBookingInfo = availability.map(slot => {
       if (!slot.date) return { ...slot, hasActiveBooking: false }
-      const [hours, minutes] = slot.startTime.split(':').map(Number)
-      const scheduledAt = moment(slot.date)
-        .hour(hours)
-        .minute(minutes)
-        .second(0)
+      const datePart = moment.utc(slot.date!).format('YYYY-MM-DD')
+      const scheduledAt = moment
+        .tz(`${datePart} ${slot.startTime}`, 'YYYY-MM-DD HH:mm', 'America/Lima')
         .toDate()
       const booking = activeBookings.find(
         b =>
@@ -393,8 +411,11 @@ export const previewAvailability = async (
 
     const timezone = mentor.timezone || 'America/Lima'
     const now = moment().tz(timezone)
-    const startDate = now.clone().startOf('day')
-    const endDate = now.clone().add(weeks, 'weeks').endOf('day')
+    // Usar UTC midnight del día Lima para que coincida con cómo se guardan las fechas en BD
+    const todayStr = now.format('YYYY-MM-DD')
+    const endStr = now.clone().add(weeks, 'weeks').format('YYYY-MM-DD')
+    const startDate = moment.utc(todayStr, 'YYYY-MM-DD').startOf('day')
+    const endDate = moment.utc(endStr, 'YYYY-MM-DD').endOf('day')
 
     // Obtener slots de disponibilidad
     const availability = await Availability.find({
@@ -449,13 +470,13 @@ export const previewAvailability = async (
     for (const slot of availability) {
       if (!slot.date) continue
 
-      const slotDate = moment(slot.date).tz(timezone)
-      const [startHour, startMinute] = slot.startTime.split(':').map(Number)
-      const slotStart = slotDate
-        .clone()
-        .hour(startHour)
-        .minute(startMinute)
-        .second(0)
+      // startTime está en hora Lima → construir timestamp UTC correcto con moment.tz
+      const slotDateStr = moment.utc(slot.date!).format('YYYY-MM-DD')
+      const slotStart = moment.tz(
+        `${slotDateStr} ${slot.startTime}`,
+        'YYYY-MM-DD HH:mm',
+        timezone
+      )
 
       // Saltar slots en el pasado
       if (slotStart.isBefore(now)) continue
@@ -463,10 +484,11 @@ export const previewAvailability = async (
       // Verificar si hay una reserva
       const isBooked = bookings.some(booking => {
         const bookingStart = moment(booking.scheduledAt).tz(timezone)
-        const bookingDate = bookingStart.format('YYYY-MM-DD')
-        const bookingTime = bookingStart.format('HH:mm')
-        const slotDateStr = slotStart.format('YYYY-MM-DD')
-        return bookingDate === slotDateStr && bookingTime === slot.startTime
+        return (
+          bookingStart.format('YYYY-MM-DD') ===
+            slotStart.format('YYYY-MM-DD') &&
+          bookingStart.format('HH:mm') === slot.startTime
+        )
       })
 
       if (!isBooked) {
