@@ -31,7 +31,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { paymentAdminService } from '../services/admin.service'
-import type { AdminPayment, Pagination } from '../types/payment.types'
+import type { AdminPayment } from '../types/payment.types'
 
 type TabKey = 'pending' | 'all'
 
@@ -83,7 +83,8 @@ function getStudentName(payment: AdminPayment): string {
   if (b?.studentId?.userId) {
     return `${b.studentId.userId.firstName} ${b.studentId.userId.lastName}`
   }
-  if (payment.studentId && 'firstName' in payment.studentId) {
+  // studentId may arrive as a raw ObjectId string when not populated — guard with typeof
+  if (payment.studentId && typeof (payment.studentId as unknown) === 'object') {
     return `${payment.studentId.firstName} ${payment.studentId.lastName}`
   }
   return 'Estudiante'
@@ -607,14 +608,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
 const AdminPaymentValidation: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('pending')
   const [payments, setPayments] = useState<AdminPayment[]>([])
-  const [pagination, setPagination] = useState<Pagination>({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    hasPrevPage: false,
-    hasNextPage: false,
-  })
-  const [loading, setLoading] = useState(true)
+const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<AdminPayment | null>(null)
   const [toast, setToast] = useState<{
@@ -632,7 +626,6 @@ const AdminPaymentValidation: React.FC = () => {
           ? await paymentAdminService.getPending({ limit: 50 })
           : await paymentAdminService.getAll({ limit: 50 })
       setPayments(result.payments)
-      setPagination(result.pagination)
     } catch {
       showToast('Error al cargar pagos', 'error')
     } finally {
@@ -733,33 +726,18 @@ const AdminPaymentValidation: React.FC = () => {
         <div className="flex gap-1 rounded-xl p-1 bg-gray-100">
           {(['pending', 'all'] as TabKey[]).map(key => {
             const label = key === 'pending' ? 'Pendientes' : 'Todos'
-            const count =
-              key === tab
-                ? filtered.length
-                : key === 'pending'
-                  ? pagination.totalItems
-                  : '—'
             const active = key === tab
             return (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                   active
                     ? 'bg-purple-600 text-white'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {label}
-                <span
-                  className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs ${
-                    active
-                      ? 'bg-purple-700 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {count}
-                </span>
               </button>
             )
           })}
@@ -867,9 +845,7 @@ const AdminPaymentValidation: React.FC = () => {
         {/* Panel detalle derecho */}
         <div
           className={`flex-1 overflow-y-auto px-5 py-4 bg-white border-l border-gray-200 ${
-            selected
-              ? 'block'
-              : 'hidden md:flex md:items-center md:justify-center'
+            selected ? 'block' : 'hidden'
           }`}
         >
           {selected ? (

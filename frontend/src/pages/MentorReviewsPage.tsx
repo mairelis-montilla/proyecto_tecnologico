@@ -1,16 +1,6 @@
-import { useAuthStore } from '@/stores/auth.store'
-import type { MentorProfile } from '@/types/auth.types'
 import { MentorReview } from './MentorReview'
 
-function isMentorProfile(profile: unknown): profile is MentorProfile {
-  return (profile as MentorProfile)?.isApproved !== undefined
-}
-
 export default function MentorReviewsPage() {
-  const { profile } = useAuthStore()
-
-  if (!profile || !isMentorProfile(profile)) return null
-
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <div className="bg-white border-b">
@@ -22,7 +12,7 @@ export default function MentorReviewsPage() {
         </div>
       </div>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <MentorReview mentorId={profile.id} />
+        <MentorReview />
       </div>
     </div>
   )

@@ -4,7 +4,7 @@ import { ReviewStats } from './ReviewStats'
 import { ReviewCard } from './ReviewCard'
 
 interface MentorReviewsProps {
-  mentorId: string
+  mentorId?: string // opcional: si no se pasa, usa el endpoint /my-reviews
 }
 
 export function MentorReview({ mentorId }: MentorReviewsProps) {
@@ -15,13 +15,24 @@ export function MentorReview({ mentorId }: MentorReviewsProps) {
     isLoading,
     error,
     fetchReviews,
+    fetchMyReviews,
     goToPage,
     clearError,
   } = useReviewStore()
 
   useEffect(() => {
-    fetchReviews(mentorId)
-  }, [mentorId, fetchReviews])
+    if (mentorId) {
+      fetchReviews(mentorId)
+    } else {
+      fetchMyReviews()
+    }
+  }, [mentorId, fetchReviews, fetchMyReviews])
+
+  const handleRetry = () => {
+    clearError()
+    if (mentorId) fetchReviews(mentorId)
+    else fetchMyReviews()
+  }
 
   if (isLoading) {
     return (
@@ -47,10 +58,7 @@ export function MentorReview({ mentorId }: MentorReviewsProps) {
         <p className="text-sm text-red-600">{error}</p>
         <button
           className="mt-3 text-xs font-medium text-red-700 underline underline-offset-2"
-          onClick={() => {
-            clearError()
-            fetchReviews(mentorId)
-          }}
+          onClick={handleRetry}
         >
           Reintentar
         </button>

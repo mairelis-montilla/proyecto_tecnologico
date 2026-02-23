@@ -338,8 +338,8 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
         title="Especialidades"
       >
         <div className="flex flex-wrap gap-2">
-          {mentor.specialties.length > 0 ? (
-            mentor.specialties.map(s => (
+          {(mentor.specialties ?? []).length > 0 ? (
+            (mentor.specialties ?? []).map(s => (
               <SpecialtyChip key={s._id} specialty={s} />
             ))
           ) : (
@@ -365,13 +365,13 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
       </Section>
 
       {/* Credenciales */}
-      {mentor.credentials.length > 0 && (
+      {(mentor.credentials ?? []).length > 0 && (
         <Section
           icon={<Award size={14} className="text-purple-600" />}
           title="Credenciales"
         >
           <div className="flex flex-wrap gap-2">
-            {mentor.credentials.map((c, i) => (
+            {(mentor.credentials ?? []).map((c, i) => (
               <span
                 key={i}
                 className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-700 border border-green-200"
@@ -393,8 +393,8 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
             </span>
           </div>
           <p className="text-xs capitalize text-gray-700">
-            {mentor.languages.length > 0
-              ? mentor.languages.join(', ')
+            {(mentor.languages ?? []).length > 0
+              ? (mentor.languages ?? []).join(', ')
               : 'No especificado'}
           </p>
         </div>
