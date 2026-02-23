@@ -9,7 +9,6 @@ import {
   Star,
   Languages,
   Loader2,
-  MessageSquare,
   CalendarCheck,
 } from 'lucide-react'
 import Calendar from '../components/Calendar'
@@ -182,11 +181,6 @@ const PublicMentorProfile = () => {
                 >
                   <CalendarCheck className="w-5 h-5" />
                   {selectedSlot ? 'Reservar Sesion' : 'Selecciona un horario'}
-                </button>
-
-                <button className="w-full py-3 bg-white border-2 border-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-200 transition-colors flex items-center justify-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Enviar Mensaje
                 </button>
               </div>
             </div>

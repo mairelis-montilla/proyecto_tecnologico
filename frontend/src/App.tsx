@@ -166,7 +166,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/messages"
             element={
               <ComingSoon
@@ -174,7 +174,7 @@ function App() {
                 description="Comunícate con tus mentores o estudiantes de forma directa."
               />
             }
-          />
+          /> */}
           <Route
             path="/students/:id"
             element={
