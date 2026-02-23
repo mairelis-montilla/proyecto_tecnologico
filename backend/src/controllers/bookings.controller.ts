@@ -374,8 +374,14 @@ export const getMyBookings = async (
     // Agregar indicador de sesiones proximas (dentro de 24h) y si ya tiene review
     const now = moment()
     const bookingIds = bookings.map(b => b._id)
-    const existingReviews = await Review.find({ bookingId: { $in: bookingIds } }).select('bookingId').lean()
-    const reviewedIds = new Set(existingReviews.map(r => r.bookingId.toString()))
+    const existingReviews = await Review.find({
+      bookingId: { $in: bookingIds },
+    })
+      .select('bookingId')
+      .lean()
+    const reviewedIds = new Set(
+      existingReviews.map(r => r.bookingId.toString())
+    )
 
     const bookingsWithFlags = bookings.map(booking => ({
       ...booking,

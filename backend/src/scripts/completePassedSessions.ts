@@ -41,9 +41,7 @@ async function completePassedSessions() {
       `Encontradas ${passedSessions.length} sesión(es) para marcar como completada(s):`
     )
     passedSessions.forEach(s => {
-      const endTime = new Date(
-        s.scheduledAt.getTime() + s.duration * 60 * 1000
-      )
+      const endTime = new Date(s.scheduledAt.getTime() + s.duration * 60 * 1000)
       console.log(
         `  - [${s._id}] "${s.topic}" | Terminó: ${endTime.toLocaleString('es-PE')}`
       )
@@ -58,8 +56,12 @@ async function completePassedSessions() {
     )
 
     // Incrementar totalSessions para mentores y estudiantes involucrados
-    const mentorIds = [...new Set(passedSessions.map(s => s.mentorId.toString()))]
-    const studentIds = [...new Set(passedSessions.map(s => s.studentId.toString()))]
+    const mentorIds = [
+      ...new Set(passedSessions.map(s => s.mentorId.toString())),
+    ]
+    const studentIds = [
+      ...new Set(passedSessions.map(s => s.studentId.toString())),
+    ]
 
     await Promise.all([
       Mentor.updateMany(

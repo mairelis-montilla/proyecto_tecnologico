@@ -125,8 +125,16 @@ export const getAllPayments = async (
     // Filtro por rango de fechas (interpretado en timezone de Lima)
     if (dateFrom || dateTo) {
       const dateFilter: Record<string, Date> = {}
-      if (dateFrom) dateFilter.$gte = moment.tz(dateFrom as string, TIMEZONE).startOf('day').toDate()
-      if (dateTo) dateFilter.$lte = moment.tz(dateTo as string, TIMEZONE).endOf('day').toDate()
+      if (dateFrom)
+        dateFilter.$gte = moment
+          .tz(dateFrom as string, TIMEZONE)
+          .startOf('day')
+          .toDate()
+      if (dateTo)
+        dateFilter.$lte = moment
+          .tz(dateTo as string, TIMEZONE)
+          .endOf('day')
+          .toDate()
       filter.createdAt = dateFilter
     }
 

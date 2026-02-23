@@ -32,7 +32,9 @@ function App() {
   const { isAuthenticated, isInitialized, user } = useAuthStore()
   const checkAuth = useAuthStore(state => state.checkAuth)
   const homeRedirect = isAuthenticated
-    ? user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'
+    ? user?.role === 'admin'
+      ? '/admin/dashboard'
+      : '/dashboard'
     : null
 
   useEffect(() => {
@@ -67,11 +69,7 @@ function App() {
         <Route
           path="/register"
           element={
-            homeRedirect ? (
-              <Navigate to={homeRedirect} replace />
-            ) : (
-              <Register />
-            )
+            homeRedirect ? <Navigate to={homeRedirect} replace /> : <Register />
           }
         />
         <Route path="/verify-email" element={<VerifyEmail />} />
@@ -88,9 +86,11 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              user?.role === 'admin'
-                ? <Navigate to="/admin/dashboard" replace />
-                : <Dashboard />
+              user?.role === 'admin' ? (
+                <Navigate to="/admin/dashboard" replace />
+              ) : (
+                <Dashboard />
+              )
             }
           />
 

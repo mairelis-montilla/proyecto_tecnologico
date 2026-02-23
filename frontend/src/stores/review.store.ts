@@ -73,11 +73,30 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   fetchMyReviews: async (page = 1) => {
     set({ isLoading: true, error: null, currentMentorId: 'me' })
     try {
-      const response = await reviewService.getMyReviews({ page, limit: 5, sortBy: 'createdAt', sortOrder: 'desc' })
-      set({ reviews: response.data.reviews, stats: response.data.stats, pagination: response.data.pagination, isLoading: false })
+      const response = await reviewService.getMyReviews({
+        page,
+        limit: 5,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      })
+      set({
+        reviews: response.data.reviews,
+        stats: response.data.stats,
+        pagination: response.data.pagination,
+        isLoading: false,
+      })
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } }; message?: string }
-      set({ error: axiosError?.response?.data?.message || axiosError?.message || 'Error al cargar las reseñas', isLoading: false })
+      const axiosError = error as {
+        response?: { data?: { message?: string } }
+        message?: string
+      }
+      set({
+        error:
+          axiosError?.response?.data?.message ||
+          axiosError?.message ||
+          'Error al cargar las reseñas',
+        isLoading: false,
+      })
     }
   },
 

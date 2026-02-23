@@ -53,20 +53,10 @@ const getReviewByBookingValidator = [
 // Rutas
 
 // GET /api/reviews/my-reviews - Mis reseñas como mentor autenticado
-router.get(
-  '/my-reviews',
-  authenticateToken,
-  authorize('mentor'),
-  getMyReviews
-)
+router.get('/my-reviews', authenticateToken, authorize('mentor'), getMyReviews)
 
 // POST /api/reviews - Crear calificación (usuario autenticado dueño de la sesión)
-router.post(
-  '/',
-  authenticateToken,
-  createReviewValidator,
-  createReview
-)
+router.post('/', authenticateToken, createReviewValidator, createReview)
 
 // GET /api/reviews/mentor/:mentorId - Obtener reseñas de un mentor
 router.get(

@@ -29,7 +29,10 @@ export default function AdminSpecialties() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Delete confirmation modal
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string
+    name: string
+  } | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const { success, error } = useToast()

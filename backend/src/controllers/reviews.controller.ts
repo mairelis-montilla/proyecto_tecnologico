@@ -40,12 +40,10 @@ export const createReview = async (
     }
 
     if (comment && comment.length > 500) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'El comentario no puede superar los 500 caracteres',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'El comentario no puede superar los 500 caracteres',
+      })
       return
     }
 
@@ -60,35 +58,29 @@ export const createReview = async (
     // Booking.studentId referencia Student._id, no User._id
     const student = await Student.findOne({ userId })
     if (!student || session.studentId.toString() !== student._id.toString()) {
-      res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'No tienes permiso para calificar esta sesión',
-        })
+      res.status(403).json({
+        status: 'error',
+        message: 'No tienes permiso para calificar esta sesión',
+      })
       return
     }
 
     // 3. Verificar que la sesión esté completada
     if (session.status !== 'completed') {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Solo puedes calificar sesiones completadas',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Solo puedes calificar sesiones completadas',
+      })
       return
     }
 
     // 4. Verificar que no exista review previa
     const existingReview = await Review.findOne({ bookingId: sessionId })
     if (existingReview) {
-      res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Ya existe una calificación para esta sesión',
-        })
+      res.status(400).json({
+        status: 'error',
+        message: 'Ya existe una calificación para esta sesión',
+      })
       return
     }
 
@@ -146,7 +138,9 @@ export const getMyReviews = async (
 
     const mentor = await Mentor.findOne({ userId })
     if (!mentor) {
-      res.status(404).json({ status: 'error', message: 'Perfil de mentor no encontrado' })
+      res
+        .status(404)
+        .json({ status: 'error', message: 'Perfil de mentor no encontrado' })
       return
     }
 
@@ -189,8 +183,13 @@ export const getMyReviews = async (
     ])
 
     const stats = ratingStats[0] || {
-      averageRating: 0, totalReviews: 0,
-      rating5: 0, rating4: 0, rating3: 0, rating2: 0, rating1: 0,
+      averageRating: 0,
+      totalReviews: 0,
+      rating5: 0,
+      rating4: 0,
+      rating3: 0,
+      rating2: 0,
+      rating1: 0,
     }
 
     res.status(200).json({
@@ -198,11 +197,16 @@ export const getMyReviews = async (
       data: {
         reviews,
         stats: {
-          averageRating: stats.averageRating ? Number(stats.averageRating.toFixed(1)) : 0,
+          averageRating: stats.averageRating
+            ? Number(stats.averageRating.toFixed(1))
+            : 0,
           totalReviews: stats.totalReviews,
           ratingDistribution: {
-            5: stats.rating5, 4: stats.rating4, 3: stats.rating3,
-            2: stats.rating2, 1: stats.rating1,
+            5: stats.rating5,
+            4: stats.rating4,
+            3: stats.rating3,
+            2: stats.rating2,
+            1: stats.rating1,
           },
         },
         pagination: {
@@ -358,12 +362,10 @@ export const getReviewByBooking = async (
     )
 
     if (!review) {
-      res
-        .status(404)
-        .json({
-          status: 'error',
-          message: 'No hay calificación para esta sesión',
-        })
+      res.status(404).json({
+        status: 'error',
+        message: 'No hay calificación para esta sesión',
+      })
       return
     }
 

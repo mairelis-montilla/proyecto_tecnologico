@@ -17,8 +17,15 @@ export const reviewService = {
    * GET /api/reviews/my-reviews
    * Obtiene las reseñas del mentor autenticado (no requiere mentorId).
    */
-  async getMyReviews(params: GetReviewsParams = {}): Promise<GetReviewsResponse> {
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = params
+  async getMyReviews(
+    params: GetReviewsParams = {}
+  ): Promise<GetReviewsResponse> {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = params
     const response = await api.get<GetReviewsResponse>('/reviews/my-reviews', {
       params: { page, limit, sortBy, sortOrder },
     })
