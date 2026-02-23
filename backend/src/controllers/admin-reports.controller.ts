@@ -88,7 +88,10 @@ export const getReportUsers = async (
     })
 
     const chartData = dailyRegistrations.map(
-      (d: { _id: { year: number; month: number; day: number }; count: number }) => ({
+      (d: {
+        _id: { year: number; month: number; day: number }
+        count: number
+      }) => ({
         label: `${d._id.day}/${d._id.month}`,
         count: d.count,
       })
@@ -158,8 +161,7 @@ export const getReportSessions = async (
     })
 
     // Simplificar en completadas vs canceladas
-    const completed =
-      (summary['completed'] ?? 0) + (summary['confirmed'] ?? 0)
+    const completed = (summary['completed'] ?? 0) + (summary['confirmed'] ?? 0)
     const cancelled = summary['cancelled'] ?? 0
     const total = Object.values(summary).reduce((a, b) => a + b, 0)
 
@@ -270,7 +272,12 @@ export const getReportRevenue = async (
 
     const summaryMap: Record<
       string,
-      { total: number; count: number; platformFees: number; mentorEarnings: number }
+      {
+        total: number
+        count: number
+        platformFees: number
+        mentorEarnings: number
+      }
     > = {}
     summary.forEach(
       (s: {
@@ -503,7 +510,8 @@ export const exportReport = async (
         .sort({ createdAt: -1 })
         .lean()
 
-      const header = 'Fecha,Monto,Comision Plataforma,Ganancia Mentor,Metodo,Estudiante,Mentor,Tema'
+      const header =
+        'Fecha,Monto,Comision Plataforma,Ganancia Mentor,Metodo,Estudiante,Mentor,Tema'
       const rows = payments.map((p: any) => {
         const booking = p.bookingId || {}
         const studentUser = booking.studentId?.userId || {}
@@ -560,16 +568,22 @@ export const exportReport = async (
         .lean()
 
       const header = 'Fecha Registro,Nombre,Email,Rol,Activo'
-      const rows = users.map((u: any) => [
-        new Date(u.createdAt).toISOString().split('T')[0],
-        `${u.firstName} ${u.lastName}`.trim(),
-        u.email,
-        u.role,
-        u.isActive ? 'Si' : 'No',
-      ].join(','))
+      const rows = users.map((u: any) =>
+        [
+          new Date(u.createdAt).toISOString().split('T')[0],
+          `${u.firstName} ${u.lastName}`.trim(),
+          u.email,
+          u.role,
+          u.isActive ? 'Si' : 'No',
+        ].join(',')
+      )
       csv = [header, ...rows].join('\n')
     } else if (type === 'top-mentors') {
-      const { start: s, end: e } = buildDateRange(period as string, dateFrom as string, dateTo as string)
+      const { start: s, end: e } = buildDateRange(
+        period as string,
+        dateFrom as string,
+        dateTo as string
+      )
       const topMentors = await Booking.aggregate([
         {
           $match: {
@@ -611,7 +625,13 @@ export const exportReport = async (
 
       const header = 'Nombre,Email,Titulo,Rating,Sesiones en Periodo'
       const rows = topMentors.map((m: any) =>
-        [m.name, m.email, (m.title || '').replace(/,/g, ';'), m.rating || 0, m.sessionsCount].join(',')
+        [
+          m.name,
+          m.email,
+          (m.title || '').replace(/,/g, ';'),
+          m.rating || 0,
+          m.sessionsCount,
+        ].join(',')
       )
       csv = [header, ...rows].join('\n')
     }

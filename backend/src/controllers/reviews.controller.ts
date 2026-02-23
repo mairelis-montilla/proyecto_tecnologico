@@ -24,17 +24,26 @@ export const createReview = async (
     }
 
     if (!sessionId || rating === undefined) {
-      res.status(400).json({ status: 'error', message: 'sessionId y rating son requeridos' })
+      res
+        .status(400)
+        .json({ status: 'error', message: 'sessionId y rating son requeridos' })
       return
     }
 
     if (rating < 1 || rating > 5) {
-      res.status(400).json({ status: 'error', message: 'El rating debe estar entre 1 y 5' })
+      res
+        .status(400)
+        .json({ status: 'error', message: 'El rating debe estar entre 1 y 5' })
       return
     }
 
     if (comment && comment.length > 500) {
-      res.status(400).json({ status: 'error', message: 'El comentario no puede superar los 500 caracteres' })
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'El comentario no puede superar los 500 caracteres',
+        })
       return
     }
 
@@ -47,20 +56,35 @@ export const createReview = async (
 
     // 2. Verificar que la sesión pertenece al estudiante
     if (session.studentId.toString() !== studentId) {
-      res.status(403).json({ status: 'error', message: 'No tienes permiso para calificar esta sesión' })
+      res
+        .status(403)
+        .json({
+          status: 'error',
+          message: 'No tienes permiso para calificar esta sesión',
+        })
       return
     }
 
     // 3. Verificar que la sesión esté completada
     if (session.status !== 'completed') {
-      res.status(400).json({ status: 'error', message: 'Solo puedes calificar sesiones completadas' })
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'Solo puedes calificar sesiones completadas',
+        })
       return
     }
 
     // 4. Verificar que no exista review previa
     const existingReview = await Review.findOne({ bookingId: sessionId })
     if (existingReview) {
-      res.status(400).json({ status: 'error', message: 'Ya existe una calificación para esta sesión' })
+      res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'Ya existe una calificación para esta sesión',
+        })
       return
     }
 
@@ -75,7 +99,11 @@ export const createReview = async (
 
     // 6. Actualizar rating promedio del mentor automáticamente
     const ratingStats = await Review.aggregate([
-      { $match: { mentorId: new mongoose.Types.ObjectId(session.mentorId.toString()) } },
+      {
+        $match: {
+          mentorId: new mongoose.Types.ObjectId(session.mentorId.toString()),
+        },
+      },
       {
         $group: {
           _id: '$mentorId',
@@ -226,11 +254,18 @@ export const getReviewByBooking = async (
   try {
     const { bookingId } = req.params
 
-    const review = await Review.findOne({ bookingId })
-      .populate('studentId', 'firstName lastName avatar')
+    const review = await Review.findOne({ bookingId }).populate(
+      'studentId',
+      'firstName lastName avatar'
+    )
 
     if (!review) {
-      res.status(404).json({ status: 'error', message: 'No hay calificación para esta sesión' })
+      res
+        .status(404)
+        .json({
+          status: 'error',
+          message: 'No hay calificación para esta sesión',
+        })
       return
     }
 

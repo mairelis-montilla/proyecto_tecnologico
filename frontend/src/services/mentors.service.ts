@@ -21,6 +21,14 @@ export interface GroupedSpecialties {
   }>
 }
 
+export interface PaymentInfoData {
+  yape?: string
+  plin?: string
+  bankName?: string
+  bankAccount?: string
+  bankCci?: string
+}
+
 export interface UpdateMentorProfileData {
   title?: string
   bio?: string
@@ -30,6 +38,7 @@ export interface UpdateMentorProfileData {
   specialties?: string[] // Array de IDs de especialidades
   avatar?: string // URL de la imagen (el upload a Cloudinary se hace por separado)
   profileStatus?: 'draft' | 'published'
+  paymentInfo?: PaymentInfoData
 }
 
 export const mentorsService = {
@@ -287,6 +296,16 @@ export const mentorsService = {
       status: string
       message: string
     }>(`/mentors/${mentorId}/availability/${slotId}`)
+    return response.data
+  },
+
+  // Mis ingresos como mentor
+  getMyEarnings: async (params?: {
+    period?: string
+    page?: number
+    limit?: number
+  }) => {
+    const response = await api.get('/mentors/my-earnings', { params })
     return response.data
   },
 }

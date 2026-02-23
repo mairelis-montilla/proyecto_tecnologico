@@ -11,10 +11,7 @@ const router = Router()
 
 // Validadores para crear review
 const createReviewValidator = [
-  body('sessionId')
-    .notEmpty()
-    .isMongoId()
-    .withMessage('ID de sesión inválido'),
+  body('sessionId').notEmpty().isMongoId().withMessage('ID de sesión inválido'),
   body('rating')
     .notEmpty()
     .isInt({ min: 1, max: 5 })

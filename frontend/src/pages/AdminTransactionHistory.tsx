@@ -32,7 +32,11 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react'
-import { paymentAdminService, paymentSummaryService, PaymentsSummary } from '../services/admin.service'
+import {
+  paymentAdminService,
+  paymentSummaryService,
+  PaymentsSummary,
+} from '../services/admin.service'
 import type { AdminPayment, Pagination } from '../types/payment.types'
 import { api } from '../services/api'
 
@@ -80,7 +84,9 @@ function formatDateTime(iso: string): string {
 }
 
 function formatCurrency(amount: number, currency = 'PEN'): string {
-  return currency === 'PEN' ? `S/. ${amount.toFixed(2)}` : `$ ${amount.toFixed(2)}`
+  return currency === 'PEN'
+    ? `S/. ${amount.toFixed(2)}`
+    : `$ ${amount.toFixed(2)}`
 }
 
 function getStudentName(p: AdminPayment): string {
@@ -88,7 +94,11 @@ function getStudentName(p: AdminPayment): string {
   if (b?.studentId?.userId) {
     return `${b.studentId.userId.firstName} ${b.studentId.userId.lastName}`
   }
-  if (p.studentId && typeof p.studentId === 'object' && 'firstName' in p.studentId) {
+  if (
+    p.studentId &&
+    typeof p.studentId === 'object' &&
+    'firstName' in p.studentId
+  ) {
     return `${p.studentId.firstName} ${(p.studentId as any).lastName}`
   }
   return 'Estudiante'
@@ -119,11 +129,13 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
     >
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b">
-          <h2 className="text-lg font-bold text-gray-900">Detalle de Transacción</h2>
+          <h2 className="text-lg font-bold text-gray-900">
+            Detalle de Transacción
+          </h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
@@ -138,12 +150,15 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
           <div className="flex items-center gap-2">
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
-                paymentStatusColors[payment.status] ?? 'bg-gray-100 text-gray-700'
+                paymentStatusColors[payment.status] ??
+                'bg-gray-100 text-gray-700'
               }`}
             >
               {paymentStatusLabels[payment.status] ?? payment.status}
             </span>
-            <span className="text-sm text-gray-500">{formatDateTime(payment.createdAt)}</span>
+            <span className="text-sm text-gray-500">
+              {formatDateTime(payment.createdAt)}
+            </span>
           </div>
 
           {/* Montos */}
@@ -169,7 +184,8 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
             <div className="flex justify-between text-sm border-t pt-2">
               <span className="text-gray-600">Método de pago</span>
               <span className="font-medium text-gray-800">
-                {paymentMethodLabels[payment.paymentMethod] ?? payment.paymentMethod}
+                {paymentMethodLabels[payment.paymentMethod] ??
+                  payment.paymentMethod}
               </span>
             </div>
           </div>
@@ -186,7 +202,9 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
                   {getStudentName(payment)}
                 </p>
                 {booking?.studentId?.userId?.email && (
-                  <p className="text-xs text-gray-400">{booking.studentId.userId.email}</p>
+                  <p className="text-xs text-gray-400">
+                    {booking.studentId.userId.email}
+                  </p>
                 )}
               </div>
             </div>
@@ -200,7 +218,9 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
                   {getMentorName(payment)}
                 </p>
                 {booking?.mentorId?.userId?.email && (
-                  <p className="text-xs text-gray-400">{booking.mentorId.userId.email}</p>
+                  <p className="text-xs text-gray-400">
+                    {booking.mentorId.userId.email}
+                  </p>
                 )}
               </div>
             </div>
@@ -212,7 +232,9 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
               <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
                 Sesión
               </p>
-              <p className="text-sm font-medium text-gray-800">{booking.topic}</p>
+              <p className="text-sm font-medium text-gray-800">
+                {booking.topic}
+              </p>
               {booking.scheduledAt && (
                 <p className="text-xs text-gray-500">
                   {formatDateTime(booking.scheduledAt)} · {booking.duration} min
@@ -238,7 +260,9 @@ function DetailModal({ payment, onClose }: DetailModalProps) {
           {/* Motivo de rechazo */}
           {payment.rejectionReason && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-xs text-red-600 font-medium mb-1">Motivo de rechazo</p>
+              <p className="text-xs text-red-600 font-medium mb-1">
+                Motivo de rechazo
+              </p>
               <p className="text-sm text-red-700">{payment.rejectionReason}</p>
             </div>
           )}
@@ -281,7 +305,9 @@ export default function AdminTransactionHistory() {
   const [summary, setSummary] = useState<PaymentsSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(true)
-  const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(null)
+  const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(
+    null
+  )
 
   // Filtros
   const [search, setSearch] = useState('')
@@ -465,7 +491,7 @@ export default function AdminTransactionHistory() {
               type="text"
               placeholder="Buscar por nombre..."
               value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              onChange={e => handleSearchChange(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purpura/30"
             />
           </div>
@@ -473,7 +499,7 @@ export default function AdminTransactionHistory() {
           {/* Estado */}
           <select
             value={status}
-            onChange={(e) => {
+            onChange={e => {
               setStatus(e.target.value)
               handleFilterChange()
             }}
@@ -490,7 +516,7 @@ export default function AdminTransactionHistory() {
           {/* Método de pago */}
           <select
             value={paymentMethod}
-            onChange={(e) => {
+            onChange={e => {
               setPaymentMethod(e.target.value)
               handleFilterChange()
             }}
@@ -514,7 +540,7 @@ export default function AdminTransactionHistory() {
             <input
               type="date"
               value={dateFrom}
-              onChange={(e) => {
+              onChange={e => {
                 setDateFrom(e.target.value)
                 handleFilterChange()
               }}
@@ -526,7 +552,7 @@ export default function AdminTransactionHistory() {
             <input
               type="date"
               value={dateTo}
-              onChange={(e) => {
+              onChange={e => {
                 setDateTo(e.target.value)
                 handleFilterChange()
               }}
@@ -577,8 +603,11 @@ export default function AdminTransactionHistory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {payments.map((p) => (
-                  <tr key={p._id} className="hover:bg-gray-50 transition-colors">
+                {payments.map(p => (
+                  <tr
+                    key={p._id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                       {formatDate(p.createdAt)}
                     </td>
@@ -601,7 +630,8 @@ export default function AdminTransactionHistory() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          paymentStatusColors[p.status] ?? 'bg-gray-100 text-gray-600'
+                          paymentStatusColors[p.status] ??
+                          'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {p.status === 'validated' && (
@@ -636,13 +666,13 @@ export default function AdminTransactionHistory() {
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
             <p className="text-xs text-gray-500">
-              {pagination.totalItems} transacciones · Página {pagination.currentPage} de{' '}
-              {pagination.totalPages}
+              {pagination.totalItems} transacciones · Página{' '}
+              {pagination.currentPage} de {pagination.totalPages}
             </p>
             <div className="flex items-center gap-1">
               <button
                 disabled={!pagination.hasPrevPage}
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => setPage(p => p - 1)}
                 className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -652,7 +682,7 @@ export default function AdminTransactionHistory() {
               </span>
               <button
                 disabled={!pagination.hasNextPage}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setPage(p => p + 1)}
                 className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4" />

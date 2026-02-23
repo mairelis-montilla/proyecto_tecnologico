@@ -15,6 +15,14 @@ export interface MentorUser {
   avatar?: string
 }
 
+export interface MentorPaymentInfo {
+  yape?: string
+  plin?: string
+  bankName?: string
+  bankAccount?: string
+  bankCci?: string
+}
+
 export interface Mentor {
   _id: string
   userId: MentorUser
@@ -32,6 +40,7 @@ export interface Mentor {
   isApproved: boolean
   isActive: boolean
   profileStatus?: 'draft' | 'published'
+  paymentInfo?: MentorPaymentInfo
   createdAt: string
 }
 

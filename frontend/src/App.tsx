@@ -21,6 +21,9 @@ import AdminSpecialties from './pages/AdminSpecialties'
 import MentorAvailability from './pages/MentorAvailability'
 import MentorDashboard from './pages/MentorDashboard'
 import AdminUserManagement from './pages/AdminUserManagement'
+import MentorReviewsPage from '@/pages/MentorReviewsPage'
+import StudentMyPayments from '@/pages/StudentMyPayments'
+import MentorEarnings from '@/pages/MentorEarnings'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminTransactionHistory from './pages/AdminTransactionHistory'
 import AdminReports from './pages/AdminReports'
@@ -116,14 +119,30 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/reviews"
             element={
               <ProtectedRoute allowedRoles={['mentor']}>
-                <ComingSoon
-                  title="Mis Reseñas"
-                  description="Ve las calificaciones y comentarios que los estudiantes han dejado sobre tus sesiones."
-                />
+                <MentorReviewsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/earnings"
+            element={
+              <ProtectedRoute allowedRoles={['mentor']}>
+                <MentorEarnings />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de estudiante - pagos */}
+          <Route
+            path="/my-payments"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentMyPayments />
               </ProtectedRoute>
             }
           />

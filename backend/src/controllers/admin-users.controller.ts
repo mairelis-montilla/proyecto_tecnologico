@@ -36,7 +36,10 @@ export const getUsers = async (
     } = req.query
 
     const pageNum = Math.max(1, parseInt(page as string, 10) || 1)
-    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string, 10) || 10))
+    const limitNum = Math.min(
+      50,
+      Math.max(1, parseInt(limit as string, 10) || 10)
+    )
     const skip = (pageNum - 1) * limitNum
 
     // Construir filtro
@@ -68,7 +71,13 @@ export const getUsers = async (
     }
 
     // Ordenamiento
-    const allowedSortFields = ['createdAt', 'firstName', 'lastName', 'email', 'role']
+    const allowedSortFields = [
+      'createdAt',
+      'firstName',
+      'lastName',
+      'email',
+      'role',
+    ]
     const sortField = allowedSortFields.includes(sortBy as string)
       ? (sortBy as string)
       : 'createdAt'
@@ -193,11 +202,7 @@ export const updateUser = async (
     }
 
     // No permitir que un admin se modifique a sí mismo el rol
-    if (
-      req.user?._id.toString() === id &&
-      role &&
-      role !== user.role
-    ) {
+    if (req.user?._id.toString() === id && role && role !== user.role) {
       res.status(400).json({
         status: 'error',
         message: 'No puedes cambiar tu propio rol',
@@ -250,9 +255,7 @@ export const blockUser = async (
     const adminId = req.user?._id
 
     if (!adminId) {
-      res
-        .status(401)
-        .json({ status: 'error', message: 'No autenticado' })
+      res.status(401).json({ status: 'error', message: 'No autenticado' })
       return
     }
 
@@ -332,9 +335,7 @@ export const unblockUser = async (
     const adminId = req.user?._id
 
     if (!adminId) {
-      res
-        .status(401)
-        .json({ status: 'error', message: 'No autenticado' })
+      res.status(401).json({ status: 'error', message: 'No autenticado' })
       return
     }
 
@@ -403,7 +404,9 @@ export const getBlockHistory = async (
     const { id } = req.params
 
     // Verificar que el usuario existe
-    const user = await User.findById(id).select('firstName lastName email').lean()
+    const user = await User.findById(id)
+      .select('firstName lastName email')
+      .lean()
     if (!user) {
       res
         .status(404)

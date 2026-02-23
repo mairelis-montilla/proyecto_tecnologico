@@ -9,6 +9,7 @@ import studentsRouter from './students.routes.js'
 import uploadRouter from './upload.routes.js'
 import bookingsRouter from './bookings.routes.js'
 import notificationsRouter from './notifications.routes.js'
+import paymentsRouter from './payments.routes.js'
 
 const router = Router()
 
@@ -23,5 +24,6 @@ router.use('/students', studentsRouter)
 router.use('/upload', uploadRouter)
 router.use('/bookings', bookingsRouter)
 router.use('/notifications', notificationsRouter)
+router.use('/payments', paymentsRouter)
 
 export default router

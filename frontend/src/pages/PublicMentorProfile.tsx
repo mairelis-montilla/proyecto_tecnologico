@@ -19,6 +19,7 @@ import { mentorsService } from '../services/mentors.service'
 import { BookingConfirmModal, PaymentUploadModal } from '../components/booking'
 import type { Mentor } from '../types/mentor.types'
 import type { TimeSlot, Booking } from '../types/booking.types'
+import { MentorReview } from './MentorReview'
 
 const PublicMentorProfile = () => {
   const { id } = useParams<{ id: string }>()
@@ -303,6 +304,14 @@ const PublicMentorProfile = () => {
                 {mentor.experience ||
                   'No se ha especificado experiencia laboral detallada.'}
               </p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Star className="w-5 h-5 text-purple-600" />
+                Reseñas
+              </h2>
+              <MentorReview mentorId={id!} />
             </div>
           </div>
         </div>

@@ -9,17 +9,22 @@ import { Mentor } from '../models/Mentor.model.js'
 export const initCronJobs = () => {
   console.log('⏰ Initializing Cron Jobs...')
 
-  // Ejecutar cada hora en el minuto 0
+  // Cada hora: recordatorios de sesiones próximas
   cron.schedule('0 * * * *', async () => {
     console.log('⏳ Running hourly session reminder check...')
     await checkUpcomingSessions()
+  })
+
+  // Cada 15 minutos: marcar sesiones terminadas como completed
+  cron.schedule('*/15 * * * *', async () => {
+    await autoCompleteSessions()
   })
 }
 
 const checkUpcomingSessions = async () => {
   try {
     const now = moment()
-    
+
     // 1. Recordatorio 24 horas antes (buscar entre 23 y 24 horas desde ahora)
     const start24h = now.clone().add(23, 'hours').toDate()
     const end24h = now.clone().add(24, 'hours').toDate()
@@ -48,9 +53,68 @@ const checkUpcomingSessions = async () => {
     for (const booking of bookings1h) {
       await sendReminder(booking, '1h')
     }
-
   } catch (error) {
     console.error('❌ Error in cron job:', error)
+  }
+}
+
+const autoCompleteSessions = async () => {
+  try {
+    const now = new Date()
+
+    // Buscar sesiones confirmed donde scheduledAt + duration (en ms) ya pasó
+    const finishedBookings = await Booking.find({
+      status: 'confirmed',
+      $expr: {
+        $lt: [
+          { $add: ['$scheduledAt', { $multiply: ['$duration', 60_000] }] },
+          now,
+        ],
+      },
+    }).populate('studentId mentorId')
+
+    if (finishedBookings.length === 0) return
+
+    console.log(`✅ Auto-completing ${finishedBookings.length} session(s)...`)
+
+    for (const booking of finishedBookings) {
+      booking.status = 'completed'
+      await booking.save()
+
+      const student = await Student.findById(booking.studentId).populate(
+        'userId'
+      )
+      const mentor = await Mentor.findById(booking.mentorId).populate('userId')
+
+      if (!student || !mentor) continue
+
+      const studentUser = student.userId as any
+      const mentorUser = mentor.userId as any
+
+      // Notificar al estudiante para que califique
+      await Notification.create({
+        userId: studentUser._id,
+        type: 'session_completed',
+        title: 'Sesión completada',
+        message: `Tu sesión con ${mentorUser.firstName} ha finalizado. ¡Comparte tu experiencia calificándola!`,
+        relatedId: booking._id,
+        relatedModel: 'Booking',
+      })
+
+      // Notificar al mentor
+      await Notification.create({
+        userId: mentorUser._id,
+        type: 'session_completed',
+        title: 'Sesión completada',
+        message: `Tu sesión con ${studentUser.firstName} sobre "${booking.topic}" ha finalizado.`,
+        relatedId: booking._id,
+        relatedModel: 'Booking',
+      })
+
+      console.log(`✅ Booking ${booking._id} marked as completed`)
+    }
+  } catch (error) {
+    console.error('❌ Error in autoCompleteSessions:', error)
   }
 }
 
@@ -63,8 +127,10 @@ const sendReminder = async (booking: any, type: '24h' | '1h') => {
 
     const studentUser = student.userId as any
     const mentorUser = mentor.userId as any
-    
-    const timeString = moment(booking.scheduledAt).tz('America/Lima').format('h:mm A')
+
+    const timeString = moment(booking.scheduledAt)
+      .tz('America/Lima')
+      .format('h:mm A')
     const timeLeft = type === '24h' ? '24 horas' : '1 hora'
 
     // Enviar emails
@@ -114,8 +180,10 @@ const sendReminder = async (booking: any, type: '24h' | '1h') => {
     await booking.save()
 
     console.log(`✅ Reminder (${type}) sent for booking ${booking._id}`)
-
   } catch (error) {
-    console.error(`❌ Error sending reminder for booking ${booking._id}:`, error)
+    console.error(
+      `❌ Error sending reminder for booking ${booking._id}:`,
+      error
+    )
   }
 }

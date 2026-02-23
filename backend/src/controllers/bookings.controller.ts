@@ -150,10 +150,7 @@ export const createBooking = async (
           {
             $gt: [
               {
-                $add: [
-                  '$scheduledAt',
-                  { $multiply: ['$duration', 60000] },
-                ],
+                $add: ['$scheduledAt', { $multiply: ['$duration', 60000] }],
               },
               scheduledAt.toDate(),
             ],
@@ -214,7 +211,7 @@ export const createBooking = async (
     await sendBookingRequestEmail(
       mentorUser.email,
       mentorUser.firstName,
-      (student.userId as any).firstName, 
+      (student.userId as any).firstName,
       topic
     )
 
@@ -598,7 +595,7 @@ export const uploadPaymentProof = async (
 
       // Enviar email
       const mentorUser = mentor.userId as any
-      
+
       await sendPaymentPendingEmail(
         mentorUser.email,
         mentorUser.firstName,
@@ -745,7 +742,7 @@ export const cancelBooking = async (
         relatedId: booking._id,
         relatedModel: 'Booking',
       })
-      
+
       // Email al mentor
       const mentorUser = mentor.userId as any
       await sendBookingCancelledEmail(
@@ -754,7 +751,6 @@ export const cancelBooking = async (
         reason || 'Sin motivo especificado',
         'Estudiante'
       )
-
     } else if (cancelledBy === 'mentor' && student) {
       await Notification.create({
         userId: student.userId,
@@ -859,7 +855,8 @@ export const approveBooking = async (
     if (booking.status !== 'payment_validated') {
       res.status(400).json({
         status: 'error',
-        message: 'Solo se pueden aprobar solicitudes con pago validado por el administrador',
+        message:
+          'Solo se pueden aprobar solicitudes con pago validado por el administrador',
       })
       return
     }
@@ -896,9 +893,13 @@ export const approveBooking = async (
       // Enviar email con link
       const studentUser = student.userId as any
       const mentorUser = mentor.userId as any
-      
-      const dateStr = moment(booking.scheduledAt).tz('America/Lima').format('DD/MM/YYYY')
-      const timeStr = moment(booking.scheduledAt).tz('America/Lima').format('h:mm A')
+
+      const dateStr = moment(booking.scheduledAt)
+        .tz('America/Lima')
+        .format('DD/MM/YYYY')
+      const timeStr = moment(booking.scheduledAt)
+        .tz('America/Lima')
+        .format('h:mm A')
 
       await sendBookingConfirmedEmail(
         studentUser.email,

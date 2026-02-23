@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CalendarDays, Loader2, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import {
+  CalendarDays,
+  Loader2,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react'
 import {
   SessionCard,
   SessionsTabs,
@@ -14,6 +21,7 @@ import {
 import Modal, { ModalBody, ModalFooter } from '../components/ui/Modal'
 import { bookingsService } from '../services/bookings.service'
 import type { Booking } from '../types/booking.types'
+import { ReviewForm } from './ReviewForm'
 
 const Sessions = () => {
   const [activeTab, setActiveTab] = useState<SessionTab>('upcoming')
@@ -26,6 +34,7 @@ const Sessions = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   // Counts for tabs
   const [counts, setCounts] = useState({
@@ -49,7 +58,8 @@ const Sessions = () => {
     setError(null)
 
     try {
-      let statusParam: 'upcoming' | 'past' | 'cancelled' | 'pending_review' = 'upcoming'
+      let statusParam: 'upcoming' | 'past' | 'cancelled' | 'pending_review' =
+        'upcoming'
 
       switch (activeTab) {
         case 'pending':
@@ -81,12 +91,13 @@ const Sessions = () => {
   // Fetch all counts on mount
   const fetchCounts = useCallback(async () => {
     try {
-      const [pendingRes, upcomingRes, pastRes, cancelledRes] = await Promise.all([
-        bookingsService.getMyBookings({ status: 'pending_review', limit: 1 }),
-        bookingsService.getMyBookings({ status: 'upcoming', limit: 1 }),
-        bookingsService.getMyBookings({ status: 'past', limit: 1 }),
-        bookingsService.getMyBookings({ status: 'cancelled', limit: 1 }),
-      ])
+      const [pendingRes, upcomingRes, pastRes, cancelledRes] =
+        await Promise.all([
+          bookingsService.getMyBookings({ status: 'pending_review', limit: 1 }),
+          bookingsService.getMyBookings({ status: 'upcoming', limit: 1 }),
+          bookingsService.getMyBookings({ status: 'past', limit: 1 }),
+          bookingsService.getMyBookings({ status: 'cancelled', limit: 1 }),
+        ])
 
       setCounts({
         pending: pendingRes.data.pagination?.totalItems || 0,
@@ -124,8 +135,8 @@ const Sessions = () => {
   }
 
   const handleRateClick = (booking: Booking) => {
-    // TODO: Implement rating modal
-    console.log('Rate booking:', booking._id)
+    setSelectedBooking(booking)
+    setShowReviewModal(true)
   }
 
   const handleApproveClick = (booking: Booking) => {
@@ -153,7 +164,9 @@ const Sessions = () => {
       fetchBookings()
       fetchCounts()
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Error al aprobar la sesion')
+      setActionError(
+        err.response?.data?.message || 'Error al aprobar la sesion'
+      )
     } finally {
       setIsApproving(false)
     }
@@ -173,7 +186,9 @@ const Sessions = () => {
       fetchBookings()
       fetchCounts()
     } catch (err: any) {
-      setActionError(err.response?.data?.message || 'Error al rechazar la sesion')
+      setActionError(
+        err.response?.data?.message || 'Error al rechazar la sesion'
+      )
     } finally {
       setIsRejecting(false)
     }
@@ -308,7 +323,12 @@ const Sessions = () => {
           {/* Modal Aprobar Sesion */}
           <Modal
             isOpen={showApproveModal}
-            onClose={() => { if (!isApproving) { setShowApproveModal(false); setMeetLink('') } }}
+            onClose={() => {
+              if (!isApproving) {
+                setShowApproveModal(false)
+                setMeetLink('')
+              }
+            }}
             title="Aprobar Sesion"
             size="md"
           >
@@ -345,7 +365,10 @@ const Sessions = () => {
             </ModalBody>
             <ModalFooter>
               <button
-                onClick={() => { setShowApproveModal(false); setMeetLink('') }}
+                onClick={() => {
+                  setShowApproveModal(false)
+                  setMeetLink('')
+                }}
                 disabled={isApproving}
                 className="px-6 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 disabled:opacity-50"
               >
@@ -374,7 +397,9 @@ const Sessions = () => {
           {/* Modal Rechazar Sesion */}
           <Modal
             isOpen={showRejectModal}
-            onClose={() => { if (!isRejecting) setShowRejectModal(false) }}
+            onClose={() => {
+              if (!isRejecting) setShowRejectModal(false)
+            }}
             title="Rechazar Sesion"
             size="md"
           >
@@ -401,7 +426,9 @@ const Sessions = () => {
                     rows={4}
                     maxLength={500}
                   />
-                  <p className="text-xs text-gray-500 mt-1 text-right">{rejectReason.length}/500</p>
+                  <p className="text-xs text-gray-500 mt-1 text-right">
+                    {rejectReason.length}/500
+                  </p>
                 </div>
                 {actionError && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
@@ -437,6 +464,24 @@ const Sessions = () => {
                 )}
               </button>
             </ModalFooter>
+          </Modal>
+
+          {/* Modal Calificar Sesion */}
+          <Modal
+            isOpen={showReviewModal}
+            onClose={handleModalClose}
+            title="Calificar sesión"
+            size="md"
+          >
+            <ModalBody>
+              <ReviewForm
+                mentorId={selectedBooking.mentorId._id}
+                sessionId={selectedBooking._id}
+                mentorName={`${selectedBooking.mentorId.userId.firstName} ${selectedBooking.mentorId.userId.lastName}`}
+                onSuccess={handleModalClose}
+                onCancel={handleModalClose}
+              />
+            </ModalBody>
           </Modal>
         </>
       )}

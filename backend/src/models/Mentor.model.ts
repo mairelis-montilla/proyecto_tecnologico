@@ -1,5 +1,13 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
+export interface IPaymentInfo {
+  yape?: string
+  plin?: string
+  bankName?: string
+  bankAccount?: string
+  bankCci?: string
+}
+
 export interface IMentor extends Document {
   userId: Types.ObjectId
   title: string
@@ -16,9 +24,21 @@ export interface IMentor extends Document {
   profileStatus: 'draft' | 'published'
   isApproved: boolean
   isActive: boolean
+  paymentInfo?: IPaymentInfo
   createdAt: Date
   updatedAt: Date
 }
+
+const paymentInfoSchema = new Schema<IPaymentInfo>(
+  {
+    yape: { type: String, trim: true, default: '' },
+    plin: { type: String, trim: true, default: '' },
+    bankName: { type: String, trim: true, default: '' },
+    bankAccount: { type: String, trim: true, default: '' },
+    bankCci: { type: String, trim: true, default: '' },
+  },
+  { _id: false }
+)
 
 const mentorSchema = new Schema<IMentor>(
   {
@@ -102,6 +122,10 @@ const mentorSchema = new Schema<IMentor>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    paymentInfo: {
+      type: paymentInfoSchema,
+      default: () => ({}),
     },
   },
   {

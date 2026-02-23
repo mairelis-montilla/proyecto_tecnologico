@@ -7,6 +7,7 @@ import { Review } from '../models/Review.model.js'
 import { User } from '../models/User.model.js'
 import { Specialty } from '../models/Specialty.model.js'
 import { Student } from '../models/Student.model.js'
+import { Payment } from '../models/Payment.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 import {
   uploadImage,
@@ -617,6 +618,7 @@ export const createOrUpdateMentorProfile = async (
       languages,
       hourlyRate,
       profileStatus,
+      paymentInfo,
     } = req.body
 
     // Validar especialidades (1-5)
@@ -690,6 +692,7 @@ export const createOrUpdateMentorProfile = async (
       if (languages !== undefined) mentor.languages = languages
       if (hourlyRate !== undefined) mentor.hourlyRate = hourlyRate
       if (profileStatus !== undefined) mentor.profileStatus = profileStatus
+      if (paymentInfo !== undefined) mentor.paymentInfo = paymentInfo
 
       await mentor.save()
     }
@@ -853,5 +856,123 @@ export const uploadAvatar = async (
       status: 'error',
       message: 'Error al subir el avatar',
     })
+  }
+}
+
+/**
+ * GET /api/mentors/my-earnings
+ * Mentor: resumen de ingresos + lista paginada de pagos recibidos
+ */
+export const getMyEarnings = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const userId = req.user!._id
+
+    const mentor = await Mentor.findOne({ userId }).lean()
+    if (!mentor) {
+      res
+        .status(404)
+        .json({ status: 'error', message: 'Perfil de mentor no encontrado' })
+      return
+    }
+    const mentorId = mentor._id
+
+    const period = (req.query.period as string) || 'all'
+    let periodStart: Date | null = null
+    const now = new Date()
+
+    if (period === 'week') {
+      periodStart = new Date(now)
+      periodStart.setDate(now.getDate() - 7)
+    } else if (period === 'month') {
+      periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    } else if (period === 'year') {
+      periodStart = new Date(now.getFullYear(), 0, 1)
+    }
+
+    const page = Math.max(1, parseInt(req.query.page as string, 10) || 1)
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit as string, 10) || 10)
+    )
+    const skip = (page - 1) * limit
+
+    const listFilter: Record<string, unknown> = { mentorId }
+    if (periodStart) {
+      listFilter.createdAt = { $gte: periodStart }
+    }
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+    const [totalAgg, monthAgg, pendingAgg, payments, total] = await Promise.all(
+      [
+        Payment.aggregate([
+          { $match: { mentorId, status: 'validated' } },
+          { $group: { _id: null, total: { $sum: '$mentorEarnings' } } },
+        ]),
+        Payment.aggregate([
+          {
+            $match: {
+              mentorId,
+              status: 'validated',
+              createdAt: { $gte: startOfMonth },
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$mentorEarnings' } } },
+        ]),
+        Payment.aggregate([
+          { $match: { mentorId, status: 'pending_validation' } },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: '$mentorEarnings' },
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+        Payment.find(listFilter)
+          .populate({
+            path: 'bookingId',
+            select: 'topic scheduledAt duration studentId',
+            populate: {
+              path: 'studentId',
+              select: 'userId',
+              populate: { path: 'userId', select: 'firstName lastName avatar' },
+            },
+          })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Payment.countDocuments(listFilter),
+      ]
+    )
+
+    const summary = {
+      totalEarnings: totalAgg[0]?.total ?? 0,
+      currentMonth: monthAgg[0]?.total ?? 0,
+      pendingAmount: pendingAgg[0]?.total ?? 0,
+      pendingCount: pendingAgg[0]?.count ?? 0,
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: { summary, earnings: payments },
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
+      },
+    })
+  } catch (error) {
+    console.error('Error en getMyEarnings:', error)
+    res
+      .status(500)
+      .json({ status: 'error', message: 'Error al obtener los ingresos' })
   }
 }

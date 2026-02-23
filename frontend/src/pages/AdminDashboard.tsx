@@ -76,8 +76,13 @@ interface BarChartProps {
   height?: number
 }
 
-function SimpleBarChart({ data, color, formatValue, height = 120 }: BarChartProps) {
-  const max = Math.max(...data.map((d) => d.value), 1)
+function SimpleBarChart({
+  data,
+  color,
+  formatValue,
+  height = 120,
+}: BarChartProps) {
+  const max = Math.max(...data.map(d => d.value), 1)
   return (
     <div className="w-full">
       <div
@@ -102,7 +107,9 @@ function SimpleBarChart({ data, color, formatValue, height = 120 }: BarChartProp
       <div className="flex gap-2 mt-1">
         {data.map((d, i) => (
           <div key={i} className="flex-1 text-center">
-            <span className="text-xs text-gray-400 leading-tight">{d.label}</span>
+            <span className="text-xs text-gray-400 leading-tight">
+              {d.label}
+            </span>
           </div>
         ))}
       </div>
@@ -123,7 +130,9 @@ interface MetricCardProps {
 function MetricCard({ title, value, icon, iconBg, subtitle }: MetricCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+      <div
+        className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}
+      >
         {icon}
       </div>
       <div>
@@ -151,7 +160,9 @@ function QuickLink({ to, icon, label, description, color }: QuickLinkProps) {
       to={to}
       className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
     >
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
+      <div
+        className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}
+      >
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -208,14 +219,20 @@ export default function AdminDashboard() {
     )
   }
 
-  const { stats, recentBookings, pendingPaymentsList, sessionsByWeek, revenueByMonth } = data
+  const {
+    stats,
+    recentBookings,
+    pendingPaymentsList,
+    sessionsByWeek,
+    revenueByMonth,
+  } = data
 
-  const sessionsChartData = sessionsByWeek.map((w) => ({
+  const sessionsChartData = sessionsByWeek.map(w => ({
     label: w.label,
     value: w.count,
   }))
 
-  const revenueChartData = revenueByMonth.map((m) => ({
+  const revenueChartData = revenueByMonth.map(m => ({
     label: m.label.split(' ')[0], // Solo el mes
     value: m.total,
   }))
@@ -268,10 +285,10 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <BarChart2 className="w-5 h-5 text-blue-500" />
-            <h2 className="font-semibold text-gray-800">
-              Sesiones por Semana
-            </h2>
-            <span className="text-xs text-gray-400 ml-auto">Últimas 4 semanas</span>
+            <h2 className="font-semibold text-gray-800">Sesiones por Semana</h2>
+            <span className="text-xs text-gray-400 ml-auto">
+              Últimas 4 semanas
+            </span>
           </div>
           {sessionsChartData.length > 0 ? (
             <SimpleBarChart
@@ -290,16 +307,16 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-emerald-500" />
-            <h2 className="font-semibold text-gray-800">
-              Ingresos por Mes
-            </h2>
-            <span className="text-xs text-gray-400 ml-auto">Últimos 6 meses</span>
+            <h2 className="font-semibold text-gray-800">Ingresos por Mes</h2>
+            <span className="text-xs text-gray-400 ml-auto">
+              Últimos 6 meses
+            </span>
           </div>
           {revenueChartData.length > 0 ? (
             <SimpleBarChart
               data={revenueChartData}
               color="bg-emerald-400"
-              formatValue={(v) => `S/.${v.toFixed(0)}`}
+              formatValue={v => `S/.${v.toFixed(0)}`}
               height={140}
             />
           ) : (
@@ -350,13 +367,17 @@ export default function AdminDashboard() {
                           : 'Estudiante'}
                       </p>
                       <p className="text-xs text-gray-400 truncate">
-                        {b.topic} · {mentor ? `${mentor.firstName} ${mentor.lastName}` : 'Mentor'}
+                        {b.topic} ·{' '}
+                        {mentor
+                          ? `${mentor.firstName} ${mentor.lastName}`
+                          : 'Mentor'}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          bookingStatusColors[b.status] ?? 'bg-gray-100 text-gray-600'
+                          bookingStatusColors[b.status] ??
+                          'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {bookingStatusLabels[b.status] ?? b.status}
@@ -377,9 +398,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-yellow-500" />
-              <h2 className="font-semibold text-gray-800">
-                Pagos Pendientes
-              </h2>
+              <h2 className="font-semibold text-gray-800">Pagos Pendientes</h2>
               {stats.pendingPayments > 0 && (
                 <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-medium">
                   {stats.pendingPayments}
@@ -419,16 +438,16 @@ export default function AdminDashboard() {
                       </p>
                       <p className="text-xs text-gray-400 truncate">
                         {booking?.topic ?? 'Sesión'} ·{' '}
-                        {mentor ? `${mentor.firstName} ${mentor.lastName}` : 'Mentor'}
+                        {mentor
+                          ? `${mentor.firstName} ${mentor.lastName}`
+                          : 'Mentor'}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-semibold text-gray-800">
                         S/. {p.amount?.toFixed(2)}
                       </p>
-                      <p className="text-xs text-gray-400">
-                        {p.paymentMethod}
-                      </p>
+                      <p className="text-xs text-gray-400">{p.paymentMethod}</p>
                     </div>
                   </div>
                 )

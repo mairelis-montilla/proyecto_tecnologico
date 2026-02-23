@@ -59,9 +59,10 @@ const SessionsTabs = ({
             onClick={() => onTabChange(tab.id)}
             className={`
               flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all
-              ${isActive
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              ${
+                isActive
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-200'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }
             `}
           >

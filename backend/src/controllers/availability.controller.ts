@@ -323,8 +323,8 @@ export const getAvailability = async (
 
     // Cruzar con reservas activas para saber cuáles slots están ocupados
     const scheduledTimes = availability
-      .filter((s) => s.date)
-      .map((s) => {
+      .filter(s => s.date)
+      .map(s => {
         const [hours, minutes] = s.startTime.split(':').map(Number)
         return moment(s.date).hour(hours).minute(minutes).second(0).toDate()
       })
@@ -340,7 +340,7 @@ export const getAvailability = async (
             .lean()
         : []
 
-    const slotsWithBookingInfo = availability.map((slot) => {
+    const slotsWithBookingInfo = availability.map(slot => {
       if (!slot.date) return { ...slot, hasActiveBooking: false }
       const [hours, minutes] = slot.startTime.split(':').map(Number)
       const scheduledAt = moment(slot.date)
@@ -349,10 +349,9 @@ export const getAvailability = async (
         .second(0)
         .toDate()
       const booking = activeBookings.find(
-        (b) =>
-          Math.abs(
-            new Date(b.scheduledAt).getTime() - scheduledAt.getTime()
-          ) < 60000
+        b =>
+          Math.abs(new Date(b.scheduledAt).getTime() - scheduledAt.getTime()) <
+          60000
       )
       return {
         ...slot,

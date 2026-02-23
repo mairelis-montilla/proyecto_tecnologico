@@ -8,6 +8,7 @@ import {
   createOrUpdateMentorProfile,
   updateMentorProfile,
   uploadMentorAvatar,
+  getMyEarnings,
 } from '../controllers/mentors.controller.js'
 import { getReviewsByMentor } from '../controllers/reviews.controller.js'
 import {
@@ -33,6 +34,14 @@ router.get(
   authenticateToken,
   authorize('mentor'),
   getMyMentorProfile
+)
+
+// GET /api/mentors/my-earnings - Mis ingresos como mentor
+router.get(
+  '/my-earnings',
+  authenticateToken,
+  authorize('mentor'),
+  getMyEarnings
 )
 
 // POST /api/mentors/profile - Crear/actualizar mi perfil de mentor
