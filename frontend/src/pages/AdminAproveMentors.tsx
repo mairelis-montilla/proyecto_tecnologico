@@ -653,7 +653,7 @@ const AdminMentorApproval: React.FC<AdminMentorApprovalProps> = ({
       </div>
 
       {/* ── Body: lista + detalle ── */}
-      <div className="flex h-[calc(100vh-170px)] overflow-hidden">
+      <div className="flex overflow-hidden" style={{ minHeight: 400 }}>
         {/* Lista izquierda */}
         <div
           className={`overflow-y-auto px-3 pb-4 ${
@@ -734,14 +734,8 @@ const AdminMentorApproval: React.FC<AdminMentorApprovalProps> = ({
         </div>
 
         {/* Panel detalle derecho */}
-        <div
-          className={`flex-1 overflow-y-auto px-5 py-4 bg-white border-l border-gray-200 ${
-            selected
-              ? 'block'
-              : 'hidden md:flex md:items-center md:justify-center'
-          }`}
-        >
-          {selected ? (
+        {selected && (
+          <div className="flex-1 overflow-y-auto px-5 py-4 bg-white border-l border-gray-200">
             <DetailPanel
               mentor={selected}
               tab={tab}
@@ -750,17 +744,8 @@ const AdminMentorApproval: React.FC<AdminMentorApprovalProps> = ({
               onRevoke={handleRevoke}
               onBack={() => setSelected(null)}
             />
-          ) : (
-            <div className="flex flex-col items-center gap-3 opacity-40">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-purple-100">
-                <User size={30} className="text-purple-600" />
-              </div>
-              <p className="text-sm text-gray-600">
-                Selecciona un mentor para ver el detalle
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ── Keyframes globales ── */}

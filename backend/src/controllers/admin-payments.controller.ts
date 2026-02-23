@@ -1,4 +1,5 @@
 import { Response } from 'express'
+import moment from 'moment-timezone'
 import { Payment } from '../models/Payment.model.js'
 import { Booking } from '../models/Booking.model.js'
 import { Notification } from '../models/Notification.model.js'
@@ -6,6 +7,8 @@ import { Student } from '../models/Student.model.js'
 import { Mentor } from '../models/Mentor.model.js'
 import { User } from '../models/User.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
+
+const TIMEZONE = 'America/Lima'
 
 /**
  * Obtener pagos pendientes de validación
@@ -119,15 +122,19 @@ export const getAllPayments = async (
       filter.paymentMethod = paymentMethod
     }
 
-    // Filtro por rango de fechas
+    // Filtro por rango de fechas (interpretado en timezone de Lima)
     if (dateFrom || dateTo) {
       const dateFilter: Record<string, Date> = {}
-      if (dateFrom) dateFilter.$gte = new Date(dateFrom as string)
-      if (dateTo) {
-        const endDate = new Date(dateTo as string)
-        endDate.setHours(23, 59, 59, 999)
-        dateFilter.$lte = endDate
-      }
+      if (dateFrom)
+        dateFilter.$gte = moment
+          .tz(dateFrom as string, TIMEZONE)
+          .startOf('day')
+          .toDate()
+      if (dateTo)
+        dateFilter.$lte = moment
+          .tz(dateTo as string, TIMEZONE)
+          .endOf('day')
+          .toDate()
       filter.createdAt = dateFilter
     }
 

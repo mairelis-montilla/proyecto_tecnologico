@@ -1,9 +1,4 @@
-import {
-  Calendar,
-  Clock,
-  FileText,
-  MessageSquare,
-} from 'lucide-react'
+import { Calendar, Clock, FileText, MessageSquare } from 'lucide-react'
 import { getAvatarUrl } from '../../utils/avatar'
 import {
   formatSessionDate,

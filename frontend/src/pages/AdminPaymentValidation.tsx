@@ -608,7 +608,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
 const AdminPaymentValidation: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('pending')
   const [payments, setPayments] = useState<AdminPayment[]>([])
-const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<AdminPayment | null>(null)
   const [toast, setToast] = useState<{

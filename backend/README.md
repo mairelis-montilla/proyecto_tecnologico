@@ -1,318 +1,291 @@
-# Backend - MentorMatch API
+# Backend — MentorMatch API
 
-API REST para sistema de reserva de mentorías. Construida con Node.js, Express, TypeScript y MongoDB con arquitectura modular.
+API REST desplegada en Render. Construida con Node.js, Express y TypeScript, conectada a MongoDB Atlas.
+
+- **URL producción:** https://mentormatch-api.onrender.com
+- **Health check:** https://mentormatch-api.onrender.com/api/health
+- **Repositorio:** https://github.com/mairelis-montilla/proyecto_tecnologico
+
+---
 
 ## Tecnologías
 
-- **Node.js** - Runtime de JavaScript
-- **Express** - Framework web minimalista
-- **TypeScript** - Tipado estático para JavaScript
-- **MongoDB + Mongoose** - Base de datos NoSQL
-- **JWT + bcrypt** - Autenticación y seguridad
-- **Express Validator** - Validación de datos
-- **tsx** - TypeScript execution para desarrollo
-- **ESLint** - Linter de código
-- **Prettier** - Formateador de código
+| Tecnología | Uso |
+|---|---|
+| Node.js 20 LTS | Runtime |
+| Express 4 | Framework HTTP |
+| TypeScript 5 | Tipado estático |
+| Mongoose 8 | ODM para MongoDB |
+| JWT + bcrypt | Autenticación y hash |
+| Multer + Cloudinary | Subida de imágenes |
+| Express Validator | Validación de entrada |
+| node-cron | Tareas programadas |
+| Nodemailer | Emails transaccionales |
+
+---
 
 ## Estructura de Carpetas
 
 ```
 src/
-├── config/         # Configuraciones (database, env, etc.)
-├── controllers/    # Controladores de rutas
-├── middlewares/    # Middlewares personalizados
-├── models/         # Modelos de datos
-├── routes/         # Definición de rutas
-├── services/       # Lógica de negocio
-├── types/          # Tipos e interfaces TypeScript
-├── utils/          # Funciones utilitarias
+├── config/         # Conexión a BD, variables de entorno
+├── controllers/    # Lógica de cada grupo de endpoints
+├── middlewares/    # authenticateToken, authorize, upload
+├── models/         # Esquemas Mongoose
+├── routes/         # Registro de rutas → index.ts
+├── services/       # Lógica de negocio (notificaciones, cron)
+├── scripts/        # Scripts de datos (seed, migrate)
+├── types/          # Tipos globales TypeScript
+├── utils/          # Helpers (avatar, email templates, etc.)
 └── index.ts        # Punto de entrada
 ```
 
-## Arquitectura
+---
 
-El proyecto sigue una arquitectura en capas:
+## Arquitectura en Capas
 
-1. **Routes** - Define endpoints y asocia con controladores
-2. **Controllers** - Maneja requests/responses HTTP
-3. **Services** - Contiene lógica de negocio
-4. **Models** - Representa entidades de datos
-5. **Middlewares** - Procesa requests antes de llegar a controllers
-
-## Requisitos Previos
-
-- Node.js >= 14 (recomendado 20 LTS)
-- MongoDB instalado y corriendo
-- Yarn o npm
-
-## Instalación
-
-```bash
-# Instalar dependencias
-yarn install
-
-# o con npm
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
+```
+HTTP Request
+     │
+     ▼
+  Routes  ──→  Middlewares (auth / role / validation)
+     │
+     ▼
+Controllers  ──→  Models (Mongoose)
+     │                    │
+     ▼                    ▼
+  Response            MongoDB Atlas
 ```
 
-## Configuración
+---
 
-### MongoDB
+## Despliegue en Render
 
-Asegúrate de que MongoDB esté corriendo:
-```bash
-# Windows
-net start MongoDB
+**Plataforma:** Render Web Service (plan gratuito)
 
-# macOS/Linux
-sudo systemctl start mongod
+| Parámetro | Valor |
+|---|---|
+| Build command | `npm install && npm run build` |
+| Start command | `npm start` |
+| Node version | 20 |
+| Auto-deploy | Sí, desde rama `main` |
+
+> En plan gratuito, el servicio entra en sleep tras 15 min de inactividad. La primera petición puede tardar ~30 s.
+
+### Variables de Entorno (Render)
+
+```env
+NODE_ENV=production
+PORT=4000
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=<clave secreta>
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=https://mentormatchpe.netlify.app
+CLOUDINARY_CLOUD_NAME=<nombre>
+CLOUDINARY_API_KEY=<key>
+CLOUDINARY_API_SECRET=<secret>
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=<correo>
+EMAIL_PASS=<contraseña app>
 ```
 
-### Variables de Entorno
+---
 
-Edita el archivo `.env` con tus valores:
+## Variables de Entorno para Desarrollo Local
+
+Crea `backend/.env` con:
 
 ```env
 NODE_ENV=development
 PORT=4000
-
-# MongoDB
 MONGODB_URI=mongodb://localhost:27017/mentordb
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_SECRET=dev-secret-local
 JWT_EXPIRES_IN=7d
-
-# CORS
-CORS_ORIGIN=http://localhost:3000
-
-# App
-APP_NAME=MentorMatch
+CORS_ORIGIN=http://localhost:5173
+CLOUDINARY_CLOUD_NAME=<nombre>
+CLOUDINARY_API_KEY=<key>
+CLOUDINARY_API_SECRET=<secret>
 ```
+
+---
 
 ## Scripts Disponibles
 
 ```bash
-# Desarrollo - Inicia servidor con hot reload
-yarn dev
+npm run dev                 # Desarrollo con hot reload (tsx watch)
+npm run build               # Compila TypeScript → dist/
+npm run start               # Ejecuta dist/index.js (producción)
+npm run lint                # ESLint
+npm run lint:fix            # ESLint con auto-fix
+npm run format              # Prettier
 
-# Build - Compila TypeScript a JavaScript
-yarn build
-
-# Start - Ejecuta versión compilada (producción)
-yarn start
-
-# Lint - Ejecuta ESLint
-yarn lint
-
-# Lint Fix - Corrige problemas de ESLint automáticamente
-yarn lint:fix
-
-# Format - Formatea código con Prettier
-yarn format
-
-# Format Check - Verifica formato sin modificar archivos
-yarn format:check
+# Scripts de base de datos
+npm run seed:admin          # Crea usuario admin inicial
+npm run seed:specialties    # Pobla especialidades
+npm run seed:mentors        # Datos de prueba de mentores
+npm run seed:availability   # Disponibilidad de mentores
+npm run complete:sessions   # Marca sesiones confirmadas pasadas como completadas
 ```
 
-## Desarrollo
+---
 
-1. Configura las variables de entorno en `.env`
-
-2. Inicia el servidor de desarrollo:
-   ```bash
-   yarn dev
-   ```
-
-3. El servidor estará disponible en [http://localhost:4000](http://localhost:4000)
-
-4. Prueba el endpoint de health:
-   ```bash
-   curl http://localhost:4000/api/health
-   ```
-
-## Modelos de Datos
-
-El proyecto incluye los siguientes modelos de Mongoose:
-
-### User
-Usuario del sistema (estudiante, mentor o admin)
-- email, password (hashed), firstName, lastName
-- role: 'student' | 'mentor' | 'admin'
-- avatar, isActive
-
-### Mentor
-Perfil de mentor
-- userId (ref: User)
-- bio, specialties (ref: Specialty[])
-- experience, credentials[]
-- rating, totalSessions
-- isApproved, isActive
-
-### Specialty
-Área de especialización
-- name, description, category
-- icon, isActive
-
-### Availability
-Disponibilidad horaria del mentor
-- mentorId (ref: Mentor)
-- dayOfWeek (0-6), startTime, endTime
-- duration (minutos)
-
-### Booking
-Reserva de mentoría
-- studentId (ref: User), mentorId (ref: Mentor)
-- specialty (ref: Specialty)
-- scheduledDate, startTime, endTime
-- status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
-- meetingLink, notes
-
-### Review
-Valoración de mentoría
-- bookingId (ref: Booking)
-- studentId, mentorId
-- rating (1-5), comment
-
-## Endpoints Disponibles
+## Endpoints de la API
 
 ### Base
 ```
-GET /                  # Información de la API
-GET /api/health        # Health check
+GET  /                    # Info de la API
+GET  /api/health          # Health check
 ```
 
-### Autenticación (por implementar)
+### Autenticación — /api/auth
 ```
-POST /api/auth/register          # Registro de usuario
-POST /api/auth/login             # Login
-GET  /api/auth/me                # Usuario actual
-POST /api/auth/logout            # Logout
-```
-
-### Usuarios (por implementar)
-```
-GET    /api/users                # Listar usuarios
-GET    /api/users/:id            # Obtener usuario
-PUT    /api/users/:id            # Actualizar usuario
-DELETE /api/users/:id            # Eliminar usuario
+POST  /register           # Registro de usuario
+POST  /register-mentor    # Registro con perfil mentor
+POST  /login              # Login → JWT token
+GET   /me                 # Usuario autenticado [auth]
+PATCH /update-avatar      # Actualizar avatar [auth]
+POST  /change-password    # Cambiar contraseña [auth]
 ```
 
-### Mentores (por implementar)
+### Mentores — /api/mentors
 ```
-GET    /api/mentors              # Listar mentores
-GET    /api/mentors/:id          # Obtener mentor
-POST   /api/mentors              # Crear perfil mentor
-PUT    /api/mentors/:id          # Actualizar mentor
-DELETE /api/mentors/:id          # Eliminar mentor
-GET    /api/mentors/search       # Buscar mentores
-```
-
-### Especialidades (por implementar)
-```
-GET    /api/specialties          # Listar especialidades
-GET    /api/specialties/:id      # Obtener especialidad
-POST   /api/specialties          # Crear especialidad (admin)
-PUT    /api/specialties/:id      # Actualizar especialidad (admin)
-DELETE /api/specialties/:id      # Eliminar especialidad (admin)
+GET   /                   # Listar mentores aprobados (público)
+GET   /search             # Buscar mentores con filtros
+GET   /my-profile         # Perfil propio [mentor]
+GET   /my-earnings        # Ingresos del mentor [mentor]
+PUT   /profile            # Actualizar perfil [mentor]
+GET   /:id                # Perfil público de un mentor
 ```
 
-### Reservas (por implementar)
+### Estudiantes — /api/students
 ```
-GET    /api/bookings             # Listar reservas
-GET    /api/bookings/:id         # Obtener reserva
-POST   /api/bookings             # Crear reserva
-PUT    /api/bookings/:id         # Actualizar reserva
-DELETE /api/bookings/:id         # Cancelar reserva
-GET    /api/bookings/student/:id # Reservas de estudiante
-GET    /api/bookings/mentor/:id  # Reservas de mentor
+GET   /my-profile         # Perfil propio [student]
+PUT   /profile            # Actualizar perfil [student]
 ```
 
-### Valoraciones (por implementar)
+### Reservas — /api/bookings
 ```
-GET    /api/reviews              # Listar valoraciones
-GET    /api/reviews/:id          # Obtener valoración
-POST   /api/reviews              # Crear valoración
-GET    /api/reviews/mentor/:id   # Valoraciones de mentor
+POST  /                   # Crear reserva [student]
+GET   /my-bookings        # Reservas del usuario [auth]
+GET   /:id                # Detalle de reserva [auth]
+POST  /:id/upload-payment # Subir comprobante [student]
+PATCH /:id/confirm        # Confirmar sesión [mentor]
+PATCH /:id/reject         # Rechazar solicitud [mentor]
+PATCH /:id/cancel         # Cancelar reserva [auth]
+PATCH /:id/complete       # Marcar como completada [mentor]
 ```
 
-## Agregar Nuevas Rutas
+### Pagos — /api/payments
+```
+GET   /my-payments        # Pagos del estudiante [student]
+GET   /history            # Historial de pagos [student]
+```
 
-1. Crea el controlador en `src/controllers/`:
-   ```typescript
-   // src/controllers/user.controller.ts
-   import { Request, Response } from 'express'
+### Reseñas — /api/reviews
+```
+POST  /                   # Crear reseña [student]
+GET   /my-reviews         # Reseñas recibidas [mentor]
+GET   /mentor/:mentorId   # Reseñas de un mentor (público)
+```
 
-   export const getUsers = (req: Request, res: Response) => {
-     // Implementación
-   }
-   ```
+### Especialidades — /api/specialties
+```
+GET   /                   # Listar especialidades (público)
+GET   /categories         # Categorías disponibles (público)
+```
 
-2. Crea las rutas en `src/routes/`:
-   ```typescript
-   // src/routes/user.routes.ts
-   import { Router } from 'express'
-   import { getUsers } from '../controllers/user.controller.js'
+### Disponibilidad — /api/availability
+```
+GET   /mentor/:mentorId   # Disponibilidad de un mentor (público)
+PUT   /                   # Actualizar disponibilidad [mentor]
+GET   /slots/:mentorId    # Slots libres con fecha [auth]
+```
 
-   const router = Router()
-   router.get('/', getUsers)
+### Notificaciones — /api/notifications
+```
+GET   /                   # Notificaciones del usuario [auth]
+PATCH /:id/read           # Marcar como leída [auth]
+PATCH /read-all           # Marcar todas como leídas [auth]
+```
 
-   export default router
-   ```
+### Admin — /api/admin
+```
+GET   /stats              # Métricas del dashboard [admin]
+GET   /users              # Listar usuarios [admin]
+PATCH /users/:id/toggle-status  # Bloquear/desbloquear [admin]
+GET   /pending-mentors    # Mentores pendientes de aprobación [admin]
+GET   /approved-mentors   # Mentores aprobados [admin]
+PATCH /mentors/:id/approve      # Aprobar mentor [admin]
+PATCH /mentors/:id/reject       # Rechazar mentor [admin]
+GET   /payments           # Todos los pagos [admin]
+GET   /payments/pending   # Pagos pendientes [admin]
+PATCH /payments/:id/approve     # Aprobar comprobante [admin]
+PATCH /payments/:id/reject      # Rechazar comprobante [admin]
+GET   /transactions       # Transacciones del sistema [admin]
+```
 
-3. Registra las rutas en `src/routes/index.ts`:
-   ```typescript
-   import userRouter from './user.routes.js'
-   router.use('/users', userRouter)
-   ```
+---
 
-## Manejo de Errores
+## Modelos de Datos
 
-El proyecto incluye un middleware de manejo de errores centralizado:
-
+### User
 ```typescript
-// Lanzar error en cualquier parte
-throw new Error('Something went wrong')
-
-// El middleware errorHandler lo capturará automáticamente
+email, password (hashed), firstName, lastName
+role: 'student' | 'mentor' | 'admin'
+avatar, isActive, isEmailVerified
 ```
 
-## Estándares de Código
-
-- Usa TypeScript para todo el código
-- Sigue las reglas de ESLint configuradas
-- Formatea código con Prettier antes de commit
-- Usa async/await en lugar de callbacks
-- Nombra archivos en kebab-case: `user.controller.ts`
-- Exporta funciones con nombre, evita export default cuando sea posible
-
-## Buenas Prácticas
-
-- Mantén los controladores ligeros, mueve lógica a services
-- Valida inputs del usuario
-- Maneja errores de forma apropiada
-- Usa variables de entorno para configuración
-- Documenta APIs complejas
-- Escribe código limpio y mantenible
-
-## Build de Producción
-
-```bash
-# Compilar TypeScript
-yarn build
-
-# Iniciar servidor de producción
-NODE_ENV=production yarn start
+### Mentor
+```typescript
+userId (→ User), bio, title, hourlyRate
+specialties (→ Specialty[]), languages[], credentials[]
+experience, rating, totalSessions
+isApproved, isActive
 ```
 
-Los archivos compilados estarán en `dist/`
+### Booking
+```typescript
+studentId (→ Student), mentorId (→ Mentor)
+scheduledAt, duration (45|60 min), topic, totalAmount
+status: 'pending_payment' | 'payment_uploaded' | 'payment_validated'
+       | 'confirmed' | 'completed' | 'cancelled' | 'refunded' | 'rejected'
+meetLink, paymentProof, remindersSent
+```
 
-## Extensiones Recomendadas
+### Payment
+```typescript
+bookingId (→ Booking), studentId (→ User), mentorId (→ Mentor)
+amount, currency, paymentMethod
+status: 'pending_proof' | 'pending_validation' | 'validated' | 'rejected' | 'refunded'
+proofImage, platformFee (10%), mentorEarnings (90%)
+rejectionReason, validatedAt
+```
 
-- ESLint
-- Prettier
-- TypeScript
-- REST Client (para probar APIs)
+### Review
+```typescript
+mentorId (→ Mentor), studentId (→ Student), bookingId (→ Booking)
+rating (1-5), comment, isVisible
+```
+
+---
+
+## Agregar Nuevos Endpoints
+
+1. Crear controlador en `src/controllers/feature.controller.ts`
+2. Crear rutas en `src/routes/feature.routes.ts`
+3. Registrar en `src/routes/index.ts`:
+   ```typescript
+   import featureRouter from './feature.routes.js'
+   router.use('/feature', featureRouter)
+   ```
+
+---
+
+## Plan de Mantenimiento
+
+- Revisar logs en el panel de Render periódicamente
+- Ejecutar `npm run complete:sessions` cuando se necesite cerrar sesiones pasadas
+- Verificar uso de MongoDB Atlas (límite 512 MB en plan gratuito)
+- Rotar `JWT_SECRET` y credenciales de Cloudinary cada 6 meses
+- Actualizar dependencias con `npm outdated` cada trimestre

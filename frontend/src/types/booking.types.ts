@@ -82,6 +82,7 @@ export interface Booking {
   totalAmount: number
   paymentDeadline?: string // ISO datetime - limite para subir comprobante
   isWithin24Hours?: boolean // calculado por el backend
+  hasReview?: boolean // calculado por el backend: si ya existe una calificación
   meetLink?: string // Link de Google Meet (se agrega al confirmar)
   paymentProof?: PaymentProof
   cancellation?: CancellationInfo
