@@ -1,34 +1,51 @@
 import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-// Configuración del transporter
+const APP_NAME = 'MentorMatch'
+
+// ── Resend (HTTP API — funciona en cualquier cloud, sin bloqueos SMTP) ──────────
+// Tiene prioridad sobre SMTP cuando RESEND_API_KEY está configurado
+const resendClient = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null
+
+// La dirección "from" para Resend:
+//   - Sin dominio verificado → usa onboarding@resend.dev (solo para pruebas)
+//   - Con dominio verificado → usa RESEND_FROM o SMTP_FROM
+const RESEND_FROM =
+  process.env.RESEND_FROM ||
+  process.env.SMTP_FROM ||
+  `${APP_NAME} <onboarding@resend.dev>`
+
+// ── SMTP (nodemailer — fallback para desarrollo local) ──────────────────────────
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com'
   const port = parseInt(process.env.SMTP_PORT || '587', 10)
   const user = process.env.SMTP_USER
   const pass = process.env.SMTP_PASS
 
-  if (!user || !pass) {
-    console.warn(
-      '⚠️ SMTP credentials not configured. Email sending will be simulated.'
-    )
-    return null
-  }
+  if (!user || !pass) return null
 
   return nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
-    auth: {
-      user,
-      pass,
-    },
+    auth: { user, pass },
   })
 }
 
-const transporter = createTransporter()
-
-const APP_NAME = 'MentorMatch'
+const transporter = resendClient ? null : createTransporter()
 const FROM_EMAIL = process.env.SMTP_FROM || 'noreply@mentormatch.com'
+
+if (resendClient) {
+  console.log('📧 Email provider: Resend API')
+} else if (transporter) {
+  console.log('📧 Email provider: SMTP (nodemailer)')
+} else {
+  console.warn(
+    '⚠️ [EMAIL] Sin proveedor configurado — los correos se simularán'
+  )
+}
 
 // Templates de email
 const emailTemplates = {
@@ -462,25 +479,41 @@ export const sendEmail = async (
         throw new Error(`Template ${template} not found`)
     }
 
-    if (!transporter) {
-      // Modo desarrollo: simular envío
-      console.log('📧 [EMAIL SIMULATED]')
-      console.log(`To: ${to}`)
-      console.log(`Subject: ${emailContent.subject}`)
-      console.log(`Code: ${data.code || 'N/A'}`)
+    // 1. Resend API (prioridad — funciona en cualquier cloud)
+    if (resendClient) {
+      const { error } = await resendClient.emails.send({
+        from: RESEND_FROM,
+        to: [to],
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+      })
+      if (error) throw error
+      console.log(`📧 [Resend] Email sent to ${to}`)
       return true
     }
 
-    await transporter.sendMail({
-      from: `"${APP_NAME}" <${FROM_EMAIL}>`,
-      to,
-      subject: emailContent.subject,
-      text: emailContent.text,
-      html: emailContent.html,
-    })
+    // 2. SMTP via nodemailer (fallback para desarrollo local)
+    if (transporter) {
+      await transporter.sendMail({
+        from: `"${APP_NAME}" <${FROM_EMAIL}>`,
+        to,
+        subject: emailContent.subject,
+        text: emailContent.text,
+        html: emailContent.html,
+      })
+      console.log(`📧 [SMTP] Email sent to ${to}`)
+      return true
+    }
 
-    console.log(`📧 Email sent to ${to}`)
-    return true
+    // 3. Sin proveedor configurado
+    console.warn('⚠️ [EMAIL] Sin proveedor configurado - correo NO enviado')
+    console.warn(`   To: ${to}`)
+    console.warn(`   Subject: ${emailContent.subject}`)
+    console.warn(
+      '   → Configura RESEND_API_KEY (producción) o SMTP_USER+SMTP_PASS (local)'
+    )
+    return false
   } catch (error) {
     console.error('Error sending email:', error)
     return false

@@ -92,7 +92,18 @@ export const registerStudent = async (
     )
 
     // Enviar email con código de verificación
-    await sendVerificationCode(user.email, user.firstName, verification.code)
+    const emailSent = await sendVerificationCode(
+      user.email,
+      user.firstName,
+      verification.code
+    )
+    if (!emailSent) {
+      console.error(
+        `❌ [AUTH] Falló el envío de correo de verificación a ${user.email}`
+      )
+    } else {
+      console.log(`✅ [AUTH] Correo de verificación enviado a ${user.email}`)
+    }
 
     // Generar token
     const token = generateToken(user._id.toString(), user.role)
@@ -194,7 +205,18 @@ export const registerMentor = async (
     )
 
     // Enviar email con código de verificación
-    await sendVerificationCode(user.email, user.firstName, verification.code)
+    const emailSentMentor = await sendVerificationCode(
+      user.email,
+      user.firstName,
+      verification.code
+    )
+    if (!emailSentMentor) {
+      console.error(
+        `❌ [AUTH] Falló el envío de correo de verificación a ${user.email}`
+      )
+    } else {
+      console.log(`✅ [AUTH] Correo de verificación enviado a ${user.email}`)
+    }
 
     // Generar token
     const token = generateToken(user._id.toString(), user.role)
@@ -547,7 +569,18 @@ export const resendVerificationCode = async (
     )
 
     // Enviar email
-    await sendVerificationCode(user.email, user.firstName, verification.code)
+    const emailSentResend = await sendVerificationCode(
+      user.email,
+      user.firstName,
+      verification.code
+    )
+    if (!emailSentResend) {
+      console.error(
+        `❌ [AUTH] Falló el reenvío de correo de verificación a ${user.email}`
+      )
+    } else {
+      console.log(`✅ [AUTH] Correo de verificación reenviado a ${user.email}`)
+    }
 
     res.status(200).json({
       status: 'success',
