@@ -31,7 +31,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { paymentAdminService } from '../services/admin.service'
-import type { AdminPayment, Pagination } from '../types/payment.types'
+import type { AdminPayment } from '../types/payment.types'
 
 type TabKey = 'pending' | 'all'
 
@@ -608,14 +608,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
 const AdminPaymentValidation: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('pending')
   const [payments, setPayments] = useState<AdminPayment[]>([])
-  const [pagination, setPagination] = useState<Pagination>({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    hasPrevPage: false,
-    hasNextPage: false,
-  })
-  const [loading, setLoading] = useState(true)
+const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<AdminPayment | null>(null)
   const [toast, setToast] = useState<{
@@ -633,7 +626,6 @@ const AdminPaymentValidation: React.FC = () => {
           ? await paymentAdminService.getPending({ limit: 50 })
           : await paymentAdminService.getAll({ limit: 50 })
       setPayments(result.payments)
-      setPagination(result.pagination)
     } catch {
       showToast('Error al cargar pagos', 'error')
     } finally {
