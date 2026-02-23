@@ -96,8 +96,8 @@ export const mentorProfileValidator = [
 
   body('specialties')
     .optional()
-    .isArray({ max: 5 })
-    .withMessage('Máximo 5 especialidades permitidas'),
+    .isArray()
+    .withMessage('Las especialidades deben ser un arreglo'),
 
   body('specialties.*')
     .optional()

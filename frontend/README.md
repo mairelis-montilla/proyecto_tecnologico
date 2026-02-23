@@ -1,156 +1,215 @@
-# Frontend - MentorMatch
+# Frontend — MentorMatch
 
-Aplicación web para sistema de reserva de mentorías. Construida con React, TypeScript, Vite y Tailwind CSS.
+Aplicación web desplegada en Netlify. Construida con React 18, TypeScript, Vite y Tailwind CSS.
+
+- **URL producción:** https://mentormatchpe.netlify.app/
+- **Backend API:** https://mentormatch-api.onrender.com
+- **Repositorio:** https://github.com/mairelis-montilla/proyecto_tecnologico
+
+---
 
 ## Tecnologías
 
-- **React 18** - Biblioteca de UI
-- **TypeScript** - Tipado estático
-- **Vite** - Build tool rápido
-- **Tailwind CSS** - Framework de CSS utility-first
-- **ESLint** - Linter de código
-- **Prettier** - Formateador de código
+| Tecnología | Uso |
+|---|---|
+| React 18 | UI library |
+| TypeScript 5 | Tipado estático |
+| Vite 5 | Build tool y dev server |
+| Tailwind CSS 3 | Estilos utility-first |
+| React Router 6 | Navegación SPA |
+| Zustand | Estado global |
+| Axios | HTTP client |
+| Lucide React | Iconos |
+| React Hot Toast | Notificaciones UI |
+
+---
 
 ## Estructura de Carpetas
 
 ```
 src/
-├── assets/         # Imágenes, fuentes, archivos estáticos
-├── components/     # Componentes reutilizables de React
-├── hooks/          # Custom React hooks
-├── pages/          # Componentes de páginas/vistas
-├── services/       # Servicios API y llamadas HTTP
-├── styles/         # Archivos CSS globales
-├── types/          # Definiciones de tipos TypeScript
-├── utils/          # Funciones utilitarias
-├── App.tsx         # Componente principal
-└── main.tsx        # Punto de entrada
+├── components/
+│   ├── Layout/             # Header, Sidebar, layouts por rol
+│   ├── booking/            # Formularios y cards de reservas
+│   ├── mentor/             # Cards y perfiles de mentores
+│   ├── notifications/      # Dropdown de notificaciones
+│   └── ui/                 # Componentes genéricos
+│
+├── pages/
+│   ├── Dashboard.tsx               # Dashboard estudiante/mentor
+│   ├── MentorSearch.tsx            # Búsqueda de mentores
+│   ├── MentorProfile.tsx           # Perfil público del mentor
+│   ├── StudentBookings.tsx         # Mis reservas (estudiante)
+│   ├── MentorSessions.tsx          # Mis sesiones (mentor)
+│   ├── MentorReviewsPage.tsx       # Mis reseñas (mentor)
+│   ├── StudentMyPayments.tsx       # Mis pagos (estudiante)
+│   ├── MentorEarnings.tsx          # Mis ingresos (mentor)
+│   ├── ProfilePage.tsx             # Perfil editable
+│   ├── AdminDashboard.tsx          # Panel admin
+│   ├── AdminUserManagement.tsx     # Gestión de usuarios
+│   ├── AdminAproveMentors.tsx      # Aprobación de mentores
+│   ├── AdminPaymentValidation.tsx  # Validación de pagos
+│   └── AdminTransactions.tsx       # Transacciones
+│
+├── services/               # Llamadas HTTP a la API
+├── stores/                 # Estado global con Zustand
+├── types/                  # Interfaces TypeScript
+├── utils/                  # Helpers (avatar, fechas, etc.)
+├── App.tsx                 # Rutas y providers
+└── main.tsx                # Punto de entrada
 ```
 
-## Requisitos Previos
+---
 
-- Node.js >= 14
-- Yarn o npm
+## Despliegue en Netlify
 
-## Instalación
+**Plataforma:** Netlify (plan gratuito con CDN global)
 
-```bash
-# Instalar dependencias
-yarn install
+| Parámetro | Valor |
+|---|---|
+| Build command | `npm run build` |
+| Publish directory | `dist` |
+| Auto-deploy | Sí, desde rama `main` |
 
-# o con npm
-npm install
+### Variables de Entorno (Netlify)
+
+```env
+VITE_API_URL=https://mentormatch-api.onrender.com
 ```
+
+### Redirecciones SPA — `netlify.toml`
+
+```toml
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+Este archivo es necesario para que React Router funcione correctamente al refrescar la página o acceder directamente a una ruta.
+
+---
+
+## Variables de Entorno para Desarrollo Local
+
+Crea `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:4000
+```
+
+---
 
 ## Scripts Disponibles
 
 ```bash
-# Desarrollo - Inicia servidor dev en http://localhost:3000
-yarn dev
-
-# Build - Genera build de producción
-yarn build
-
-# Preview - Vista previa del build de producción
-yarn preview
-
-# Lint - Ejecuta ESLint
-yarn lint
-
-# Lint Fix - Corrige problemas de ESLint automáticamente
-yarn lint:fix
-
-# Format - Formatea código con Prettier
-yarn format
-
-# Format Check - Verifica formato sin modificar archivos
-yarn format:check
+npm run dev         # Servidor de desarrollo (http://localhost:5173)
+npm run build       # Build de producción → dist/
+npm run preview     # Preview local del build
+npm run lint        # ESLint
+npm run lint:fix    # ESLint con auto-fix
+npm run format      # Prettier
 ```
 
-## Configuración
+---
 
-### Path Aliases
+## Rutas de la Aplicación
 
-El proyecto está configurado con alias de rutas:
+### Públicas
+| Ruta | Página |
+|---|---|
+| `/` | Landing page |
+| `/login` | Login |
+| `/register` | Registro de usuario |
 
-```typescript
-import Component from '@/components/Component'
+### Protegidas — Estudiante
+| Ruta | Página |
+|---|---|
+| `/dashboard` | Dashboard con estadísticas |
+| `/search` | Búsqueda de mentores |
+| `/mentor/:id` | Perfil público del mentor |
+| `/bookings` | Mis reservas |
+| `/my-payments` | Mis pagos e historial |
+| `/profile` | Mi perfil |
+
+### Protegidas — Mentor
+| Ruta | Página |
+|---|---|
+| `/dashboard` | Dashboard con métricas |
+| `/sessions` | Mis sesiones |
+| `/reviews` | Mis reseñas |
+| `/earnings` | Mis ingresos |
+| `/profile` | Mi perfil |
+
+### Protegidas — Admin
+| Ruta | Página |
+|---|---|
+| `/admin/dashboard` | Panel con métricas globales |
+| `/admin/users` | Gestión de usuarios |
+| `/admin/mentors` | Aprobación de mentores |
+| `/admin/payments` | Validación de comprobantes |
+| `/admin/transactions` | Historial de transacciones |
+
+---
+
+## Estado Global (Zustand Stores)
+
+| Store | Descripción |
+|---|---|
+| `auth.store` | Usuario autenticado, login, logout |
+| `booking.store` | Reservas y sesiones |
+| `mentor.store` | Búsqueda y perfil de mentores |
+| `review.store` | Reseñas del mentor |
+| `notification.store` | Notificaciones en app |
+
+---
+
+## Servicios API
+
+| Servicio | Endpoints consumidos |
+|---|---|
+| `auth.service` | `/auth/*` |
+| `mentor.service` | `/mentors/*` |
+| `booking.service` | `/bookings/*` |
+| `review.service` | `/reviews/*` |
+| `payment.service` | `/payments/*` |
+| `availability.service` | `/availability/*` |
+| `specialty.service` | `/specialties/*` |
+| `notification.service` | `/notifications/*` |
+| `admin.service` | `/admin/*` |
+
+---
+
+## Protección de Rutas
+
+Las rutas están protegidas con el componente `ProtectedRoute`:
+
+```tsx
+<ProtectedRoute allowedRoles={['student']}>
+  <StudentMyPayments />
+</ProtectedRoute>
 ```
 
-### Variables de Entorno
+Si el usuario no está autenticado, redirige a `/login`.
+Si está autenticado pero no tiene el rol requerido, redirige al dashboard correspondiente.
 
-Crea un archivo `.env` en la raíz del proyecto:
+---
 
-```env
-VITE_API_URL=http://localhost:4000
-VITE_APP_NAME=MentorMatch
-```
+## Convenciones de Código
 
-Accede a las variables con `import.meta.env.VITE_API_URL`
+- Componentes en PascalCase: `MentorCard.tsx`
+- Servicios en camelCase: `mentor.service.ts`
+- Stores: `feature.store.ts`
+- Tipos: `feature.types.ts`
+- Usar `@/` para imports absolutos desde `src/`
+- Componentes funcionales con hooks, sin class components
 
-## Páginas y Funcionalidades Principales
+---
 
-### Páginas (por implementar)
-- **Home** - Página de inicio con búsqueda de mentores
-- **Login/Register** - Autenticación de usuarios
-- **Dashboard** - Panel según rol (estudiante/mentor)
-- **Mentor Profile** - Perfil público de mentor
-- **Search Results** - Resultados de búsqueda
-- **Booking** - Crear reserva de mentoría
-- **My Bookings** - Gestión de reservas
-- **Profile Settings** - Configuración de perfil
+## Plan de Mantenimiento
 
-### Componentes Principales (por implementar)
-- **MentorCard** - Tarjeta de mentor
-- **SearchBar** - Barra de búsqueda
-- **CalendarView** - Vista de disponibilidad
-- **BookingForm** - Formulario de reserva
-- **ReviewCard** - Tarjeta de valoración
-- **Navigation** - Barra de navegación
-
-### Servicios API (por implementar)
-- **authService** - Login, registro, logout
-- **mentorService** - CRUD de mentores
-- **bookingService** - Gestión de reservas
-- **specialtyService** - Especialidades
-- **reviewService** - Valoraciones
-
-## Desarrollo
-
-1. Inicia el servidor de desarrollo:
-   ```bash
-   yarn dev
-   ```
-
-2. Abre [http://localhost:3000](http://localhost:3000) en tu navegador
-
-3. Los cambios se reflejarán automáticamente con Hot Module Replacement (HMR)
-
-## Build de Producción
-
-```bash
-# Generar build optimizado
-yarn build
-
-# Vista previa local del build
-yarn preview
-```
-
-Los archivos optimizados se generarán en la carpeta `dist/`
-
-## Estándares de Código
-
-- Usa TypeScript para todo el código
-- Sigue las reglas de ESLint configuradas
-- Formatea código con Prettier antes de commit
-- Usa componentes funcionales con hooks
-- Nombra componentes en PascalCase
-- Nombra archivos de componentes igual que el componente
-
-## Buenas Prácticas
-
-- Mantén componentes pequeños y enfocados
-- Extrae lógica compleja a custom hooks
-- Usa TypeScript interfaces para props
-- Implementa manejo de errores adecuado
-- Optimiza renders con React.memo cuando sea necesario
+- El deploy es automático al hacer `push` a `main`
+- Verificar en el panel de Netlify que el build pase sin errores tras cada merge
+- Revisar el tab "Deploy previews" de Netlify para PRs antes de mergear
+- Actualizar dependencias con `npm outdated` cada trimestre
+- Si el backend (Render) está dormido, la primera carga puede tardar ~30 s

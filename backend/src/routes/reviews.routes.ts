@@ -60,11 +60,10 @@ router.get(
   getMyReviews
 )
 
-// POST /api/reviews - Crear calificación (solo estudiantes autenticados)
+// POST /api/reviews - Crear calificación (usuario autenticado dueño de la sesión)
 router.post(
   '/',
   authenticateToken,
-  authorize('student'),
   createReviewValidator,
   createReview
 )

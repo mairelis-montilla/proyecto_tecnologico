@@ -621,16 +621,8 @@ export const createOrUpdateMentorProfile = async (
       paymentInfo,
     } = req.body
 
-    // Validar especialidades (1-5)
+    // Validar especialidades
     if (specialties && specialties.length > 0) {
-      if (specialties.length > 5) {
-        res.status(400).json({
-          status: 'error',
-          message: 'Máximo 5 especialidades permitidas',
-        })
-        return
-      }
-
       const validSpecialties = await Specialty.find({
         _id: { $in: specialties },
         isActive: true,

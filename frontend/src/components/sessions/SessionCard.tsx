@@ -132,14 +132,29 @@ const SessionCard = ({
       //   )
       //   break
       case 'completed':
+        if (!isMentor) {
+          if (booking.hasReview) {
+            actions.push(
+              <span
+                key="rated"
+                className="px-4 py-2 bg-green-50 text-green-700 font-medium rounded-lg text-sm"
+              >
+                Ya calificada
+              </span>
+            )
+          } else {
+            actions.push(
+              <button
+                key="rate"
+                onClick={() => onRateClick?.(booking)}
+                className="px-4 py-2 bg-amber-50 text-amber-700 font-medium rounded-lg hover:bg-amber-100 transition-colors text-sm"
+              >
+                Calificar
+              </button>
+            )
+          }
+        }
         actions.push(
-          <button
-            key="rate"
-            onClick={() => onRateClick?.(booking)}
-            className="px-4 py-2 bg-amber-50 text-amber-700 font-medium rounded-lg hover:bg-amber-100 transition-colors text-sm"
-          >
-            Calificar
-          </button>,
           <button
             key="details"
             onClick={() => onDetailsClick?.(booking)}

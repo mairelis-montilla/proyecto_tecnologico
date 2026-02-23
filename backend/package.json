@@ -12,6 +12,7 @@
     "seed:specialties": "tsx src/scripts/seedSpecialties.ts",
     "seed:mentors": "tsx src/scripts/seedMentors.ts",
     "seed:availability": "tsx src/scripts/updateMentorAvailability.ts",
+    "complete:sessions": "tsx src/scripts/completePassedSessions.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",

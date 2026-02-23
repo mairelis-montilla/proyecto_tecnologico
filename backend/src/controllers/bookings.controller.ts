@@ -6,6 +6,7 @@ import { Mentor } from '../models/Mentor.model.js'
 import { Student } from '../models/Student.model.js'
 import { Availability } from '../models/Availability.model.js'
 import { Notification } from '../models/Notification.model.js'
+import { Review } from '../models/Review.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 import { uploadImage } from '../services/cloudinary.service.js'
 
@@ -370,13 +371,18 @@ export const getMyBookings = async (
 
     const total = await Booking.countDocuments(filter)
 
-    // Agregar indicador de sesiones proximas (dentro de 24h)
+    // Agregar indicador de sesiones proximas (dentro de 24h) y si ya tiene review
     const now = moment()
+    const bookingIds = bookings.map(b => b._id)
+    const existingReviews = await Review.find({ bookingId: { $in: bookingIds } }).select('bookingId').lean()
+    const reviewedIds = new Set(existingReviews.map(r => r.bookingId.toString()))
+
     const bookingsWithFlags = bookings.map(booking => ({
       ...booking,
       isWithin24Hours:
         moment(booking.scheduledAt).diff(now, 'hours') <= 24 &&
         moment(booking.scheduledAt).isAfter(now),
+      hasReview: reviewedIds.has(booking._id.toString()),
     }))
 
     res.status(200).json({

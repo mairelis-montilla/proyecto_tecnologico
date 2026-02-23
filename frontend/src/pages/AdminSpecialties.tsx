@@ -28,6 +28,10 @@ export default function AdminSpecialties() {
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Delete confirmation modal
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const { success, error } = useToast()
 
   // Debounce search
@@ -73,25 +77,25 @@ export default function AdminSpecialties() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (id: string, name: string) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de que deseas eliminar la especialidad "${name}"?`
-      )
-    ) {
-      return
-    }
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name })
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
     try {
-      await specialtiesService.delete(id)
+      await specialtiesService.delete(deleteTarget.id)
       success('Especialidad eliminada correctamente')
+      setDeleteTarget(null)
       fetchSpecialties(pagination.currentPage)
     } catch (err: any) {
       console.error(err)
-      // El backend devuelve 400 si hay mentores asociados con un mensaje específico
       const msg =
         err.response?.data?.message || 'Error al eliminar la especialidad'
       error(msg)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -327,6 +331,62 @@ export default function AdminSpecialties() {
         initialData={editingSpecialty}
         isLoading={isSubmitting}
       />
+
+      {/* Modal de confirmación de eliminación */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => !isDeleting && setDeleteTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mx-auto mb-4">
+              <LucideIcons.Trash2 className="w-7 h-7 text-red-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+              ¿Eliminar especialidad?
+            </h3>
+            <p className="text-gray-600 text-center text-sm mb-1">
+              Estás a punto de eliminar{' '}
+              <span className="font-semibold text-gray-900">
+                "{deleteTarget.name}"
+              </span>
+              .
+            </p>
+            <p className="text-red-600 text-center text-sm font-medium mb-6">
+              Esta acción es permanente y no hay forma de recuperarla.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 text-gray-700 font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <LucideIcons.Loader2 className="w-4 h-4 animate-spin" />
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <LucideIcons.Trash2 className="w-4 h-4" />
+                    Sí, eliminar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

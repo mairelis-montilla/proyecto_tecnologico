@@ -201,6 +201,7 @@ const Sessions = () => {
     setShowDetailsModal(false)
     setShowApproveModal(false)
     setShowRejectModal(false)
+    setShowReviewModal(false)
   }
 
   const handlePaymentUploaded = () => {

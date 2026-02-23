@@ -4,6 +4,7 @@ import { validationResult } from 'express-validator'
 import { Review } from '../models/Review.model.js'
 import { Mentor } from '../models/Mentor.model.js'
 import { Booking } from '../models/Booking.model.js'
+import { Student } from '../models/Student.model.js'
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 
 /**
@@ -17,9 +18,9 @@ export const createReview = async (
 ): Promise<void> => {
   try {
     const { sessionId, rating, comment } = req.body
-    const studentId = req.user?._id?.toString()
+    const userId = req.user?._id
 
-    if (!studentId) {
+    if (!userId) {
       res.status(401).json({ status: 'error', message: 'No autenticado' })
       return
     }
@@ -56,7 +57,9 @@ export const createReview = async (
     }
 
     // 2. Verificar que la sesión pertenece al estudiante
-    if (session.studentId.toString() !== studentId) {
+    // Booking.studentId referencia Student._id, no User._id
+    const student = await Student.findOne({ userId })
+    if (!student || session.studentId.toString() !== student._id.toString()) {
       res
         .status(403)
         .json({
@@ -92,7 +95,7 @@ export const createReview = async (
     // 5. Crear la review
     const review = await Review.create({
       bookingId: sessionId,
-      studentId,
+      studentId: userId,
       mentorId: session.mentorId,
       rating,
       comment: comment ?? '',
