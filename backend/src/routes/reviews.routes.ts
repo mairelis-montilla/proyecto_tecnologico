@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   createReview,
+  getMyReviews,
   getReviewsByMentor,
   getReviewByBooking,
 } from '../controllers/reviews.controller.js'
@@ -50,6 +51,14 @@ const getReviewByBookingValidator = [
 ]
 
 // Rutas
+
+// GET /api/reviews/my-reviews - Mis reseñas como mentor autenticado
+router.get(
+  '/my-reviews',
+  authenticateToken,
+  authorize('mentor'),
+  getMyReviews
+)
 
 // POST /api/reviews - Crear calificación (solo estudiantes autenticados)
 router.post(

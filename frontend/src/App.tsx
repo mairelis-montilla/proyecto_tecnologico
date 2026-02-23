@@ -29,8 +29,11 @@ import AdminTransactionHistory from './pages/AdminTransactionHistory'
 import AdminReports from './pages/AdminReports'
 
 function App() {
-  const { isAuthenticated, isInitialized } = useAuthStore()
+  const { isAuthenticated, isInitialized, user } = useAuthStore()
   const checkAuth = useAuthStore(state => state.checkAuth)
+  const homeRedirect = isAuthenticated
+    ? user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'
+    : null
 
   useEffect(() => {
     checkAuth()
@@ -52,20 +55,20 @@ function App() {
         <Route
           path="/"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />
+            homeRedirect ? <Navigate to={homeRedirect} replace /> : <Landing />
           }
         />
         <Route
           path="/login"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+            homeRedirect ? <Navigate to={homeRedirect} replace /> : <Login />
           }
         />
         <Route
           path="/register"
           element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
+            homeRedirect ? (
+              <Navigate to={homeRedirect} replace />
             ) : (
               <Register />
             )
@@ -82,7 +85,14 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/dashboard"
+            element={
+              user?.role === 'admin'
+                ? <Navigate to="/admin/dashboard" replace />
+                : <Dashboard />
+            }
+          />
 
           {/* Rutas de estudiante */}
           <Route

@@ -359,11 +359,13 @@ export const getMe = async (
     }
 
     // Obtener perfil según el rol
-    let profile = null
+    let profileData: Record<string, unknown> | null = null
     if (user.role === 'student') {
-      profile = await Student.findOne({ userId: user._id })
+      const doc = await Student.findOne({ userId: user._id }).lean()
+      if (doc) profileData = { id: (doc._id as any).toString(), ...doc }
     } else if (user.role === 'mentor') {
-      profile = await Mentor.findOne({ userId: user._id })
+      const doc = await Mentor.findOne({ userId: user._id }).lean()
+      if (doc) profileData = { id: (doc._id as any).toString(), ...doc }
     }
 
     res.status(200).json({
@@ -378,7 +380,7 @@ export const getMe = async (
           avatar: user.avatar,
           isEmailVerified: user.isEmailVerified,
         },
-        profile,
+        profile: profileData,
       },
     })
   } catch (error) {
