@@ -16,6 +16,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
+<<<<<<< HEAD
   Search,
   X,
   Loader2,
@@ -32,6 +33,24 @@ import {
   ShieldOff,
   ShieldAlert,
   Clock,
+=======
+Search,
+X,
+Loader2,
+User,
+Calendar,
+Edit2,
+ChevronLeft,
+ChevronRight,
+CheckCircle,
+AlertTriangle,
+Users,
+Award,
+BookOpen,
+ShieldOff,
+ShieldAlert,
+Clock,
+>>>>>>> da2e30ef05e4cc7f6f9f829edc3fed6a80cc05de
 } from 'lucide-react'
 import {
   userAdminService,

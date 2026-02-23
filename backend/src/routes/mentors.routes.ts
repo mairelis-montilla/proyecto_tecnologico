@@ -10,6 +10,7 @@ import {
   uploadMentorAvatar,
   getMyEarnings,
 } from '../controllers/mentors.controller.js'
+import { getReviewsByMentor } from '../controllers/reviews.controller.js'
 import {
   getMentorsValidator,
   getMentorByIdValidator,
@@ -19,6 +20,7 @@ import {
 } from '../validators/mentors.validator.js'
 import { authenticateToken, authorize } from '../middlewares/auth.middleware.js'
 import { upload, handleMulterError } from '../middlewares/upload.middleware.js'
+import { param, query } from 'express-validator'
 
 const router = Router()
 
@@ -89,7 +91,37 @@ import availabilityRouter from './availability.routes.js'
 // Mount availability routes - this will handle /:id/availability
 router.use('/', availabilityRouter)
 
-// GET /api/mentors/:id - Perfil completo de un mentor
+// GET /api/mentors/:id/reviews - Ver reseñas de un mentor (con paginación y ordenamiento)
+router.get(
+  '/:id/reviews',
+  authenticateToken,
+  [
+    param('id').isMongoId().withMessage('ID de mentor inválido'),
+    query('page')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('La página debe ser un número entero mayor a 0'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 50 })
+      .withMessage('El límite debe ser un número entre 1 y 50'),
+    query('sortBy')
+      .optional()
+      .isIn(['createdAt', 'rating'])
+      .withMessage('Campo de ordenamiento inválido'),
+    query('sortOrder')
+      .optional()
+      .isIn(['asc', 'desc'])
+      .withMessage('Orden debe ser asc o desc'),
+  ],
+  (req: any, _res: any, next: any) => {
+    req.params.mentorId = req.params.id
+    next()
+  },
+  getReviewsByMentor
+)
+
+// GET /api/mentors/:id - Perfil completo de un mentor (debe ir al final)
 router.get('/:id', authenticateToken, getMentorByIdValidator, getMentorById)
 
 export default router

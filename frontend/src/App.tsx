@@ -24,6 +24,9 @@ import AdminUserManagement from './pages/AdminUserManagement'
 import MentorReviewsPage from '@/pages/MentorReviewsPage'
 import StudentMyPayments from '@/pages/StudentMyPayments'
 import MentorEarnings from '@/pages/MentorEarnings'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminTransactionHistory from './pages/AdminTransactionHistory'
+import AdminReports from './pages/AdminReports'
 
 function App() {
   const { isAuthenticated, isInitialized } = useAuthStore()
@@ -225,6 +228,30 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminSpecialties />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/transactions"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminTransactionHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminReports />
               </ProtectedRoute>
             }
           />

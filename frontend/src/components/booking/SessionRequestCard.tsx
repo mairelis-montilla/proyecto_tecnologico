@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   Calendar,
   Clock,
@@ -10,6 +11,11 @@ import {
   formatSessionTime,
   formatPrice,
 } from '../../utils/bookingHelpers'
+=======
+import { Calendar, Clock, FileText, MessageSquare } from 'lucide-react'
+import { getAvatarUrl } from '../../utils/avatar'
+import { formatSessionDate, formatSessionTime, formatPrice } from '../../utils/bookingHelpers'
+>>>>>>> da2e30ef05e4cc7f6f9f829edc3fed6a80cc05de
 import StatusBadge from '../ui/StatusBadge'
 import type { Booking } from '../../types/booking.types'
 

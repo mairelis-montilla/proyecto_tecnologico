@@ -121,7 +121,7 @@ export const createBooking = async (
       }
     )
 
-    // Verificar que no haya otra reserva activa en ese horario
+    // Verificar que el mentor no tenga otra reserva activa en ese horario
     const existingBooking = await Booking.findOne({
       mentorId,
       scheduledAt: scheduledAt.toDate(),
@@ -132,6 +132,53 @@ export const createBooking = async (
       res.status(400).json({
         status: 'error',
         message: 'Ya existe una reserva en ese horario',
+      })
+      return
+    }
+
+    // Verificar que el estudiante no tenga ya una reserva en ese mismo horario
+    // Detecta solapamiento: existente [existStart, existStart+duration] ∩ nueva [newStart, newEnd]
+    const studentConflict = await Booking.findOne({
+      studentId: student._id,
+      status: { $nin: ['cancelled', 'refunded', 'rejected'] },
+      $expr: {
+        $and: [
+          // La reserva existente empieza antes de que termine la nueva sesión
+          { $lt: ['$scheduledAt', endTime.toDate()] },
+          // La reserva existente termina después de que empieza la nueva sesión
+          // scheduledAt + duration(minutos)*60000ms > newStart
+          {
+            $gt: [
+              {
+                $add: [
+                  '$scheduledAt',
+                  { $multiply: ['$duration', 60000] },
+                ],
+              },
+              scheduledAt.toDate(),
+            ],
+          },
+        ],
+      },
+    }).populate({
+      path: 'mentorId',
+      select: 'userId title',
+      populate: { path: 'userId', select: 'firstName lastName' },
+    })
+
+    if (studentConflict) {
+      const conflictStart = moment(studentConflict.scheduledAt)
+      const conflictEnd = conflictStart
+        .clone()
+        .add(studentConflict.duration, 'minutes')
+      const conflictMentorUser = (studentConflict.mentorId as any)?.userId
+      const mentorName = conflictMentorUser
+        ? `${conflictMentorUser.firstName} ${conflictMentorUser.lastName}`
+        : 'otro mentor'
+
+      res.status(400).json({
+        status: 'error',
+        message: `Ya tienes una sesión agendada el ${conflictStart.format('DD/MM/YYYY')} de ${conflictStart.format('HH:mm')} a ${conflictEnd.format('HH:mm')} con ${mentorName}. Cancela esa sesión antes de reservar en ese mismo horario.`,
       })
       return
     }

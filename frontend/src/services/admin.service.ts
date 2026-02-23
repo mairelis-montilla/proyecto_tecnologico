@@ -270,6 +270,178 @@ export const paymentAdminService = {
   },
 }
 //----- Servicios de gestión de usuarios (bloquear/desbloquear) y detalles de usuario para admin -----
+// ─── Tipos para Dashboard ──────────────────────────────────────────────────────
+
+export interface DashboardStats {
+  totalUsers: number
+  activeMentors: number
+  sessionsThisMonth: number
+  revenueThisMonth: number
+  pendingPayments: number
+}
+
+export interface WeeklySession {
+  label: string
+  count: number
+}
+
+export interface MonthlyRevenue {
+  label: string
+  total: number
+}
+
+export interface DashboardData {
+  stats: DashboardStats
+  recentBookings: any[]
+  pendingPaymentsList: any[]
+  sessionsByWeek: WeeklySession[]
+  revenueByMonth: MonthlyRevenue[]
+}
+
+// ─── Tipos para Reportes ──────────────────────────────────────────────────────
+
+export type ReportPeriod = 'today' | 'week' | 'month' | 'custom'
+
+export interface ReportUsersData {
+  totalInPeriod: number
+  byRole: { student: number; mentor: number; admin: number }
+  chartData: { label: string; count: number }[]
+  period: string
+  dateFrom: string
+  dateTo: string
+}
+
+export interface ReportSessionsData {
+  summary: Record<string, number>
+  chartData: { label: string; completed: number; cancelled: number }[]
+  period: string
+  dateFrom: string
+  dateTo: string
+}
+
+export interface ReportRevenueData {
+  summary: {
+    totalRevenue: number
+    totalPlatformFees: number
+    totalMentorEarnings: number
+    byStatus: Record<string, { total: number; count: number }>
+  }
+  chartData: { label: string; total: number; platformFee: number }[]
+  period: string
+  dateFrom: string
+  dateTo: string
+}
+
+export interface TopMentor {
+  mentorId: string
+  name: string
+  email: string
+  avatar?: string
+  title: string
+  rating: number
+  sessionsCount: number
+  revenue: number
+  mentorEarnings: number
+}
+
+export interface ReportTopMentorsData {
+  topMentors: TopMentor[]
+  period: string
+  dateFrom: string
+  dateTo: string
+}
+
+// ─── Servicio de Dashboard ────────────────────────────────────────────────────
+
+export const dashboardAdminService = {
+  async getStats(): Promise<DashboardData> {
+    const response = await api.get<{
+      status: string
+      data: DashboardData
+    }>('/admin/dashboard/stats')
+    return response.data.data
+  },
+}
+
+// ─── Servicio de Reportes ─────────────────────────────────────────────────────
+
+export interface ReportsFilter {
+  period?: ReportPeriod
+  dateFrom?: string
+  dateTo?: string
+}
+
+export const reportsAdminService = {
+  async getUsers(params?: ReportsFilter): Promise<ReportUsersData> {
+    const response = await api.get<{ status: string; data: ReportUsersData }>(
+      '/admin/reports/users',
+      { params }
+    )
+    return response.data.data
+  },
+
+  async getSessions(params?: ReportsFilter): Promise<ReportSessionsData> {
+    const response = await api.get<{ status: string; data: ReportSessionsData }>(
+      '/admin/reports/sessions',
+      { params }
+    )
+    return response.data.data
+  },
+
+  async getRevenue(params?: ReportsFilter): Promise<ReportRevenueData> {
+    const response = await api.get<{ status: string; data: ReportRevenueData }>(
+      '/admin/reports/revenue',
+      { params }
+    )
+    return response.data.data
+  },
+
+  async getTopMentors(params?: ReportsFilter): Promise<ReportTopMentorsData> {
+    const response = await api.get<{
+      status: string
+      data: ReportTopMentorsData
+    }>('/admin/reports/top-mentors', { params })
+    return response.data.data
+  },
+
+  exportReport(type: string, params?: ReportsFilter): string {
+    const query = new URLSearchParams({
+      type,
+      ...(params?.period ? { period: params.period } : {}),
+      ...(params?.dateFrom ? { dateFrom: params.dateFrom } : {}),
+      ...(params?.dateTo ? { dateTo: params.dateTo } : {}),
+    }).toString()
+    return `/api/admin/reports/export?${query}`
+  },
+}
+
+// ─── Servicio de pagos extendido (summary) ────────────────────────────────────
+
+export interface PaymentsSummary {
+  totalRecaudado: number
+  totalPendientes: number
+  totalRechazados: number
+  totalReembolsados: number
+  totalPlatformFees: number
+  totalMentorEarnings: number
+  countValidated: number
+  countPending: number
+  countRejected: number
+  countRefunded: number
+  totalTransactions: number
+}
+
+export const paymentSummaryService = {
+  async getSummary(): Promise<PaymentsSummary> {
+    const response = await api.get<{
+      status: string
+      data: { summary: PaymentsSummary }
+    }>('/admin/payments/summary')
+    return response.data.data.summary
+  },
+}
+
+// ─── Servicio de gestión de usuarios ─────────────────────────────────────────
 export const userAdminService = {
   /**
    * Obtener lista de usuarios con filtros y paginación

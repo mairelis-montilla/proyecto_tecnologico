@@ -8,6 +8,8 @@ import {
   Calendar as CalendarIcon,
   X,
   Loader2,
+  Lock,
+  AlertTriangle,
 } from 'lucide-react'
 import moment from 'moment'
 import 'moment/locale/es'
@@ -29,6 +31,9 @@ interface AvailabilitySlot {
   recurrence: RecurrenceType
   recurrenceEndDate?: string
   isActive: boolean
+  hasActiveBooking?: boolean
+  bookingId?: string | null
+  bookingStatus?: string | null
 }
 
 interface NewSlotForm {
@@ -336,28 +341,57 @@ export default function MentorAvailability() {
                   ))}
 
                   {/* Slots - cada uno es independiente */}
-                  {getSlotsForDay(day).map(slot => (
-                    <div
-                      key={slot._id}
-                      className="absolute left-1 right-1 bg-emerald-100 border border-emerald-300 rounded-lg p-2 overflow-hidden cursor-pointer hover:bg-emerald-200 transition"
-                      style={getSlotStyle(slot)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-emerald-800">
-                          {slot.startTime} - {slot.endTime}
-                        </span>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation()
-                            handleDeleteSlot(slot)
-                          }}
-                          className="p-1 rounded hover:bg-red-100 text-red-600 transition"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                  {getSlotsForDay(day).map(slot => {
+                    const isBooked = !!slot.hasActiveBooking
+                    return (
+                      <div
+                        key={slot._id}
+                        className={`absolute left-1 right-1 rounded-lg p-2 overflow-hidden transition ${
+                          isBooked
+                            ? 'bg-orange-100 border border-orange-400'
+                            : 'bg-emerald-100 border border-emerald-300 cursor-pointer hover:bg-emerald-200'
+                        }`}
+                        style={getSlotStyle(slot)}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span
+                            className={`text-xs font-medium leading-tight ${
+                              isBooked ? 'text-orange-800' : 'text-emerald-800'
+                            }`}
+                          >
+                            {slot.startTime}
+                            {isBooked && (
+                              <span className="block text-orange-600 font-semibold">
+                                Reservado
+                              </span>
+                            )}
+                          </span>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation()
+                              handleDeleteSlot(slot)
+                            }}
+                            className={`p-1 rounded transition flex-shrink-0 ${
+                              isBooked
+                                ? 'text-orange-500 hover:bg-orange-200'
+                                : 'text-red-600 hover:bg-red-100'
+                            }`}
+                            title={
+                              isBooked
+                                ? 'Tiene una sesión activa'
+                                : 'Eliminar slot'
+                            }
+                          >
+                            {isBooked ? (
+                              <Lock className="w-3 h-3" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ))}
             </div>
@@ -366,14 +400,18 @@ export default function MentorAvailability() {
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex items-center gap-6 text-sm text-gray-600">
+      <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-gray-600">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-emerald-100 border border-emerald-300" />
           <span>Disponible</span>
         </div>
         <div className="flex items-center gap-2">
-          <Trash2 className="w-4 h-4 text-gray-400" />
-          <span>Cada slot se elimina individualmente</span>
+          <div className="w-4 h-4 rounded bg-orange-100 border border-orange-400" />
+          <span>Reservado (sesión activa)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Lock className="w-4 h-4 text-orange-500" />
+          <span>Cancela la sesión para poder eliminarlo</span>
         </div>
       </div>
 
@@ -527,51 +565,89 @@ export default function MentorAvailability() {
       {showDeleteModal && slotToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-            <div className="p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-6 h-6 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                ¿Eliminar este horario?
-              </h3>
-              <p className="text-sm text-gray-600 mb-1">
-                {moment(slotToDelete.date).format('dddd, D [de] MMMM')}
-              </p>
-              <p className="text-sm font-medium text-gray-900 mb-4">
-                {slotToDelete.startTime} - {slotToDelete.endTime}
-              </p>
-              <p className="text-xs text-gray-500 mb-6">
-                Esta acción no se puede deshacer.
-              </p>
-              <div className="flex gap-3">
+            {slotToDelete.hasActiveBooking ? (
+              /* Modal para slot con sesión activa */
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle className="w-6 h-6 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Horario con sesión activa
+                </h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  {moment(slotToDelete.date).format('dddd, D [de] MMMM')}
+                </p>
+                <p className="text-sm font-medium text-gray-900 mb-4">
+                  {slotToDelete.startTime} - {slotToDelete.endTime}
+                </p>
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-left">
+                  <p className="text-sm text-orange-800 font-medium mb-1">
+                    No puedes eliminar este bloque
+                  </p>
+                  <p className="text-sm text-orange-700">
+                    Este horario tiene una sesión reservada activa. Para
+                    eliminarlo primero debes <strong>cancelar la sesión</strong>{' '}
+                    desde la sección de solicitudes.
+                  </p>
+                </div>
                 <button
                   onClick={() => {
-                    if (!isDeleting) {
-                      setShowDeleteModal(false)
-                      setSlotToDelete(null)
-                    }
+                    setShowDeleteModal(false)
+                    setSlotToDelete(null)
                   }}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
                 >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
-                >
-                  {isDeleting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Eliminando...
-                    </span>
-                  ) : (
-                    'Eliminar'
-                  )}
+                  Entendido
                 </button>
               </div>
-            </div>
+            ) : (
+              /* Modal normal para slot libre */
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  ¿Eliminar este horario?
+                </h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  {moment(slotToDelete.date).format('dddd, D [de] MMMM')}
+                </p>
+                <p className="text-sm font-medium text-gray-900 mb-4">
+                  {slotToDelete.startTime} - {slotToDelete.endTime}
+                </p>
+                <p className="text-xs text-gray-500 mb-6">
+                  Esta acción no se puede deshacer.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      if (!isDeleting) {
+                        setShowDeleteModal(false)
+                        setSlotToDelete(null)
+                      }
+                    }}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+                  >
+                    {isDeleting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Eliminando...
+                      </span>
+                    ) : (
+                      'Eliminar'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
